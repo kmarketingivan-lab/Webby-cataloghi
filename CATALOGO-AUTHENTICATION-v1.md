@@ -3158,3 +3158,1591 @@ DEPLOYMENT
 □ Disaster recovery plan for auth system
 □ Regular dependency updates (auth libraries)
 ```
+
+---
+
+# INTEGRAZIONE: 05-OUTPUT-MODULO-AUTH.md
+_Integrato il 2026-01-29 14:51_
+
+Assolutamente! Ecco il modulo di autenticazione completo per Next.js 14 con Auth.js v5, rispettando tutti i requisiti e le stime di riga.
+
+Questo setup include:
+- Autenticazione con Credenziali (Email/Password)
+- Autenticazione OAuth (Google, GitHub)
+- Verifica Email
+- Reset Password
+- Validazione Zod
+- Integrazione Prisma
+- tRPC per le API server-side
+- Componenti UI React con `react-hook-form`
+- Middleware di protezione delle route
+- Test unitari di base
+
+---
+
+### Setup Iniziale (Assunzioni)
+
+Prima di incollare i file, assicurati di avere le seguenti dipendenze installate:
+
+```bash
+npm install next-auth@5.0.0-beta.10 @auth/prisma-adapter prisma bcryptjs zod react-hook-form @hookform/resolvers @tanstack/react-query @trpc/client @trpc/react-query @trpc/server @prisma/client
+npm install -D vitest @types/bcryptjs
+```
+
+**Configurazione Prisma:**
+Assicurati di avere un file `prisma/schema.prisma` e di aver eseguito `npx prisma db push` o `npx prisma migrate dev`.
+Il file `src/lib/prisma.ts` dovrebbe essere configurato come segue:
+
+```typescript
+// src/lib/prisma.ts
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+```
+
+**Configurazione tRPC:**
+Assicurati di avere un setup tRPC di base, ad esempio:
+
+```typescript
+// src/server/trpc/trpc.ts
+import { initTRPC, TRPCError } from '@trpc/server';
+import superjson from 'superjson';
+import { type Session } from 'next-auth';
+
+interface CreateContextOptions {
+  session: Session | null;
+}
+
+export const createTRPCContext = (opts: CreateContextOptions) => {
+  return {
+    session: opts.session,
+  };
+};
+
+const t = initTRPC.context<typeof createTRPCContext>().transformer(superjson).create();
+
+const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+export const router = t.router;
+export const publicProcedure = t.procedure;
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthenticated);
+```
+
+**Variabili d'ambiente:**
+Crea un file `.env.local` con:
+
+```
+AUTH_SECRET="your_super_secret_key_here"
+AUTH_URL="http://localhost:3000" # O il tuo dominio di produzione
+
+GOOGLE_CLIENT_ID="YOUR_GOOGLE_CLIENT_ID"
+GOOGLE_CLIENT_SECRET="YOUR_GOOGLE_CLIENT_SECRET"
+
+GITHUB_CLIENT_ID="YOUR_GITHUB_CLIENT_ID"
+GITHUB_CLIENT_SECRET="YOUR_GITHUB_CLIENT_SECRET"
+
+DATABASE_URL="postgresql://user:password@host:port/database" # La tua stringa di connessione al DB
+```
+
+---
+
+### FILE 21: prisma/schema-auth.prisma (80 righe)
+
+```prisma
+// prisma/schema.prisma
+// Aggiungi o estendi questo schema nel tuo file prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // O il tuo provider preferito
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   // Campo per password hashata, null per utenti OAuth
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
+}
+```
+
+---
+
+### FILE 7: src/lib/validations/auth.ts (80 righe)
+
+```typescript
+// src/lib/validations/auth.ts
+import { z } from 'zod';
+
+const passwordValidation = z.string()
+  .min(8, "La password deve contenere almeno 8 caratteri")
+  .regex(/[A-Z]/, "La password deve contenere almeno una lettera maiuscola")
+  .regex(/[a-z]/, "La password deve contenere almeno una lettera minuscola")
+  .regex(/[0-9]/, "La password deve contenere almeno un numero")
+  .regex(/[^a-zA-Z0-9]/, "La password deve contenere almeno un carattere speciale");
+
+export const loginSchema = z.object({
+  email: z.string().email("Inserisci un'email valida"),
+  password: z.string().min(1, "La password è richiesta"),
+});
+
+export const registerSchema = z.object({
+  name: z.string().min(2, "Il nome è richiesto").max(50, "Il nome è troppo lungo"),
+  email: z.string().email("Inserisci un'email valida"),
+  password: passwordValidation,
+  confirmPassword: z.string(),
+  terms: z.literal(true, {
+    errorMap: () => ({ message: "Devi accettare i termini e le condizioni" }),
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Le password non corrispondono",
+  path: ["confirmPassword"],
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Inserisci un'email valida"),
+});
+
+export const resetPasswordSchema = z.object({
+  password: passwordValidation,
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Le password non corrispondono",
+  path: ["confirmPassword"],
+});
+
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1, "La vecchia password è richiesta"),
+  newPassword: passwordValidation,
+  confirmNewPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: "Le nuove password non corrispondono",
+  path: ["confirmNewPassword"],
+});
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(2, "Il nome è richiesto").max(50, "Il nome è troppo lungo").optional(),
+  email: z.string().email("Inserisci un'email valida").optional(),
+  image: z.string().url("URL immagine non valido").optional().or(z.literal('')),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+```
+
+---
+
+### FILE 3: src/lib/auth/password.ts (50 righe)
+
+```typescript
+// src/lib/auth/password.ts
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+
+const SALT_ROUNDS = 10;
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+export function generateResetToken(): string {
+  // Questo token è per l'URL, non il token di reset effettivo nel DB
+  // Il token effettivo sarà generato e salvato nel DB in tokens.ts
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+// Funzione di validazione della forza della password basata sullo schema Zod
+export function validatePasswordStrength(password: string): { valid: boolean; errors: string[] } {
+  const passwordSchema = z.string()
+    .min(8, "La password deve contenere almeno 8 caratteri")
+    .regex(/[A-Z]/, "La password deve contenere almeno una lettera maiuscola")
+    .regex(/[a-z]/, "La password deve contenere almeno una lettera minuscola")
+    .regex(/[0-9]/, "La password deve contenere almeno un numero")
+    .regex(/[^a-zA-Z0-9]/, "La password deve contenere almeno un carattere speciale");
+
+  const result = passwordSchema.safeParse(password);
+  if (result.success) {
+    return { valid: true, errors: [] };
+  } else {
+    return { valid: false, errors: result.error.errors.map(err => err.message) };
+  }
+}
+```
+
+---
+
+### FILE 4: src/lib/auth/tokens.ts (80 righe)
+
+```typescript
+// src/lib/auth/tokens.ts
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
+
+const VERIFICATION_TOKEN_EXPIRATION_HOURS = 24;
+const PASSWORD_RESET_TOKEN_EXPIRATION_HOURS = 1;
+
+export async function generateVerificationToken(email: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRATION_HOURS * 60 * 60 * 1000);
+
+  await prisma.verificationToken.deleteMany({
+    where: { email },
+  });
+
+  await prisma.verificationToken.create({
+    data: {
+      email,
+      token,
+      expires,
+    },
+  });
+
+  return token;
+}
+
+export async function verifyVerificationToken(token: string): Promise<{ email: string } | null> {
+  const existingToken = await prisma.verificationToken.findUnique({
+    where: { token },
+  });
+
+  if (!existingToken) {
+    return null;
+  }
+
+  if (existingToken.expires < new Date()) {
+    await prisma.verificationToken.delete({
+      where: { id: existingToken.id },
+    });
+    return null; // Token scaduto
+  }
+
+  await prisma.verificationToken.delete({
+    where: { id: existingToken.id },
+  });
+
+  return { email: existingToken.email };
+}
+
+export async function generatePasswordResetToken(email: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_HOURS * 60 * 60 * 1000);
+
+  await prisma.passwordResetToken.deleteMany({
+    where: { email },
+  });
+
+  await prisma.passwordResetToken.create({
+    data: {
+      email,
+      token,
+      expires,
+    },
+  });
+
+  return token;
+}
+
+export async function verifyPasswordResetToken(token: string): Promise<{ email: string } | null> {
+  const existingToken = await prisma.passwordResetToken.findUnique({
+    where: { token },
+  });
+
+  if (!existingToken) {
+    return null;
+  }
+
+  if (existingToken.expires < new Date()) {
+    await prisma.passwordResetToken.delete({
+      where: { id: existingToken.id },
+    });
+    return null; // Token scaduto
+  }
+
+  await prisma.passwordResetToken.delete({
+    where: { id: existingToken.id },
+    // Non cancellare subito per evitare attacchi di riutilizzo, ma per questo esempio lo facciamo
+  });
+
+  return { email: existingToken.email };
+}
+```
+
+---
+
+### FILE 0: src/lib/email.ts (Placeholder per invio email)
+
+```typescript
+// src/lib/email.ts
+// Questo è un placeholder. In un'applicazione reale, useresti un servizio come Nodemailer, SendGrid, Resend, ecc.
+
+interface EmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+export async function sendEmail(options: EmailOptions): Promise<void> {
+  console.log(`--- Sending Email ---`);
+  console.log(`To: ${options.to}`);
+  console.log(`Subject: ${options.subject}`);
+  console.log(`HTML: ${options.html}`);
+  console.log(`---------------------`);
+
+  // Qui integreresti il tuo provider di email (es. Nodemailer, Resend)
+  // Esempio con Resend (richiede installazione e configurazione API key):
+  /*
+  import { Resend } from 'resend';
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  try {
+    await resend.emails.send({
+      from: 'onboarding@resend.dev', // Sostituisci con la tua email verificata
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    });
+    console.log('Email sent successfully via Resend');
+  } catch (error) {
+    console.error('Error sending email via Resend:', error);
+  }
+  */
+}
+```
+
+---
+
+### FILE 1: src/auth.ts (200 righe)
+
+```typescript
+// src/auth.ts
+import NextAuth, { type DefaultSession } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import { prisma } from "@/lib/prisma";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { generateVerificationToken } from "@/lib/auth/tokens";
+import { sendEmail } from "@/lib/email";
+import { loginSchema } from "@/lib/validations/auth";
+import { z } from "zod";
+
+// Estendi il tipo Session per includere id e role
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user: {
+      id: string;
+      role: "USER" | "ADMIN";
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    role: "USER" | "ADMIN";
+  }
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+    error: "/auth/error",
+    verifyRequest: "/auth/verify-request", // Pagina per mostrare che è stata inviata una email di verifica
+    newUser: "/register", // Reindirizza dopo la registrazione OAuth
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const validatedFields = loginSchema.safeParse(credentials);
+
+        if (validatedFields.success) {
+          const { email, password } = validatedFields.data;
+
+          const user = await prisma.user.findUnique({
+            where: { email },
+          });
+
+          if (!user || !user.password) {
+            throw new Error("Credenziali non valide");
+          }
+
+          const passwordsMatch = await verifyPassword(password, user.password);
+
+          if (passwordsMatch) {
+            if (!user.emailVerified) {
+              // Se l'email non è verificata, potresti voler inviare un'altra email di verifica
+              // o reindirizzare a una pagina che lo richieda.
+              // Per ora, lanciamo un errore.
+              throw new Error("Email non verificata. Controlla la tua casella di posta.");
+            }
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              role: user.role,
+            };
+          }
+        }
+        throw new Error("Credenziali non valide");
+      },
+    }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true, // Attenzione: abilita il linking automatico
+    }),
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true, // Attenzione: abilita il linking automatico
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+
+      // Aggiorna il token JWT se l'utente ha aggiornato il profilo
+      if (trigger === "update" && session?.user) {
+        token.name = session.user.name;
+        token.email = session.user.email;
+        token.image = session.user.image;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (token.id && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as "USER" | "ADMIN";
+      }
+      return session;
+    },
+    async authorized({ auth, request }) {
+      const { pathname } = request.nextUrl;
+      const isAuthenticated = !!auth?.user;
+
+      // Proteggi le route /dashboard e /admin
+      if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
+        if (!isAuthenticated) {
+          return Response.redirect(new URL("/login", request.nextUrl));
+        }
+        // Esempio di protezione per ruoli specifici
+        if (pathname.startsWith("/admin") && auth?.user?.role !== "ADMIN") {
+          return Response.redirect(new URL("/dashboard", request.nextUrl));
+        }
+      }
+
+      // Reindirizza gli utenti autenticati da /login, /register, /forgot-password
+      if (isAuthenticated && (pathname === "/login" || pathname === "/register" || pathname === "/forgot-password")) {
+        return Response.redirect(new URL("/dashboard", request.nextUrl));
+      }
+
+      return true;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        // Se l'utente si registra con credenziali, invia email di verifica
+        if (!user.emailVerified) {
+          const verificationToken = await generateVerificationToken(user.email);
+          const verificationUrl = `${process.env.AUTH_URL}/verify-email?token=${verificationToken}`;
+
+          await sendEmail({
+            to: user.email,
+            subject: "Verifica la tua email",
+            html: `<p>Clicca sul link per verificare la tua email: <a href="${verificationUrl}">Verifica Email</a></p>`,
+          });
+        }
+      }
+    },
+    async signIn({ user, account, isNewUser }) {
+      // Se l'utente si è autenticato con credenziali e l'email non è verificata
+      if (account?.provider === "credentials" && user.email && !user.emailVerified) {
+        // Potresti voler impedire il login o reindirizzare a una pagina di verifica
+        // Per ora, permettiamo il login ma l'utente avrà un flag emailVerified=false
+        // e il frontend dovrà gestirlo.
+        // Oppure, si può lanciare un errore qui per bloccare il login fino alla verifica.
+        // throw new Error("Email non verificata. Controlla la tua casella di posta.");
+      }
+
+      // Se un utente OAuth si registra, assicurati che abbia un ruolo di default
+      if (isNewUser && user.id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: "USER" },
+        });
+      }
+    },
+  },
+});
+```
+
+---
+
+### FILE 2: src/middleware.ts (50 righe)
+
+```typescript
+// src/middleware.ts
+import { auth } from "./auth";
+
+// Il middleware di Auth.js è già configurato per proteggere le route tramite i callbacks `authorized`
+// in src/auth.ts. Questo file serve principalmente per esportare il middleware.
+
+export default auth;
+
+// Configura il matcher per specificare quali percorsi devono essere intercettati dal middleware.
+// Questo matcher è cruciale per le prestazioni e la corretta applicazione delle regole.
+// Le route che non matchano qui non passeranno attraverso il middleware di Auth.js.
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - auth (auth pages like /login, /register, /forgot-password, /verify-email)
+     * - public assets (e.g., /images, /icons)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|auth|images|icons|.*\\..*).*)",
+    "/dashboard/:path*",
+    "/admin/:path*",
+  ],
+};
+```
+
+---
+
+### FILE 5: src/server/services/auth-service.ts (200 righe)
+
+```typescript
+// src/server/services/auth-service.ts
+import { prisma } from '@/lib/prisma';
+import { hashPassword, verifyPassword } from '@/lib/auth/password';
+import {
+  generateVerificationToken,
+  verifyVerificationToken,
+  generatePasswordResetToken,
+  verifyPasswordResetToken,
+} from '@/lib/auth/tokens';
+import { sendEmail } from '@/lib/email';
+import {
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+  ChangePasswordInput,
+  UpdateProfileInput,
+} from '@/lib/validations/auth';
+import { TRPCError } from '@trpc/server';
+import { User } from '@prisma/client';
+
+export class AuthService {
+  async register(data: RegisterInput): Promise<User> {
+    const { name, email, password } = data;
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new TRPCError({ code: 'CONFLICT', message: 'Un utente con questa email esiste già.' });
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: 'USER',
+      },
+    });
+
+    // Invia email di verifica
+    const verificationToken = await generateVerificationToken(email);
+    const verificationUrl = `${process.env.AUTH_URL}/verify-email?token=${verificationToken}`;
+    await sendEmail({
+      to: email,
+      subject: "Verifica la tua email per NextAuth App",
+      html: `<p>Clicca sul link per verificare la tua email: <a href="${verificationUrl}">Verifica Email</a></p>`,
+    });
+
+    return user;
+  }
+
+  // Nota: la logica di login è gestita direttamente da NextAuth nel provider Credentials.
+  // Questa funzione è più per un'API REST o per un caso d'uso specifico che non usa signIn di NextAuth.
+  // Per tRPC, useremo signIn direttamente nel client o un'implementazione custom se necessario.
+  async login(data: LoginInput): Promise<{ user: User }> {
+    const { email, password } = data;
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.password) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Credenziali non valide.' });
+    }
+
+    const passwordsMatch = await verifyPassword(password, user.password);
+    if (!passwordsMatch) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Credenziali non valide.' });
+    }
+
+    if (!user.emailVerified) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Email non verificata. Controlla la tua casella di posta.' });
+    }
+
+    return { user };
+  }
+
+  // Per JWT, il logout è principalmente client-side (cancellare il cookie/token).
+  // Questa funzione potrebbe essere usata per invalidare sessioni basate su DB o token specifici.
+  async logout(userId: string): Promise<void> {
+    // Se si usano sessioni basate su DB, si potrebbero cancellare qui.
+    // Per JWT, non c'è un'azione server-side diretta per "logout" di un token valido.
+    // Potrebbe essere implementata una blacklist di JWT se necessario, ma è più complesso.
+    console.log(`User ${userId} logged out (server-side no-op for JWT strategy).`);
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    const tokenPayload = await verifyVerificationToken(token);
+    if (!tokenPayload) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Token di verifica non valido o scaduto.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: tokenPayload.email } });
+    if (!user) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Utente non trovato.' });
+    }
+
+    if (user.emailVerified) {
+      throw new TRPCError({ code: 'CONFLICT', message: 'Email già verificata.' });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: new Date() },
+    });
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Non rivelare se l'email esiste per motivi di sicurezza
+      console.log(`Password reset requested for non-existent email: ${email}`);
+      return;
+    }
+
+    const resetToken = await generatePasswordResetToken(email);
+    const resetUrl = `${process.env.AUTH_URL}/reset-password?token=${resetToken}`;
+
+    await sendEmail({
+      to: email,
+      subject: "Reset della tua password per NextAuth App",
+      html: `<p>Clicca sul link per resettare la tua password: <a href="${resetUrl}">Reset Password</a></p>`,
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const tokenPayload = await verifyPasswordResetToken(token);
+    if (!tokenPayload) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Token di reset password non valido o scaduto.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: tokenPayload.email } });
+    if (!user) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Utente non trovato.' });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+  }
+
+  async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.password) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Utente non trovato o non ha una password.' });
+    }
+
+    const isOldPasswordValid = await verifyPassword(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'La vecchia password non è corretta.' });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
+
+  async updateProfile(userId: string, data: UpdateProfileInput): Promise<User> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Utente non trovato.' });
+    }
+
+    // Se l'email viene aggiornata, resetta emailVerified e invia nuova email di verifica
+    if (data.email && data.email !== user.email) {
+      const existingUserWithNewEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingUserWithNewEmail && existingUserWithNewEmail.id !== userId) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Questa email è già in uso da un altro account.' });
+      }
+
+      const verificationToken = await generateVerificationToken(data.email);
+      const verificationUrl = `${process.env.AUTH_URL}/verify-email?token=${verificationToken}`;
+      await sendEmail({
+        to: data.email,
+        subject: "Verifica la tua nuova email per NextAuth App",
+        html: `<p>Clicca sul link per verificare la tua nuova email: <a href="${verificationUrl}">Verifica Email</a></p>`,
+      });
+
+      return prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...data,
+          emailVerified: null, // Resetta lo stato di verifica
+        },
+      });
+    }
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: data,
+    });
+  }
+
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Utente non trovato.' });
+    }
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+  }
+}
+```
+
+---
+
+### FILE 6: src/server/trpc/routers/auth.ts (150 righe)
+
+```typescript
+// src/server/trpc/routers/auth.ts
+import { publicProcedure, protectedProcedure, router } from '@/server/trpc/trpc';
+import { AuthService } from '@/server/services/auth-service';
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+} from '@/lib/validations/auth';
+import { z } from 'zod';
+
+const authService = new AuthService();
+
+export const authRouter = router({
+  register: publicProcedure
+    .input(registerSchema)
+    .mutation(async ({ input }) => {
+      return authService.register(input);
+    }),
+
+  // Il login con credenziali è gestito principalmente tramite `signIn` di next-auth sul client.
+  // Questa procedura tRPC è un esempio se volessi un'API di login custom.
+  // Per questo setup, useremo `signIn` direttamente nel client.
+  login: publicProcedure
+    .input(loginSchema)
+    .mutation(async ({ input }) => {
+      // Questa procedura non userà signIn di next-auth, ma la logica interna.
+      // Per un'integrazione completa con next-auth, il client chiamerà `signIn("credentials", ...)`
+      // e non questa procedura tRPC per il login.
+      return authService.login(input);
+    }),
+
+  requestPasswordReset: publicProcedure
+    .input(forgotPasswordSchema)
+    .mutation(async ({ input }) => {
+      await authService.requestPasswordReset(input.email);
+      return { message: 'Se l\'email esiste, un link per il reset è stato inviato.' };
+    }),
+
+  resetPassword: publicProcedure
+    .input(resetPasswordSchema.extend({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      await authService.resetPassword(input.token, input.password);
+      return { message: 'La password è stata resettata con successo.' };
+    }),
+
+  verifyEmail: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      await authService.verifyEmail(input.token);
+      return { message: 'La tua email è stata verificata con successo.' };
+    }),
+
+  changePassword: protectedProcedure
+    .input(changePasswordSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error("ID utente non disponibile.");
+      }
+      await authService.changePassword(ctx.session.user.id, input.oldPassword, input.newPassword);
+      return { message: 'La password è stata cambiata con successo.' };
+    }),
+
+  updateProfile: protectedProcedure
+    .input(updateProfileSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error("ID utente non disponibile.");
+      }
+      const updatedUser = await authService.updateProfile(ctx.session.user.id, input);
+      return updatedUser;
+    }),
+
+  deleteAccount: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error("ID utente non disponibile.");
+      }
+      await authService.deleteAccount(ctx.session.user.id);
+      return { message: 'Il tuo account è stato eliminato con successo.' };
+    }),
+
+  // Esempio di procedura per ottenere i dati dell'utente autenticato
+  getMe: protectedProcedure
+    .query(async ({ ctx }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error("ID utente non disponibile.");
+      }
+      const user = await prisma.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { id: true, name: true, email: true, image: true, role: true, emailVerified: true },
+      });
+      if (!user) {
+        throw new Error("Utente non trovato.");
+      }
+      return user;
+    }),
+});
+```
+
+---
+
+### FILE 8: src/hooks/use-auth.ts (60 righe)
+
+```typescript
+// src/hooks/use-auth.ts
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/app/_trpc/client'; // Assumi che il tuo client tRPC sia qui
+import { LoginInput, RegisterInput } from '@/lib/validations/auth';
+import { toast } from 'sonner'; // Esempio di libreria per notifiche
+
+export function useAuth() {
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
+
+  const isAuthenticated = status === 'authenticated';
+  const isLoading = status === 'loading';
+  const user = session?.user;
+
+  const registerMutation = trpc.auth.register.useMutation({
+    onSuccess: () => {
+      toast.success("Registrazione avvenuta con successo! Controlla la tua email per la verifica.");
+      router.push('/login');
+    },
+    onError: (error) => {
+      toast.error(error.message || "Errore durante la registrazione.");
+    },
+  });
+
+  const login = async (data: LoginInput) => {
+    try {
+      const result = await nextAuthSignIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result?.error) {
+        toast.error(result.error);
+        return false;
+      }
+
+      if (result?.ok) {
+        toast.success("Login avvenuto con successo!");
+        router.push('/dashboard');
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      toast.error(error.message || "Errore durante il login.");
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    await nextAuthSignOut({ callbackUrl: '/' });
+    toast.info("Logout effettuato.");
+  };
+
+  const signInWithGoogle = async () => {
+    await nextAuthSignIn('google', { callbackUrl: '/dashboard' });
+  };
+
+  const signInWithGitHub = async () => {
+    await nextAuthSignIn('github', { callbackUrl: '/dashboard' });
+  };
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated,
+    login,
+    logout,
+    register: registerMutation.mutateAsync,
+    isRegistering: registerMutation.isLoading,
+    signInWithGoogle,
+    signInWithGitHub,
+    updateSession: update, // Espone la funzione update per aggiornare la sessione
+  };
+}
+```
+
+---
+
+### FILE 13: src/components/auth/oauth-buttons.tsx (60 righe)
+
+```typescript
+// src/components/auth/oauth-buttons.tsx
+'use client';
+
+import { useAuth } from '@/hooks/use-auth';
+import { FcGoogle } from 'react-icons/fc';
+import { FaGithub } from 'react-icons/fa';
+import { Button } from '@/components/ui/button'; // Assumi un componente Button di shadcn/ui o simile
+import { Loader2 } from 'lucide-react'; // Assumi un'icona di loading
+
+interface OAuthButtonsProps {
+  isLoading?: boolean;
+}
+
+export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
+  const { signInWithGoogle, signInWithGitHub } = useAuth();
+
+  const handleGoogleSignIn = async () => {
+    if (!isLoading) {
+      await signInWithGoogle();
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    if (!isLoading) {
+      await signInWithGitHub();
+    }
+  };
+
+  return (
+    <div className="flex flex-col space-y-3">
+      <Button
+        variant="outline"
+        onClick={handleGoogleSignIn}
+        disabled={isLoading}
+        className="flex items-center justify-center gap-2"
+      >
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FcGoogle className="h-5 w-5" />}
+        Continua con Google
+      </Button>
+      <Button
+        variant="outline"
+        onClick={handleGitHubSignIn}
+        disabled={isLoading}
+        className="flex items-center justify-center gap-2"
+      >
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FaGithub className="h-5 w-5" />}
+        Continua con GitHub
+      </Button>
+    </div>
+  );
+}
+```
+
+---
+
+### FILE 9: src/components/auth/login-form.tsx (150 righe)
+
+```typescript
+// src/components/auth/login-form.tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, LoginInput } from '@/lib/validations/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'; // Assumi shadcn/ui Form
+import Link from 'next/link';
+import { OAuthButtons } from './oauth-buttons';
+import { useAuth } from '@/hooks/use-auth';
+import { Loader2 } from 'lucide-react';
+
+export function LoginForm() {
+  const { login, isLoading: isAuthLoading } = useAuth();
+
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    await login(data);
+  };
+
+  const isSubmitting = form.formState.isSubmitting || isAuthLoading;
+
+  return (
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="mario.rossi@example.com"
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="********"
+                    autoComplete="current-password"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Accedi
+          </Button>
+        </form>
+      </Form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">O continua con</span>
+        </div>
+      </div>
+
+      <OAuthButtons isLoading={isSubmitting} />
+
+      <div className="text-center text-sm text-muted-foreground">
+        <Link href="/forgot-password" className="underline-offset-4 hover:underline">
+          Hai dimenticato la password?
+        </Link>
+      </div>
+      <div className="text-center text-sm text-muted-foreground">
+        Non hai un account?{' '}
+        <Link href="/register" className="underline-offset-4 hover:underline">
+          Registrati
+        </Link>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### FILE 10: src/components/auth/register-form.tsx (180 righe)
+
+```typescript
+// src/components/auth/register-form.tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchema, RegisterInput } from '@/lib/validations/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox'; // Assumi shadcn/ui Checkbox
+import Link from 'next/link';
+import { OAuthButtons } from './oauth-buttons';
+import { useAuth } from '@/hooks/use-auth';
+import { Loader2 } from 'lucide-react';
+import { validatePasswordStrength } from '@/lib/auth/password';
+import { useEffect, useState } from 'react';
+
+export function RegisterForm() {
+  const { register, isRegistering } = useAuth();
+  const [passwordStrengthErrors, setPasswordStrengthErrors] = useState<string[]>([]);
+
+  const form = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      terms: false,
+    },
+  });
+
+  const password = form.watch('password');
+
+  useEffect(() => {
+    if (password) {
+      const { errors } = validatePasswordStrength(password);
+      setPasswordStrengthErrors(errors);
+    } else {
+      setPasswordStrengthErrors([]);
+    }
+  }, [password]);
+
+
+  const onSubmit = async (data: RegisterInput) => {
+    await register(data);
+  };
+
+  const isSubmitting = form.formState.isSubmitting || isRegistering;
+
+  return (
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome</FormLabel>
+                <FormControl>
+                  <Input placeholder="Mario Rossi" disabled={isSubmitting} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="mario.rossi@example.com" disabled={isSubmitting} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="********" disabled={isSubmitting} {...field} />
+                </FormControl>
+                {passwordStrengthErrors.length > 0 && (
+                  <ul className="text-sm text-muted-foreground list-disc pl-5">
+                    {passwordStrengthErrors.map((error, index) => (
+                      <li key={index} className="text-red-500">{error}</li>
+                    ))}
+                  </ul>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Conferma Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="********" disabled={isSubmitting} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="terms"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Accetto i <Link href="/terms" className="underline">termini e condizioni</Link>
+                  </FormLabel>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Registrati
+          </Button>
+        </form>
+      </Form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">O continua con</span>
+        </div>
+      </div>
+
+      <OAuthButtons isLoading={isSubmitting} />
+
+      <div className="text-center text-sm text-muted-foreground">
+        Hai già un account?{' '}
+        <Link href="/login" className="underline-offset-4 hover:underline">
+          Accedi
+        </Link>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### FILE 11: src/components/auth/forgot-password-form.tsx (80 righe)
+
+```typescript
+// src/components/auth/forgot-password-form.tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { forgotPasswordSchema, ForgotPasswordInput } from '@/lib/validations/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { trpc } from '@/app/_trpc/client';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+export function ForgotPasswordForm() {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const forgotPasswordMutation = trpc.auth.requestPasswordReset.useMutation({
+    onSuccess: () => {
+      toast.success("Se l'email esiste, un link per il reset è stato inviato.");
+      setIsSubmitted(true);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Errore durante la richiesta di reset password.");
+    },
+  });
+
+  const form = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+
+  const onSubmit = async (data: ForgotPasswordInput) => {
+    await forgotPasswordMutation.mutateAsync(data);
+  };
+
+  const isSubmitting = form.formState.isSubmitting || forgotPasswordMutation.isLoading;
+
+  if (isSubmitted) {
+    return (
+      <div className="text-center space-y-4">
+        <h3 className="text-lg font-semibold">Link per il reset inviato!</h3>
+        <p className="text-muted-foreground">
+          Controlla la tua casella di posta (e la cartella spam) per un link per resettare la tua password.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="mario.rossi@example.com"
+                  autoComplete="email"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Invia link per il reset
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+---
+
+### FILE 12: src/components/auth/reset-password-form.tsx (100 righe)
+
+```typescript
+// src/components/auth/reset-password-form.tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { resetPasswordSchema, ResetPasswordInput } from '@/lib/validations/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { trpc } from '@/app/_trpc/client';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+export function ResetPasswordForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  const resetPasswordMutation = trpc.auth.resetPassword.useMutation({
+    onSuccess: () => {
+      toast.success("La password è stata resettata con successo. Ora puoi accedere.");
+      setResetSuccess(true);
+      router.push('/login');
+    },
+    onError: (error) => {
+      toast.error(error.message || "Errore durante il reset della password.");
+    },
+  });
+
+  const form = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  useEffect(() => {
+    if (!token) {
+      toast.error("Token di reset password mancante.");
+      router.push('/forgot-password');
+    }
+  }, [token, router]);
+
+  const onSubmit = async (data: ResetPasswordInput) => {
+    if (!token) {
+      toast.error("Token di reset password non valido.");
+      return;
+    }
+    await resetPasswordMutation.mutateAsync({ token, password: data.password, confirmPassword: data.confirmPassword });
+  };
+
+  const isSubmitting = form.formState.isSubmitting || resetPasswordMutation.isLoading;
+
+  if (resetSuccess) {
+    return (
+      <div className="text-center space-y-4">
+        <h3 className="text-lg font-semibold">Password resettata!</h3>
+        <p className="text-muted-foreground">
+          La tua password è stata modificata con successo. Puoi accedere con la nuova password.
+        </p>
+        <Button onClick={() => router.push('/login')}>Vai al Login</Button>
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nuova Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="********" disabled={isSubmitting} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Conferma Nuova Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="********" disabled={isSubmitting} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="
+
+---
+_Modello: gemini-2.5-flash (Google AI Studio)_

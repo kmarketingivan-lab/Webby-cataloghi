@@ -1,3 +1,4 @@
+<!-- AUDIT: Catalogo privo di code block. Necessita espansione con snippet TypeScript/Next.js 14. -->
 # CATALOGO DETERMINISTICO: REQUISITI → ARCHITETTURA AWS
 # VERSIONE: 2.0-DETERMINISTIC
 # DATA: 2026-01-25

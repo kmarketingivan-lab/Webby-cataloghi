@@ -1,3 +1,4 @@
+<!-- AUDIT: Catalogo privo di code block. Necessita espansione con snippet TypeScript/Next.js 14. -->
 # ============================================================================
 # CATALOGO DETERMINISTICO AWS v3.0
 # ============================================================================

@@ -826,3 +826,1194 @@ export const wsLatency = new Histogram({
 | Scaling | ✅ Load balancer configured |
 | Monitoring | ✅ Metrics configured |
 | Monitoring | ✅ Error logging integrated |
+
+11. NEXT.JS 14 WEBSOCKET INTEGRATION
+Custom Server Setup
+
+Next.js App Router non include un server WebSocket nativo. Richiede un custom server o un servizio esterno.
+
+✅ Pattern Consigliato: External WebSocket Server + API Routes
+✅ Alternative: Managed service (Pusher, Ably) o Serverless WebSockets (Vercel via Soketi)
+❌ Non supportato: WebSocket diretto in API Route /api/socket senza custom server.
+
+Server.ts Custom con Socket.io
+typescript
+Copia
+Scarica
+// server.ts (in root, alongside next.config.js)
+import { createServer } from 'http';
+import { parse } from 'url';
+import next from 'next';
+import { Server as SocketIOServer } from 'socket.io';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
+
+const dev = process.env.NODE_ENV !== 'production';
+const hostname = process.env.HOSTNAME || 'localhost';
+const port = parseInt(process.env.PORT || '3000', 10);
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+const app = next({ dev, hostname, port });
+const handler = app.getRequestHandler();
+
+app.prepare().then(async () => {
+  const httpServer = createServer(async (req, res) => {
+    try {
+      const parsedUrl = parse(req.url!, true);
+      await handler(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error handling request:', err);
+      res.statusCode = 500;
+      res.end('Internal Server Error');
+    }
+  });
+
+  // Socket.io Server Setup
+  const io = new SocketIOServer(httpServer, {
+    path: '/api/socketio',
+    addTrailingSlash: false,
+    cors: {
+      origin: dev ? ['http://localhost:3000'] : ['https://yourdomain.com'],
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+      skipMiddlewares: true,
+    },
+  });
+
+  // Redis Adapter for Scaling
+  const pubClient = createClient({ url: redisUrl });
+  const subClient = pubClient.duplicate();
+  
+  await Promise.all([pubClient.connect(), subClient.connect()]);
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log('Redis adapter connected');
+
+  // Socket.io Event Handlers
+  io.on('connection', (socket) => {
+    console.log(`Client connected: ${socket.id}`);
+    
+    // Join room based on user ID or room ID
+    socket.on('join:room', (roomId: string, userId: string) => {
+      socket.join(roomId);
+      socket.data.userId = userId;
+      io.to(roomId).emit('user:joined', { userId, socketId: socket.id });
+    });
+
+    // Presence heartbeat
+    socket.on('presence:heartbeat', (userId: string) => {
+      socket.data.lastSeen = Date.now();
+      socket.broadcast.emit('presence:update', { userId, status: 'online' });
+    });
+
+    // Typing indicator
+    socket.on('typing:start', (roomId: string, userId: string) => {
+      socket.to(roomId).emit('typing:start', userId);
+    });
+
+    socket.on('typing:stop', (roomId: string, userId: string) => {
+      socket.to(roomId).emit('typing:stop', userId);
+    });
+
+    // Message handling
+    socket.on('message:send', (message: MessagePayload) => {
+      const { roomId, ...msgData } = message;
+      io.to(roomId).emit('message:new', {
+        ...msgData,
+        timestamp: Date.now(),
+        delivered: true,
+      });
+    });
+
+    // Disconnect handler
+    socket.on('disconnect', (reason) => {
+      console.log(`Client disconnected: ${socket.id} (${reason})`);
+      if (socket.data.userId) {
+        socket.broadcast.emit('presence:update', { 
+          userId: socket.data.userId, 
+          status: 'offline' 
+        });
+      }
+    });
+  });
+
+  // Graceful shutdown
+  const gracefulShutdown = () => {
+    io.close(() => {
+      console.log('Socket.IO server closed');
+      httpServer.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+      });
+    });
+  };
+
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
+
+  httpServer
+    .once('error', (err) => {
+      console.error('Server error:', err);
+      process.exit(1);
+    })
+    .listen(port, () => {
+      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> WebSocket path: /api/socketio`);
+    });
+});
+Client Hook: useSocket
+typescript
+Copia
+Scarica
+// hooks/useSocket.ts
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+type SocketStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+type MessageHandler = (data: any) => void;
+
+interface UseSocketOptions {
+  autoConnect?: boolean;
+  reconnection?: boolean;
+  reconnectionAttempts?: number;
+  reconnectionDelay?: number;
+  reconnectionDelayMax?: number;
+  path?: string;
+}
+
+interface UseSocketReturn {
+  socket: Socket | null;
+  status: SocketStatus;
+  connect: () => void;
+  disconnect: () => void;
+  emit: (event: string, data: any, ack?: (response: any) => void) => void;
+  on: (event: string, handler: MessageHandler) => void;
+  off: (event: string, handler?: MessageHandler) => void;
+  joinRoom: (roomId: string, userId: string) => void;
+  leaveRoom: (roomId: string) => void;
+  isConnected: boolean;
+  error: Error | null;
+}
+
+const SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_WS_URL || 
+  (typeof window !== 'undefined' ? window.location.origin : '');
+
+export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
+  const [status, setStatus] = useState<SocketStatus>('disconnected');
+  const [error, setError] = useState<Error | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const eventHandlersRef = useRef<Map<string, MessageHandler[]>>(new Map());
+  const reconnectAttemptsRef = useRef(0);
+
+  const {
+    autoConnect = true,
+    reconnection = true,
+    reconnectionAttempts = 5,
+    reconnectionDelay = 1000,
+    reconnectionDelayMax = 5000,
+    path = '/api/socketio',
+  } = options;
+
+  // Initialize socket
+  const initializeSocket = useCallback(() => {
+    if (socketRef.current?.connected) {
+      return socketRef.current;
+    }
+
+    const socket = io(SOCKET_SERVER_URL, {
+      path,
+      autoConnect: false,
+      reconnection,
+      reconnectionAttempts,
+      reconnectionDelay,
+      reconnectionDelayMax,
+      timeout: 20000,
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+      auth: (cb) => {
+        const token = localStorage.getItem('accessToken');
+        cb({ token });
+      },
+    });
+
+    // Connection events
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+      setStatus('connected');
+      setError(null);
+      reconnectAttemptsRef.current = 0;
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setStatus('disconnected');
+      
+      if (reason === 'io server disconnect') {
+        // Manual reconnection needed
+        setTimeout(() => {
+          socket.connect();
+        }, 1000);
+      }
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err.message);
+      setStatus('disconnected');
+      setError(err);
+      
+      // Exponential backoff with jitter
+      if (reconnectAttemptsRef.current < reconnectionAttempts) {
+        const delay = Math.min(
+          reconnectionDelay * Math.pow(1.5, reconnectAttemptsRef.current) +
+          Math.random() * 1000,
+          reconnectionDelayMax
+        );
+        setTimeout(() => {
+          reconnectAttemptsRef.current += 1;
+          socket.connect();
+        }, delay);
+      }
+    });
+
+    socket.on('reconnect_attempt', (attempt) => {
+      console.log(`Reconnection attempt ${attempt}`);
+      setStatus('reconnecting');
+    });
+
+    socket.on('reconnect', (attempt) => {
+      console.log(`Reconnected after ${attempt} attempts`);
+      setStatus('connected');
+      reconnectAttemptsRef.current = 0;
+    });
+
+    // Re-register all event handlers
+    eventHandlersRef.current.forEach((handlers, event) => {
+      handlers.forEach(handler => {
+        socket.on(event, handler);
+      });
+    });
+
+    socketRef.current = socket;
+    return socket;
+  }, [path, reconnection, reconnectionAttempts, reconnectionDelay, reconnectionDelayMax]);
+
+  // Connection management
+  const connect = useCallback(() => {
+    const socket = initializeSocket();
+    if (!socket.connected) {
+      socket.connect();
+    }
+  }, [initializeSocket]);
+
+  const disconnect = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    setStatus('disconnected');
+  }, []);
+
+  // Event management
+  const emit = useCallback((event: string, data: any, ack?: (response: any) => void) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit(event, data, ack);
+    } else {
+      console.warn(`Cannot emit ${event}: socket not connected`);
+      // Optionally queue for later
+      if (event === 'message:send') {
+        const queue = JSON.parse(localStorage.getItem('offlineMessageQueue') || '[]');
+        queue.push({ event, data, timestamp: Date.now() });
+        localStorage.setItem('offlineMessageQueue', JSON.stringify(queue.slice(-50)));
+      }
+    }
+  }, []);
+
+  const on = useCallback((event: string, handler: MessageHandler) => {
+    if (!eventHandlersRef.current.has(event)) {
+      eventHandlersRef.current.set(event, []);
+    }
+    eventHandlersRef.current.get(event)!.push(handler);
+    
+    if (socketRef.current) {
+      socketRef.current.on(event, handler);
+    }
+  }, []);
+
+  const off = useCallback((event: string, handler?: MessageHandler) => {
+    const handlers = eventHandlersRef.current.get(event);
+    if (handlers) {
+      if (handler) {
+        const index = handlers.indexOf(handler);
+        if (index > -1) {
+          handlers.splice(index, 1);
+          if (socketRef.current) {
+            socketRef.current.off(event, handler);
+          }
+        }
+      } else {
+        handlers.forEach(h => {
+          if (socketRef.current) {
+            socketRef.current.off(event, h);
+          }
+        });
+        eventHandlersRef.current.delete(event);
+      }
+    }
+  }, []);
+
+  // Room management
+  const joinRoom = useCallback((roomId: string, userId: string) => {
+    emit('join:room', { roomId, userId });
+  }, [emit]);
+
+  const leaveRoom = useCallback((roomId: string) => {
+    if (socketRef.current) {
+      socketRef.current.emit('leave:room', roomId);
+    }
+  }, []);
+
+  // Auto-connect on mount
+  useEffect(() => {
+    if (autoConnect) {
+      connect();
+    }
+
+    return () => {
+      // Clean up event listeners but keep connection
+      if (socketRef.current) {
+        eventHandlersRef.current.forEach((handlers, event) => {
+          handlers.forEach(handler => {
+            socketRef.current!.off(event, handler);
+          });
+        });
+      }
+    };
+  }, [autoConnect, connect]);
+
+  return {
+    socket: socketRef.current,
+    status,
+    connect,
+    disconnect,
+    emit,
+    on,
+    off,
+    joinRoom,
+    leaveRoom,
+    isConnected: status === 'connected',
+    error,
+  };
+};
+
+// Types for message payload
+interface MessagePayload {
+  roomId: string;
+  userId: string;
+  content: string;
+  type: 'text' | 'image' | 'file';
+  metadata?: Record<string, any>;
+}
+Deployment Strategies
+Vercel Deployment
+
+⚠️ Limitation: Vercel Serverless Functions hanno timeout di 10-60s, non supportano WebSocket persistenti.
+
+✅ Workarounds:
+
+External WebSocket Server: Host su Railway, Render, DigitalOcean
+
+Pusher/Ably: Managed WebSocket service
+
+Soketi: Self-hosted Pusher-compatible server su fly.io/railway
+
+Vercel Serverless con Edge Functions: Solo per SSE, non WebSocket full-duplex
+
+typescript
+Copia
+Scarica
+// api/socket-proxy/route.ts (SSE fallback for Vercel)
+import { NextRequest } from 'next/server';
+
+export const runtime = 'edge';
+
+export async function GET(request: NextRequest) {
+  // Create a ReadableStream for SSE
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      // Connect to external WebSocket server
+      const wsUrl = process.env.EXTERNAL_WS_URL;
+      if (!wsUrl) {
+        controller.enqueue(encoder.encode('data: {"error": "No WS server"}\n\n'));
+        controller.close();
+        return;
+      }
+
+      try {
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          controller.enqueue(encoder.encode('data: {"status": "connected"}\n\n'));
+        };
+        
+        ws.onmessage = (event) => {
+          controller.enqueue(encoder.encode(`data: ${event.data}\n\n`));
+        };
+        
+        ws.onclose = () => {
+          controller.close();
+        };
+        
+        ws.onerror = (error) => {
+          controller.enqueue(encoder.encode(`data: {"error": "${error}"}\n\n`));
+          controller.close();
+        };
+        
+        // Cleanup on client disconnect
+        request.signal.addEventListener('abort', () => {
+          ws.close();
+          controller.close();
+        });
+      } catch (error) {
+        controller.enqueue(encoder.encode(`data: {"error": "${error}"}\n\n`));
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
+  });
+}
+Docker Deployment
+dockerfile
+Copia
+Scarica
+# Dockerfile
+FROM node:18-alpine AS base
+
+# Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Build application
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+EXPOSE 3001  # WebSocket port if different
+
+CMD ["node", "server.js"]
+yaml
+Copia
+Scarica
+# docker-compose.yml
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3001:3001"  # WebSocket port
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+Configuration per Ambiente
+typescript
+Copia
+Scarica
+// lib/config.ts
+export const getWebSocketConfig = () => {
+  const isBrowser = typeof window !== 'undefined';
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    // Production: external WebSocket server or managed service
+    if (process.env.NEXT_PUBLIC_WS_PROVIDER === 'external') {
+      return {
+        url: process.env.NEXT_PUBLIC_EXTERNAL_WS_URL!,
+        path: '/api/socketio',
+        autoConnect: true,
+      };
+    } else if (process.env.NEXT_PUBLIC_WS_PROVIDER === 'pusher') {
+      return {
+        provider: 'pusher',
+        key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+      };
+    }
+  }
+  
+  // Development: local server
+  return {
+    url: isBrowser ? window.location.origin : 'http://localhost:3000',
+    path: '/api/socketio',
+    autoConnect: true,
+  };
+};
+Performance Optimization
+typescript
+Copia
+Scarica
+// hooks/useOptimizedSocket.ts
+import { throttle, debounce } from 'lodash';
+import { useSocket } from './useSocket';
+
+export const useOptimizedSocket = () => {
+  const socket = useSocket();
+  
+  // Throttle high-frequency events
+  const throttledEmit = useMemo(
+    () => throttle(socket.emit, 100, { leading: true, trailing: true }),
+    [socket.emit]
+  );
+  
+  // Debounce typing indicators
+  const debouncedTypingStart = useMemo(
+    () => debounce((roomId: string, userId: string) => {
+      socket.emit('typing:start', { roomId, userId });
+    }, 300),
+    [socket.emit]
+  );
+  
+  const debouncedTypingStop = useMemo(
+    () => debounce((roomId: string, userId: string) => {
+      socket.emit('typing:stop', { roomId, userId });
+    }, 1000),
+    [socket.emit]
+  );
+  
+  // Batch messages for real-time dashboard
+  const batchMessages = useMemo(() => {
+    let batch: any[] = [];
+    let batchTimeout: NodeJS.Timeout | null = null;
+    
+    return (event: string, data: any) => {
+      batch.push(data);
+      
+      if (!batchTimeout) {
+        batchTimeout = setTimeout(() => {
+          socket.emit(`${event}:batch`, batch);
+          batch = [];
+          batchTimeout = null;
+        }, 100); // 100ms batching window
+      }
+    };
+  }, [socket.emit]);
+  
+  return {
+    ...socket,
+    throttledEmit,
+    debouncedTypingStart,
+    debouncedTypingStop,
+    batchMessages,
+  };
+};
+12. PUSHER/ABLY MANAGED ALTERNATIVES
+Pusher Channels Integration
+typescript
+Copia
+Scarica
+// lib/pusher/server.ts
+import Pusher from 'pusher';
+import { createClient } from 'redis';
+
+export const pusherServer = new Pusher({
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
+  cluster: process.env.PUSHER_CLUSTER!,
+  useTLS: true,
+  encryptionMasterKeyBase64: process.env.PUSHER_ENCRYPTION_MASTER_KEY,
+});
+
+// Redis persistence for Pusher
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
+
+await redisClient.connect();
+
+// Webhook handler for channel events
+export async function handlePusherWebhook(body: any) {
+  const events = body.events;
+  
+  for (const event of events) {
+    switch (event.name) {
+      case 'channel_occupied':
+        await redisClient.sAdd('active-channels', event.channel);
+        break;
+      case 'channel_vacated':
+        await redisClient.sRem('active-channels', event.channel);
+        break;
+      case 'member_added':
+        await redisClient.hSet(`channel:${event.channel}:members`, event.user_id, Date.now());
+        break;
+      case 'member_removed':
+        await redisClient.hDel(`channel:${event.channel}:members`, event.user_id);
+        break;
+    }
+  }
+}
+
+// Authentication endpoint for private/presence channels
+export async function authorizeChannel(
+  socketId: string,
+  channelName: string,
+  userId?: string
+) {
+  if (channelName.startsWith('private-')) {
+    // Verify user has access to private channel
+    const authResponse = pusherServer.authorizeChannel(socketId, channelName);
+    return authResponse;
+  }
+  
+  if (channelName.startsWith('presence-')) {
+    if (!userId) {
+      throw new Error('User ID required for presence channels');
+    }
+    
+    const userData = {
+      user_id: userId,
+      user_info: {
+        name: await getUserName(userId),
+        avatar: await getUserAvatar(userId),
+      },
+    };
+    
+    const authResponse = pusherServer.authorizeChannel(socketId, channelName, userData);
+    return authResponse;
+  }
+  
+  throw new Error('Unauthorized channel type');
+}
+typescript
+Copia
+Scarica
+// hooks/usePusher.ts
+import { useEffect, useRef, useState, useCallback } from 'react';
+import PusherClient, { Channel, PresenceChannel } from 'pusher-js';
+
+interface UsePusherOptions {
+  cluster: string;
+  authEndpoint?: string;
+  auth?: {
+    headers?: Record<string, string>;
+    params?: Record<string, string>;
+  };
+  forceTLS?: boolean;
+}
+
+interface UsePusherReturn {
+  client: PusherClient | null;
+  subscribe: (channelName: string) => Channel | PresenceChannel | null;
+  unsubscribe: (channelName: string) => void;
+  sendEvent: (channel: string, event: string, data: any) => void;
+  bindEvent: (channel: string, event: string, callback: (data: any) => void) => void;
+  getMembers: (channelName: string) => any[];
+  status: 'connected' | 'disconnected' | 'connecting';
+}
+
+export const usePusher = (options: UsePusherOptions): UsePusherReturn => {
+  const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
+  const pusherRef = useRef<PusherClient | null>(null);
+  const channelsRef = useRef<Map<string, Channel>>(new Map());
+  const eventHandlersRef = useRef<Map<string, Map<string, Function>>>(new Map());
+
+  const initialize = useCallback(() => {
+    if (pusherRef.current) {
+      return pusherRef.current;
+    }
+
+    const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: options.cluster,
+      authEndpoint: options.authEndpoint || '/api/pusher/auth',
+      auth: options.auth,
+      forceTLS: options.forceTLS ?? true,
+      enabledTransports: ['ws', 'wss'],
+      disabledTransports: ['xhr_streaming', 'xhr_polling'],
+      activityTimeout: 60000,
+      pongTimeout: 30000,
+    });
+
+    pusher.connection.bind('state_change', (states: any) => {
+      setStatus(states.current as any);
+    });
+
+    pusher.connection.bind('error', (err: any) => {
+      console.error('Pusher connection error:', err);
+    });
+
+    pusherRef.current = pusher;
+    return pusher;
+  }, [options]);
+
+  const subscribe = useCallback((channelName: string) => {
+    const pusher = initialize();
+    
+    if (channelsRef.current.has(channelName)) {
+      return channelsRef.current.get(channelName)!;
+    }
+
+    let channel: Channel;
+    
+    if (channelName.startsWith('presence-')) {
+      channel = pusher.subscribe(channelName) as PresenceChannel;
+      
+      channel.bind('pusher:subscription_succeeded', (members: any) => {
+        console.log(`Joined presence channel ${channelName} with ${members.count} members`);
+      });
+      
+      channel.bind('pusher:member_added', (member: any) => {
+        console.log('Member added:', member);
+      });
+      
+      channel.bind('pusher:member_removed', (member: any) => {
+        console.log('Member removed:', member);
+      });
+    } else if (channelName.startsWith('private-')) {
+      channel = pusher.subscribe(channelName);
+      
+      channel.bind('pusher:subscription_error', (status: number) => {
+        console.error(`Subscription error to ${channelName}:`, status);
+      });
+    } else {
+      channel = pusher.subscribe(channelName);
+    }
+
+    channelsRef.current.set(channelName, channel);
+    return channel;
+  }, [initialize]);
+
+  const unsubscribe = useCallback((channelName: string) => {
+    const pusher = pusherRef.current;
+    if (pusher && channelsRef.current.has(channelName)) {
+      pusher.unsubscribe(channelName);
+      channelsRef.current.delete(channelName);
+      eventHandlersRef.current.delete(channelName);
+    }
+  }, []);
+
+  const sendEvent = useCallback((channel: string, event: string, data: any) => {
+    // Note: Client can only trigger events on private/presence channels
+    // For public channels, use server-side Pusher instance
+    const channelInstance = channelsRef.current.get(channel);
+    if (channelInstance && channel.startsWith('private-')) {
+      channelInstance.trigger(`client-${event}`, data);
+    } else {
+      console.warn('Client can only trigger events on private/presence channels');
+    }
+  }, []);
+
+  const bindEvent = useCallback((
+    channelName: string,
+    event: string,
+    callback: (data: any) => void
+  ) => {
+    const channel = channelsRef.current.get(channelName);
+    if (channel) {
+      channel.bind(event, callback);
+      
+      if (!eventHandlersRef.current.has(channelName)) {
+        eventHandlersRef.current.set(channelName, new Map());
+      }
+      eventHandlersRef.current.get(channelName)!.set(event, callback);
+    }
+  }, []);
+
+  const getMembers = useCallback((channelName: string): any[] => {
+    const channel = channelsRef.current.get(channelName);
+    if (channel && 'members' in channel) {
+      return (channel as PresenceChannel).members.members;
+    }
+    return [];
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    const pusher = initialize();
+    
+    return () => {
+      channelsRef.current.forEach((_, channelName) => {
+        unsubscribe(channelName);
+      });
+      pusher.disconnect();
+    };
+  }, [initialize, unsubscribe]);
+
+  return {
+    client: pusherRef.current,
+    subscribe,
+    unsubscribe,
+    sendEvent,
+    bindEvent,
+    getMembers,
+    status,
+  };
+};
+Ably Realtime Integration
+typescript
+Copia
+Scarica
+// lib/ably/server.ts
+import Ably from 'ably/promises';
+import { createClient } from 'redis';
+
+export const ablyServer = new Ably.Rest({
+  key: process.env.ABLY_API_KEY!,
+  clientId: 'server',
+});
+
+// Redis for presence persistence
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
+
+await redisClient.connect();
+
+// Token generation for clients
+export async function createTokenRequest(clientId: string, capabilities?: any) {
+  const tokenParams = {
+    clientId,
+    capability: capabilities || {
+      'presence:*': ['presence', 'subscribe'],
+      'chat:*': ['publish', 'subscribe'],
+      'notifications:*': ['subscribe'],
+    },
+    ttl: 3600000, // 1 hour
+  };
+  
+  return await ablyServer.auth.createTokenRequest(tokenParams);
+}
+
+// Presence state management
+export async function updatePresence(
+  channelName: string,
+  clientId: string,
+  data: any
+) {
+  const channel = ablyServer.channels.get(channelName);
+  
+  // Update in Ably
+  await channel.presence.update(data);
+  
+  // Persist to Redis
+  await redisClient.hSet(
+    `ably:presence:${channelName}`,
+    clientId,
+    JSON.stringify({ ...data, timestamp: Date.now() })
+  );
+  
+  // Set expiration for stale presence
+  await redisClient.expire(`ably:presence:${channelName}`, 65); // 5 seconds grace
+}
+
+// Get channel presence from Redis
+export async function getChannelPresence(channelName: string) {
+  const presence = await redisClient.hGetAll(`ably:presence:${channelName}`);
+  return Object.entries(presence).map(([clientId, data]) => ({
+    clientId,
+    ...JSON.parse(data),
+  }));
+}
+typescript
+Copia
+Scarica
+// hooks/useAbly.ts
+import { useEffect, useRef, useState, useCallback } from 'react';
+import Ably from 'ably/promises';
+import * as AblyTypes from 'ably';
+
+interface UseAblyOptions {
+  clientId?: string;
+  authUrl?: string;
+  echoMessages?: boolean;
+  autoConnect?: boolean;
+}
+
+interface UseAblyReturn {
+  client: AblyTypes.Types.RealtimePromise | null;
+  channel: (name: string, options?: AblyTypes.Types.ChannelOptions) => AblyTypes.Types.RealtimeChannelPromise;
+  presence: (channelName: string) => AblyTypes.Types.PresencePromise;
+  status: AblyTypes.Types.ConnectionState;
+  connect: () => void;
+  disconnect: () => void;
+}
+
+export const useAbly = (options: UseAblyOptions = {}): UseAblyReturn => {
+  const [status, setStatus] = useState<AblyTypes.Types.ConnectionState>('initialized');
+  const ablyRef = useRef<AblyTypes.Types.RealtimePromise | null>(null);
+  const channelsRef = useRef<Map<string, AblyTypes.Types.RealtimeChannelPromise>>(new Map());
+
+  const initialize = useCallback(async () => {
+    if (ablyRef.current) {
+      return ablyRef.current;
+    }
+
+    const clientOptions: AblyTypes.Types.ClientOptions = {
+      authUrl: options.authUrl || '/api/ably/token',
+      authMethod: 'POST',
+      authHeaders: {
+        'Content-Type': 'application/json',
+      },
+      echoMessages: options.echoMessages ?? false,
+      autoConnect: options.autoConnect ?? true,
+    };
+
+    if (options.clientId) {
+      clientOptions.clientId = options.clientId;
+    }
+
+    const ably = new Ably.Realtime.Promise(clientOptions);
+    
+    ably.connection.on((stateChange: AblyTypes.Types.ConnectionStateChange) => {
+      setStatus(stateChange.current);
+      
+      switch (stateChange.current) {
+        case 'connected':
+          console.log('Ably connected');
+          break;
+        case 'failed':
+          console.error('Ably connection failed:', stateChange.reason);
+          break;
+        case 'disconnected':
+          console.warn('Ably disconnected, attempting reconnection');
+          break;
+      }
+    });
+
+    ablyRef.current = ably;
+    return ably;
+  }, [options.authUrl, options.clientId, options.echoMessages, options.autoConnect]);
+
+  const channel = useCallback((
+    name: string,
+    channelOptions?: AblyTypes.Types.ChannelOptions
+  ): AblyTypes.Types.RealtimeChannelPromise => {
+    if (!ablyRef.current) {
+      throw new Error('Ably client not initialized');
+    }
+    
+    const channelKey = `${name}:${JSON.stringify(channelOptions || {})}`;
+    
+    if (channelsRef.current.has(channelKey)) {
+      return channelsRef.current.get(channelKey)!;
+    }
+    
+    const channel = ablyRef.current.channels.get(name, channelOptions);
+    channelsRef.current.set(channelKey, channel);
+    
+    return channel;
+  }, []);
+
+  const presence = useCallback((channelName: string): AblyTypes.Types.PresencePromise => {
+    const ch = channel(channelName);
+    return ch.presence;
+  }, [channel]);
+
+  const connect = useCallback(async () => {
+    const ably = await initialize();
+    if (ably.connection.state !== 'connected') {
+      await ably.connection.connect();
+    }
+  }, [initialize]);
+
+  const disconnect = useCallback(async () => {
+    if (ablyRef.current) {
+      await ablyRef.current.connection.close();
+      channelsRef.current.clear();
+    }
+  }, []);
+
+  // Auto-connect
+  useEffect(() => {
+    if (options.autoConnect !== false) {
+      connect();
+    }
+    
+    return () => {
+      if (options.autoConnect !== false) {
+        disconnect();
+      }
+    };
+  }, [connect, disconnect, options.autoConnect]);
+
+  return {
+    client: ablyRef.current,
+    channel,
+    presence,
+    status,
+    connect,
+    disconnect,
+  };
+};
+
+// Example: Real-time notifications with Ably
+export const useAblyNotifications = (userId: string) => {
+  const { channel, status } = useAbly({
+    clientId: userId,
+    authUrl: '/api/ably/token',
+    autoConnect: true,
+  });
+  
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  useEffect(() => {
+    if (status !== 'connected') return;
+    
+    const notificationsChannel = channel(`notifications:${userId}`);
+    
+    // Subscribe to notifications
+    notificationsChannel.subscribe('notification', (message: any) => {
+      const notification = {
+        id: message.id,
+        type: message.data.type,
+        title: message.data.title,
+        body: message.data.body,
+        timestamp: message.timestamp,
+        read: false,
+        data: message.data.metadata,
+      };
+      
+      setNotifications(prev => [notification, ...prev.slice(0, 49)]);
+      setUnreadCount(prev => prev + 1);
+      
+      // Show browser notification if permitted
+      if (Notification.permission === 'granted' && !document.hasFocus()) {
+        new Notification(notification.title, {
+          body: notification.body,
+          icon: '/notification-icon.png',
+          tag: notification.id,
+        });
+      }
+    });
+    
+    // Presence for notification read status
+    notificationsChannel.presence.subscribe('enter', (member: any) => {
+      console.log(`User ${member.clientId} viewing notifications`);
+    });
+    
+    return () => {
+      notificationsChannel.unsubscribe();
+    };
+  }, [channel, status, userId]);
+  
+  const markAsRead = useCallback(async (notificationId: string) => {
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === notificationId ? { ...n, read: true } : n
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  }, []);
+  
+  return {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead: () => {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    },
+  };
+};
+Soketi (Self-hosted Pusher Alternative)
+yaml
+Copia
+Scarica
+# docker-compose.soketi.yml
+version: '3.8'
+
+services:
+  soketi:
+    image: quay.io/soketi/soketi:latest-16-alpine
+    environment:
+      SOKETI_DEFAULT_APP_ID: ${SOKETI_APP_ID}
+      SOKETI_DEFAULT_APP_KEY: ${SOKETI_APP_KEY}
+      SOKETI_DEFAULT_APP_SECRET: ${SOKETI_APP_SECRET}
+      SOKETI_DEFAULT_HOST: 0.0.0.0
+      SOKETI_DEFAULT_PORT: 6001
+      SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESS
+
+(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  // Position styles
+  const positionStyles = {
+    'top-left': { top: '1rem', left: '1rem' },
+    'top-right': { top: '1rem', right: '1rem' },
+    'bottom-left': { bottom: '1rem', left: '1rem' },
+    'bottom-right': { bottom: '1rem', right: '1rem' },
+  };
+  
+  const displayedNotifications = notifications.slice(0, maxNotifications);
+  const hasUnread = unreadCount > 0;
+  
+  return (
+    <div className="relative" ref={bellRef} style={positionStyles[position]}>
+      {/* Bell Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label={`Notifications ${hasUnread ? `(${unreadCount} unread)` : ''}`}
+      >
+        <Bell className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+        
+        {showBadge && hasUnread && (
+          <span className="absolute -top-1 -right-1 flex items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex items-center justify-center">
+              {showCount && unreadCount > 9 ? (
+                <

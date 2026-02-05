@@ -2946,3 +2946,1527 @@ Ogni sezione includerebbe:
 - Security considerations
 
 Il documento finale sarebbe di 1500-1800 righe come richiesto, con codice production-ready completo e funzionante.]
+
+---
+
+# INTEGRAZIONE: 16-OUTPUT-BLOG-COMPLETO.md
+_Integrato il 2026-01-29 14:51_
+
+Ecco il modulo BLOG completo, strutturato come richiesto, con un focus su editor, articoli, categorie, tag e SEO.
+
+---
+
+### FILE 1: `prisma/schema-blog.prisma` (70 righe)
+
+```prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "sqlite", "mysql", etc.
+  url      = env("DATABASE_URL")
+}
+
+// User model (assuming it exists in your application for author reference)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER) // Example role for authorization
+  
+  articles      Article[]
+  comments      Comment[] // Assuming comments are part of the blog module
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum UserRole {
+  USER
+  AUTHOR
+  ADMIN
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  PASSWORD_PROTECTED // Could be implemented with a password field on Article
+}
+
+model Article {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  excerpt         String?       @db.Text
+  content         String        @db.Text // Markdown content
+  contentHtml     String?       @db.Text  // Rendered HTML content
+  
+  // Media
+  featuredImage   String?       // URL to the featured image
+  featuredImageAlt String?
+  
+  // Author
+  authorId        String
+  author          User          @relation(fields: [authorId], references: [id])
+  
+  // Status & Visibility
+  status          ArticleStatus @default(DRAFT)
+  visibility      Visibility    @default(PUBLIC)
+  
+  // Publishing
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  
+  // SEO
+  seoTitle        String?
+  seoDescription  String?       @db.Text
+  seoKeywords     String[]      @default([]) // Array of keywords
+  canonicalUrl    String?
+  noIndex         Boolean       @default(false)
+  
+  // Stats
+  viewsCount      Int           @default(0)
+  likesCount      Int           @default(0) // For future social features
+  commentsCount   Int           @default(0)
+  readingTime     Int?          // in minutes
+  
+  // Relations
+  categoryId      String?
+  category        Category?     @relation(fields: [categoryId], references: [id])
+  tags            Tag[]         @relation(name: "ArticleTags") // Many-to-many relation
+  comments        Comment[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?     // Soft delete
+  
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  image       String?    // Category image/icon
+  
+  parentId    String?
+  parent      Category?  @relation("subcategories", fields: [parentId], references: [id])
+  children    Category[] @relation("subcategories")
+  
+  articles    Article[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@index([slug])
+  @@index([parentId])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  articles  Article[] @relation(name: "ArticleTags")
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@index([slug])
+}
+
+// Assuming a Comment model for articles
+model Comment {
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  authorId  String?   // Can be null for guest comments
+  author    User?     @relation(fields: [authorId], references: [id])
+  articleId String
+  article   Article   @relation(fields: [articleId], references: [id])
+  
+  parentId  String?
+  parent    Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("replies")
+  
+  isApproved Boolean  @default(false)
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  
+  @@index([articleId])
+  @@index([parentId])
+}
+```
+
+---
+
+### FILE 2: `src/server/services/article-service.ts` (350 righe)
+
+```typescript
+import { PrismaClient, Article, ArticleStatus, Visibility, User } from '@prisma/client';
+import { marked } from 'marked';
+import slugify from 'slugify';
+import {
+  CreateArticleInput,
+  UpdateArticleInput,
+  ArticleListParams,
+  ListParams,
+  SearchParams,
+  PaginatedResult,
+} from '@/lib/validations/blog'; // Adjust path as needed
+
+const prisma = new PrismaClient();
+
+export class ArticleService {
+  private readonly WORDS_PER_MINUTE = 200;
+
+  // --- CRUD Operations ---
+
+  async create(authorId: string, data: CreateArticleInput): Promise<Article> {
+    const slug = await this.generateSlug(data.title);
+    const contentHtml = await this.renderContent(data.content);
+    const readingTime = this.calculateReadingTime(data.content);
+
+    return prisma.article.create({
+      data: {
+        ...data,
+        slug,
+        author: { connect: { id: authorId } },
+        contentHtml,
+        readingTime,
+        status: data.status || ArticleStatus.DRAFT,
+        visibility: data.visibility || Visibility.PUBLIC,
+        publishedAt: data.status === ArticleStatus.PUBLISHED ? new Date() : undefined,
+        category: data.categoryId ? { connect: { id: data.categoryId } } : undefined,
+        tags: {
+          connect: data.tagIds?.map(id => ({ id })) || [],
+        },
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async update(articleId: string, data: UpdateArticleInput): Promise<Article> {
+    const existingArticle = await prisma.article.findUnique({ where: { id: articleId } });
+    if (!existingArticle) {
+      throw new Error('Article not found.');
+    }
+
+    const updateData: any = { ...data };
+
+    if (data.title && data.title !== existingArticle.title) {
+      updateData.slug = await this.generateSlug(data.title, articleId);
+    }
+
+    if (data.content) {
+      updateData.contentHtml = await this.renderContent(data.content);
+      updateData.readingTime = this.calculateReadingTime(data.content);
+    }
+
+    if (data.status === ArticleStatus.PUBLISHED && existingArticle.status !== ArticleStatus.PUBLISHED) {
+      updateData.publishedAt = new Date();
+    } else if (data.status !== ArticleStatus.PUBLISHED && existingArticle.status === ArticleStatus.PUBLISHED) {
+      updateData.publishedAt = null; // Unpublish
+    }
+
+    if (data.categoryId !== undefined) {
+      updateData.category = data.categoryId ? { connect: { id: data.categoryId } } : { disconnect: true };
+    }
+
+    if (data.tagIds !== undefined) {
+      const currentTags = await prisma.article.findUnique({
+        where: { id: articleId },
+        select: { tags: { select: { id: true } } },
+      });
+      const currentTagIds = currentTags?.tags.map(tag => tag.id) || [];
+
+      const tagsToConnect = data.tagIds.filter(id => !currentTagIds.includes(id));
+      const tagsToDisconnect = currentTagIds.filter(id => !data.tagIds.includes(id));
+
+      updateData.tags = {
+        connect: tagsToConnect.map(id => ({ id })),
+        disconnect: tagsToDisconnect.map(id => ({ id })),
+      };
+    }
+
+    return prisma.article.update({
+      where: { id: articleId },
+      data: updateData,
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async delete(articleId: string): Promise<void> {
+    await prisma.article.update({
+      where: { id: articleId },
+      data: { deletedAt: new Date() }, // Soft delete
+    });
+  }
+
+  async getById(id: string, includeDrafts: boolean = false): Promise<Article | null> {
+    return prisma.article.findUnique({
+      where: {
+        id,
+        deletedAt: null,
+        ...(includeDrafts ? {} : { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC }),
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async getBySlug(slug: string, includeDrafts: boolean = false): Promise<Article | null> {
+    return prisma.article.findUnique({
+      where: {
+        slug,
+        deletedAt: null,
+        ...(includeDrafts ? {} : { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC }),
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  // --- Queries ---
+
+  async list(params?: ArticleListParams): Promise<PaginatedResult<Article>> {
+    const { page = 1, pageSize = 10, status, categoryId, authorId, tagId, sortBy = 'publishedAt', sortOrder = 'desc', search, includeDrafts = false } = params || {};
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {
+      deletedAt: null,
+      ...(includeDrafts ? {} : { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC }),
+    };
+
+    if (status) where.status = status;
+    if (categoryId) where.categoryId = categoryId;
+    if (authorId) where.authorId = authorId;
+    if (tagId) where.tags = { some: { id: tagId } };
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { excerpt: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [articles, total] = await prisma.$transaction([
+      prisma.article.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { [sortBy]: sortOrder },
+        include: { author: true, category: true, tags: true },
+      }),
+      prisma.article.count({ where }),
+    ]);
+
+    return {
+      data: articles,
+      meta: {
+        total,
+        page,
+        pageSize,
+        lastPage: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async getPublished(params?: ListParams): Promise<PaginatedResult<Article>> {
+    return this.list({ ...params, status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC });
+  }
+
+  async getByCategory(categorySlug: string, params?: ListParams): Promise<PaginatedResult<Article>> {
+    const category = await prisma.category.findUnique({ where: { slug: categorySlug } });
+    if (!category) {
+      return { data: [], meta: { total: 0, page: params?.page || 1, pageSize: params?.pageSize || 10, lastPage: 0 } };
+    }
+    return this.list({ ...params, categoryId: category.id, status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC });
+  }
+
+  async getByTag(tagSlug: string, params?: ListParams): Promise<PaginatedResult<Article>> {
+    const tag = await prisma.tag.findUnique({ where: { slug: tagSlug } });
+    if (!tag) {
+      return { data: [], meta: { total: 0, page: params?.page || 1, pageSize: params?.pageSize || 10, lastPage: 0 } };
+    }
+    return this.list({ ...params, tagId: tag.id, status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC });
+  }
+
+  async getByAuthor(authorId: string, params?: ListParams): Promise<PaginatedResult<Article>> {
+    return this.list({ ...params, authorId, status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC });
+  }
+
+  async search(query: string, params?: SearchParams): Promise<PaginatedResult<Article>> {
+    return this.list({ ...params, search: query, status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC });
+  }
+
+  async getRelated(articleId: string, limit: number = 3): Promise<Article[]> {
+    const currentArticle = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: { categoryId: true, tags: { select: { id: true } } },
+    });
+
+    if (!currentArticle) return [];
+
+    const whereConditions: any[] = [{ id: { not: articleId } }];
+
+    if (currentArticle.categoryId) {
+      whereConditions.push({ categoryId: currentArticle.categoryId });
+    }
+    if (currentArticle.tags.length > 0) {
+      whereConditions.push({
+        tags: {
+          some: {
+            id: { in: currentArticle.tags.map(tag => tag.id) },
+          },
+        },
+      });
+    }
+
+    if (whereConditions.length === 1) return []; // Only current article ID exclusion
+
+    return prisma.article.findMany({
+      where: {
+        AND: [
+          { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
+          { OR: whereConditions },
+        ],
+      },
+      take: limit,
+      orderBy: { publishedAt: 'desc' },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async getFeatured(limit: number = 5): Promise<Article[]> {
+    // Implement logic for featured articles, e.g., a specific tag, or manually set field
+    // For now, return recent published articles
+    return prisma.article.findMany({
+      where: { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
+      take: limit,
+      orderBy: { publishedAt: 'desc' },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async getRecent(limit: number = 5): Promise<Article[]> {
+    return prisma.article.findMany({
+      where: { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
+      take: limit,
+      orderBy: { publishedAt: 'desc' },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async getPopular(limit: number = 5): Promise<Article[]> {
+    return prisma.article.findMany({
+      where: { status: ArticleStatus.PUBLISHED, visibility: Visibility.PUBLIC, deletedAt: null },
+      take: limit,
+      orderBy: { viewsCount: 'desc' },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  // --- Publishing Actions ---
+
+  async publish(articleId: string): Promise<Article> {
+    return prisma.article.update({
+      where: { id: articleId },
+      data: {
+        status: ArticleStatus.PUBLISHED,
+        publishedAt: new Date(),
+        scheduledAt: null,
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async unpublish(articleId: string): Promise<Article> {
+    return prisma.article.update({
+      where: { id: articleId },
+      data: {
+        status: ArticleStatus.DRAFT,
+        publishedAt: null,
+        scheduledAt: null,
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async schedule(articleId: string, publishAt: Date): Promise<Article> {
+    if (publishAt <= new Date()) {
+      throw new Error('Scheduled date must be in the future.');
+    }
+    return prisma.article.update({
+      where: { id: articleId },
+      data: {
+        status: ArticleStatus.SCHEDULED,
+        scheduledAt: publishAt,
+        publishedAt: null,
+      },
+      include: { author: true, category: true, tags: true },
+    });
+  }
+
+  async processScheduledArticles(): Promise<number> {
+    const now = new Date();
+    const { count } = await prisma.article.updateMany({
+      where: {
+        status: ArticleStatus.SCHEDULED,
+        scheduledAt: { lte: now },
+      },
+      data: {
+        status: ArticleStatus.PUBLISHED,
+        publishedAt: now,
+        scheduledAt: null,
+      },
+    });
+    return count;
+  }
+
+  // --- Stats & Helpers ---
+
+  async incrementViews(articleId: string): Promise<void> {
+    await prisma.article.update({
+      where: { id: articleId },
+      data: { viewsCount: { increment: 1 } },
+    });
+  }
+
+  calculateReadingTime(content: string): number {
+    const words = content.split(/\s+/).length;
+    return Math.ceil(words / this.WORDS_PER_MINUTE);
+  }
+
+  async generateSlug(title: string, excludeId?: string): Promise<string> {
+    let baseSlug = slugify(title, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existingArticle = await prisma.article.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      if (!existingArticle || (excludeId && existingArticle.id === excludeId)) {
+        return slug;
+      }
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+
+  async renderContent(markdown: string): Promise<string> {
+    // marked.setOptions({
+    //   gfm: true, // GitHub Flavored Markdown
+    //   breaks: true, // Use GFM line breaks
+    //   sanitize: true, // Sanitize output HTML
+    //   // highlight: function(code, lang) {
+    //   //   const hljs = require('highlight.js');
+    //   //   const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    //   //   return hljs.highlight(code, { language }).value;
+    //   // }
+    // });
+    return marked(markdown);
+  }
+}
+```
+
+---
+
+### FILE 3: `src/server/services/category-service.ts` (150 righe)
+
+```typescript
+import { PrismaClient, Category } from '@prisma/client';
+import slugify from 'slugify';
+import { CreateCategoryInput, UpdateCategoryInput, ListParams, PaginatedResult } from '@/lib/validations/blog'; // Adjust path
+
+const prisma = new PrismaClient();
+
+export class CategoryService {
+  // --- CRUD Operations ---
+
+  async create(data: CreateCategoryInput): Promise<Category> {
+    const slug = await this.generateSlug(data.name);
+    return prisma.category.create({
+      data: {
+        ...data,
+        slug,
+        parent: data.parentId ? { connect: { id: data.parentId } } : undefined,
+      },
+    });
+  }
+
+  async update(categoryId: string, data: UpdateCategoryInput): Promise<Category> {
+    const existingCategory = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!existingCategory) {
+      throw new Error('Category not found.');
+    }
+
+    const updateData: any = { ...data };
+
+    if (data.name && data.name !== existingCategory.name) {
+      updateData.slug = await this.generateSlug(data.name, categoryId);
+    }
+
+    if (data.parentId !== undefined) {
+      updateData.parent = data.parentId ? { connect: { id: data.parentId } } : { disconnect: true };
+    }
+
+    return prisma.category.update({
+      where: { id: categoryId },
+      data: updateData,
+    });
+  }
+
+  async delete(categoryId: string): Promise<void> {
+    // Check if category has children or articles before deleting
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+      include: { children: true, articles: true },
+    });
+
+    if (!category) {
+      throw new Error('Category not found.');
+    }
+    if (category.children.length > 0) {
+      throw new Error('Cannot delete category with subcategories. Please reassign or delete subcategories first.');
+    }
+    if (category.articles.length > 0) {
+      throw new Error('Cannot delete category with articles. Please reassign or delete articles first.');
+    }
+
+    await prisma.category.delete({ where: { id: categoryId } });
+  }
+
+  async getById(id: string): Promise<Category | null> {
+    return prisma.category.findUnique({ where: { id } });
+  }
+
+  async getBySlug(slug: string): Promise<Category | null> {
+    return prisma.category.findUnique({ where: { slug } });
+  }
+
+  // --- Queries ---
+
+  async list(params?: ListParams): Promise<PaginatedResult<Category>> {
+    const { page = 1, pageSize = 10, sortBy = 'name', sortOrder = 'asc' } = params || {};
+    const skip = (page - 1) * pageSize;
+
+    const [categories, total] = await prisma.$transaction([
+      prisma.category.findMany({
+        skip,
+        take: pageSize,
+        orderBy: { [sortBy]: sortOrder },
+        include: { _count: { select: { articles: true, children: true } } },
+      }),
+      prisma.category.count(),
+    ]);
+
+    return {
+      data: categories,
+      meta: {
+        total,
+        page,
+        pageSize,
+        lastPage: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async getAll(): Promise<Category[]> {
+    return prisma.category.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { articles: true } } },
+    });
+  }
+
+  async getTree(): Promise<Category[]> {
+    const categories = await prisma.category.findMany({
+      include: {
+        children: {
+          include: {
+            children: true, // Up to 2 levels deep for simplicity, can be recursive
+          },
+        },
+      },
+      where: { parentId: null }, // Start from root categories
+      orderBy: { name: 'asc' },
+    });
+    return categories;
+  }
+
+  async getChildren(parentId: string): Promise<Category[]> {
+    return prisma.category.findMany({
+      where: { parentId },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  // --- Helpers ---
+
+  async generateSlug(name: string, excludeId?: string): Promise<string> {
+    let baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existingCategory = await prisma.category.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      if (!existingCategory || (excludeId && existingCategory.id === excludeId)) {
+        return slug;
+      }
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+}
+```
+
+---
+
+### FILE 4: `src/server/services/tag-service.ts` (100 righe)
+
+```typescript
+import { PrismaClient, Tag } from '@prisma/client';
+import slugify from 'slugify';
+import { CreateTagInput, UpdateTagInput, ListParams, PaginatedResult } from '@/lib/validations/blog'; // Adjust path
+
+const prisma = new PrismaClient();
+
+export class TagService {
+  // --- CRUD Operations ---
+
+  async create(data: CreateTagInput): Promise<Tag> {
+    const slug = await this.generateSlug(data.name);
+    return prisma.tag.create({
+      data: {
+        ...data,
+        slug,
+      },
+    });
+  }
+
+  async update(tagId: string, data: UpdateTagInput): Promise<Tag> {
+    const existingTag = await prisma.tag.findUnique({ where: { id: tagId } });
+    if (!existingTag) {
+      throw new Error('Tag not found.');
+    }
+
+    const updateData: any = { ...data };
+
+    if (data.name && data.name !== existingTag.name) {
+      updateData.slug = await this.generateSlug(data.name, tagId);
+    }
+
+    return prisma.tag.update({
+      where: { id: tagId },
+      data: updateData,
+    });
+  }
+
+  async delete(tagId: string): Promise<void> {
+    // Check if tag is associated with any articles before deleting
+    const tag = await prisma.tag.findUnique({
+      where: { id: tagId },
+      include: { articles: { select: { id: true } } },
+    });
+
+    if (!tag) {
+      throw new Error('Tag not found.');
+    }
+    if (tag.articles.length > 0) {
+      throw new Error('Cannot delete tag associated with articles. Please remove tag from articles first.');
+    }
+
+    await prisma.tag.delete({ where: { id: tagId } });
+  }
+
+  async getById(id: string): Promise<Tag | null> {
+    return prisma.tag.findUnique({ where: { id } });
+  }
+
+  async getBySlug(slug: string): Promise<Tag | null> {
+    return prisma.tag.findUnique({ where: { slug } });
+  }
+
+  // --- Queries ---
+
+  async list(params?: ListParams): Promise<PaginatedResult<Tag>> {
+    const { page = 1, pageSize = 10, sortBy = 'name', sortOrder = 'asc' } = params || {};
+    const skip = (page - 1) * pageSize;
+
+    const [tags, total] = await prisma.$transaction([
+      prisma.tag.findMany({
+        skip,
+        take: pageSize,
+        orderBy: { [sortBy]: sortOrder },
+        include: { _count: { select: { articles: true } } },
+      }),
+      prisma.tag.count(),
+    ]);
+
+    return {
+      data: tags,
+      meta: {
+        total,
+        page,
+        pageSize,
+        lastPage: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async getAll(): Promise<Tag[]> {
+    return prisma.tag.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { articles: true } } },
+    });
+  }
+
+  async searchSuggestions(query: string, limit: number = 10): Promise<Tag[]> {
+    if (!query || query.length < 2) return [];
+    return prisma.tag.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  // --- Helpers ---
+
+  async generateSlug(name: string, excludeId?: string): Promise<string> {
+    let baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existingTag = await prisma.tag.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      if (!existingTag || (excludeId && existingTag.id === excludeId)) {
+        return slug;
+      }
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+}
+```
+
+---
+
+### FILE 5: `src/server/trpc/routers/blog.ts` (200 righe)
+
+```typescript
+import { z } from 'zod';
+import { publicProcedure, protectedProcedure, createTRPCRouter } from '@/server/trpc/trpc'; // Adjust path
+import { ArticleService } from '@/server/services/article-service';
+import { CategoryService } from '@/server/services/category-service';
+import { TagService } from '@/server/services/tag-service';
+import {
+  createArticleSchema,
+  updateArticleSchema,
+  articleListParamsSchema,
+  createCategorySchema,
+  updateCategorySchema,
+  createTagSchema,
+  updateTagSchema,
+  listParamsSchema,
+  searchParamsSchema,
+} from '@/lib/validations/blog'; // Adjust path
+
+const articleService = new ArticleService();
+const categoryService = new CategoryService();
+const tagService = new TagService();
+
+export const blogRouter = createTRPCRouter({
+  // --- Articles ---
+  articles: createTRPCRouter({
+    list: publicProcedure
+      .input(articleListParamsSchema.optional())
+      .query(async ({ input }) => {
+        return articleService.list(input);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.string(), includeDrafts: z.boolean().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getById(input.id, input.includeDrafts);
+      }),
+
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string(), includeDrafts: z.boolean().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getBySlug(input.slug, input.includeDrafts);
+      }),
+
+    getPublished: publicProcedure
+      .input(listParamsSchema.optional())
+      .query(async ({ input }) => {
+        return articleService.getPublished(input);
+      }),
+
+    getByCategory: publicProcedure
+      .input(z.object({ slug: z.string(), params: listParamsSchema.optional() }))
+      .query(async ({ input }) => {
+        return articleService.getByCategory(input.slug, input.params);
+      }),
+
+    getByTag: publicProcedure
+      .input(z.object({ slug: z.string(), params: listParamsSchema.optional() }))
+      .query(async ({ input }) => {
+        return articleService.getByTag(input.slug, input.params);
+      }),
+
+    getByAuthor: publicProcedure
+      .input(z.object({ authorId: z.string(), params: listParamsSchema.optional() }))
+      .query(async ({ input }) => {
+        return articleService.getByAuthor(input.authorId, input.params);
+      }),
+
+    search: publicProcedure
+      .input(z.object({ query: z.string(), params: searchParamsSchema.optional() }))
+      .query(async ({ input }) => {
+        return articleService.search(input.query, input.params);
+      }),
+
+    getRelated: publicProcedure
+      .input(z.object({ articleId: z.string(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getRelated(input.articleId, input.limit);
+      }),
+
+    getFeatured: publicProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getFeatured(input.limit);
+      }),
+
+    getRecent: publicProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getRecent(input.limit);
+      }),
+
+    getPopular: publicProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return articleService.getPopular(input.limit);
+      }),
+
+    incrementViews: publicProcedure
+      .input(z.object({ articleId: z.string() }))
+      .mutation(async ({ input }) => {
+        await articleService.incrementViews(input.articleId);
+        return { success: true };
+      }),
+
+    // Admin procedures
+    create: protectedProcedure // Assuming only authenticated users can create
+      .input(createArticleSchema)
+      .mutation(async ({ input, ctx }) => {
+        // Ensure user is an author or admin
+        if (!ctx.session?.user?.id || (ctx.session.user.role !== 'AUTHOR' && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized');
+        }
+        return articleService.create(ctx.session.user.id, input);
+      }),
+
+    update: protectedProcedure // Only author or admin can update
+      .input(updateArticleSchema)
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.session?.user?.id || (ctx.session.user.role !== 'AUTHOR' && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized');
+        }
+        // Add logic to check if the user is the author of the article or an admin
+        const article = await articleService.getById(input.id, true);
+        if (!article || (article.authorId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized to update this article');
+        }
+        return articleService.update(input.id, input);
+      }),
+
+    delete: protectedProcedure // Only admin can delete
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') {
+          throw new Error('Unauthorized');
+        }
+        await articleService.delete(input.id);
+        return { success: true };
+      }),
+
+    publish: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.session?.user?.id || (ctx.session.user.role !== 'AUTHOR' && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized');
+        }
+        const article = await articleService.getById(input.id, true);
+        if (!article || (article.authorId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized to publish this article');
+        }
+        return articleService.publish(input.id);
+      }),
+
+    unpublish: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.session?.user?.id || (ctx.session.user.role !== 'AUTHOR' && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized');
+        }
+        const article = await articleService.getById(input.id, true);
+        if (!article || (article.authorId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized to unpublish this article');
+        }
+        return articleService.unpublish(input.id);
+      }),
+
+    schedule: protectedProcedure
+      .input(z.object({ id: z.string(), publishAt: z.date() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.session?.user?.id || (ctx.session.user.role !== 'AUTHOR' && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized');
+        }
+        const article = await articleService.getById(input.id, true);
+        if (!article || (article.authorId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN')) {
+          throw new Error('Unauthorized to schedule this article');
+        }
+        return articleService.schedule(input.id, input.publishAt);
+      }),
+  }),
+
+  // --- Categories ---
+  categories: createTRPCRouter({
+    list: publicProcedure
+      .input(listParamsSchema.optional())
+      .query(async ({ input }) => {
+        return categoryService.list(input);
+      }),
+
+    getAll: publicProcedure
+      .query(async () => {
+        return categoryService.getAll();
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return categoryService.getById(input.id);
+      }),
+
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return categoryService.getBySlug(input.slug);
+      }),
+
+    getTree: publicProcedure
+      .query(async () => {
+        return categoryService.getTree();
+      }),
+
+    // Admin procedures
+    create: protectedProcedure
+      .input(createCategorySchema)
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        return categoryService.create(input);
+      }),
+
+    update: protectedProcedure
+      .input(updateCategorySchema)
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        return categoryService.update(input.id, input);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        await categoryService.delete(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // --- Tags ---
+  tags: createTRPCRouter({
+    list: publicProcedure
+      .input(listParamsSchema.optional())
+      .query(async ({ input }) => {
+        return tagService.list(input);
+      }),
+
+    getAll: publicProcedure
+      .query(async () => {
+        return tagService.getAll();
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return tagService.getById(input.id);
+      }),
+
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return tagService.getBySlug(input.slug);
+      }),
+
+    searchSuggestions: publicProcedure
+      .input(z.object({ query: z.string(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return tagService.searchSuggestions(input.query, input.limit);
+      }),
+
+    // Admin procedures
+    create: protectedProcedure
+      .input(createTagSchema)
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        return tagService.create(input);
+      }),
+
+    update: protectedProcedure
+      .input(updateTagSchema)
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        return tagService.update(input.id, input);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+        await tagService.delete(input.id);
+        return { success: true };
+      }),
+  }),
+});
+```
+
+---
+
+### FILE 6: `src/lib/validations/blog.ts` (100 righe)
+
+```typescript
+import { z } from 'zod';
+import { ArticleStatus, Visibility } from '@prisma/client';
+
+// --- General Schemas ---
+export const listParamsSchema = z.object({
+  page: z.number().int().min(1).default(1).optional(),
+  pageSize: z.number().int().min(1).max(100).default(10).optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional(),
+}).optional();
+
+export type ListParams = z.infer<typeof listParamsSchema>;
+
+export const searchParamsSchema = listParamsSchema.extend({
+  search: z.string().min(2).optional(),
+}).optional();
+
+export type SearchParams = z.infer<typeof searchParamsSchema>;
+
+export const paginatedResultSchema = z.object({
+  data: z.array(z.any()), // Data type will be refined by specific models
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+    pageSize: z.number(),
+    lastPage: z.number(),
+  }),
+});
+
+export type PaginatedResult<T> = {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    pageSize: number;
+    lastPage: number;
+  };
+};
+
+// --- Article Schemas ---
+export const createArticleSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters long.'),
+  excerpt: z.string().max(300, 'Excerpt cannot exceed 300 characters.').optional(),
+  content: z.string().min(10, 'Content must be at least 10 characters long.'),
+  featuredImage: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  featuredImageAlt: z.string().optional(),
+  status: z.nativeEnum(ArticleStatus).default(ArticleStatus.DRAFT).optional(),
+  visibility: z.nativeEnum(Visibility).default(Visibility.PUBLIC).optional(),
+  scheduledAt: z.date().optional(),
+  categoryId: z.string().cuid().optional(),
+  tagIds: z.array(z.string().cuid()).optional(),
+  seoTitle: z.string().max(70, 'SEO Title cannot exceed 70 characters.').optional().or(z.literal('')),
+  seoDescription: z.string().max(160, 'SEO Description cannot exceed 160 characters.').optional().or(z.literal('')),
+  seoKeywords: z.array(z.string()).optional(),
+  canonicalUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  noIndex: z.boolean().optional(),
+});
+
+export type CreateArticleInput = z.infer<typeof createArticleSchema>;
+
+export const updateArticleSchema = createArticleSchema.extend({
+  id: z.string().cuid(),
+  slug: z.string().optional(), // Slug is generated, but might be useful for some updates
+}).partial(); // All fields are optional for update except ID
+
+export type UpdateArticleInput = z.infer<typeof updateArticleSchema>;
+
+export const articleListParamsSchema = listParamsSchema.extend({
+  status: z.nativeEnum(ArticleStatus).optional(),
+  categoryId: z.string().cuid().optional(),
+  authorId: z.string().cuid().optional(),
+  tagId: z.string().cuid().optional(),
+  search: z.string().min(2).optional(),
+  includeDrafts: z.boolean().optional(),
+});
+
+export type ArticleListParams = z.infer<typeof articleListParamsSchema>;
+
+// --- Category Schemas ---
+export const createCategorySchema = z.object({
+  name: z.string().min(2, 'Category name must be at least 2 characters long.'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters.').optional(),
+  image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  parentId: z.string().cuid().optional(),
+});
+
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+
+export const updateCategorySchema = createCategorySchema.extend({
+  id: z.string().cuid(),
+}).partial();
+
+export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+
+// --- Tag Schemas ---
+export const createTagSchema = z.object({
+  name: z.string().min(2, 'Tag name must be at least 2 characters long.'),
+});
+
+export type CreateTagInput = z.infer<typeof createTagSchema>;
+
+export const updateTagSchema = createTagSchema.extend({
+  id: z.string().cuid(),
+}).partial();
+
+export type UpdateTagInput = z.infer<typeof updateTagSchema>;
+```
+
+---
+
+### FILE 7: `src/hooks/use-articles.ts` (100 righe)
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Article } from '@prisma/client'; // Import Prisma Article type
+import { trpc } from '@/utils/trpc'; // Adjust path to your tRPC client
+import { ArticleListParams, CreateArticleInput, UpdateArticleInput } from '@/lib/validations/blog'; // Adjust path
+
+interface UseArticlesOptions {
+  params?: ArticleListParams;
+  slug?: string;
+  id?: string;
+  categorySlug?: string;
+  tagSlug?: string;
+  authorId?: string;
+  query?: string; // For search
+  limit?: number; // For related, featured, recent, popular
+  includeDrafts?: boolean;
+}
+
+export const useArticles = (options?: UseArticlesOptions) => {
+  const queryClient = useQueryClient();
+
+  // Fetch multiple articles
+  const listQuery = trpc.blog.articles.list.useQuery(options?.params, {
+    enabled: !options?.slug && !options?.id && !options?.categorySlug && !options?.tagSlug && !options?.authorId && !options?.query,
+    keepPreviousData: true,
+  });
+
+  // Fetch single article by slug
+  const articleBySlugQuery = trpc.blog.articles.getBySlug.useQuery(
+    { slug: options?.slug!, includeDrafts: options?.includeDrafts },
+    { enabled: !!options?.slug }
+  );
+
+  // Fetch single article by ID
+  const articleByIdQuery = trpc.blog.articles.getById.useQuery(
+    { id: options?.id!, includeDrafts: options?.includeDrafts },
+    { enabled: !!options?.id }
+  );
+
+  // Fetch articles by category
+  const articlesByCategoryQuery = trpc.blog.articles.getByCategory.useQuery(
+    { slug: options?.categorySlug!, params: options?.params },
+    { enabled: !!options?.categorySlug, keepPreviousData: true }
+  );
+
+  // Fetch articles by tag
+  const articlesByTagQuery = trpc.blog.articles.getByTag.useQuery(
+    { slug: options?.tagSlug!, params: options?.params },
+    { enabled: !!options?.tagSlug, keepPreviousData: true }
+  );
+
+  // Fetch articles by author
+  const articlesByAuthorQuery = trpc.blog.articles.getByAuthor.useQuery(
+    { authorId: options?.authorId!, params: options?.params },
+    { enabled: !!options?.authorId, keepPreviousData: true }
+  );
+
+  // Search articles
+  const searchArticlesQuery = trpc.blog.articles.search.useQuery(
+    { query: options?.query!, params: options?.params },
+    { enabled: !!options?.query, keepPreviousData: true }
+  );
+
+  // Fetch related articles
+  const relatedArticlesQuery = trpc.blog.articles.getRelated.useQuery(
+    { articleId: options?.id!, limit: options?.limit },
+    { enabled: !!options?.id && !options?.slug && !options?.categorySlug && !options?.tagSlug && !options?.authorId && !options?.query }
+  );
+
+  // Fetch recent articles
+  const recentArticlesQuery = trpc.blog.articles.getRecent.useQuery(
+    { limit: options?.limit },
+    { enabled: !options?.id && !options?.slug && !options?.categorySlug && !options?.tagSlug && !options?.authorId && !options?.query }
+  );
+
+  // Fetch popular articles
+  const popularArticlesQuery = trpc.blog.articles.getPopular.useQuery(
+    { limit: options?.limit },
+    { enabled: !options?.id && !options?.slug && !options?.categorySlug && !options?.tagSlug && !options?.authorId && !options?.query }
+  );
+
+
+  // Mutations
+  const createArticleMutation = trpc.blog.articles.create.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.blog.articles.list);
+      queryClient.invalidateQueries(trpc.blog.articles.getRecent);
+    },
+  });
+
+  const updateArticleMutation = trpc.blog.articles.update.useMutation({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(trpc.blog.articles.list);
+      queryClient.invalidateQueries(trpc.blog.articles.getBySlug);
+      queryClient.invalidateQueries(trpc.blog.articles.getById);
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getBySlug.name, { slug: data.slug }] });
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getById.name, { id: data.id }] });
+    },
+  });
+
+  const deleteArticleMutation = trpc.blog.articles.delete.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.blog.articles.list);
+      queryClient.invalidateQueries(trpc.blog.articles.getRecent);
+    },
+  });
+
+  const publishArticleMutation = trpc.blog.articles.publish.useMutation({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(trpc.blog.articles.list);
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getById.name, { id: data.id }] });
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getBySlug.name, { slug: data.slug }] });
+      queryClient.invalidateQueries(trpc.blog.articles.getPublished);
+      queryClient.invalidateQueries(trpc.blog.articles.getRecent);
+    },
+  });
+
+  const unpublishArticleMutation = trpc.blog.articles.unpublish.useMutation({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(trpc.blog.articles.list);
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getById.name, { id: data.id }] });
+      queryClient.invalidateQueries({ queryKey: [trpc.blog.articles.getBySlug.name, { slug: data.slug }] });
+      queryClient.invalidateQueries(trpc.blog.articles.getPublished);
+      queryClient.invalidateQueries(trpc.blog.articles.getRecent);
+    },
+  });
+
+  const incrementViewsMutation = trpc.blog.articles.incrementViews.useMutation();
+
+  return {
+    articles: listQuery.data?.data,
+    article: articleBySlugQuery.data || articleByIdQuery.data,
+    articlesByCategory: articlesByCategoryQuery.data?.data,
+    articlesByTag: articlesByTagQuery.data?.data,
+    articlesByAuthor: articlesByAuthorQuery.data?.data,
+    searchedArticles: searchArticlesQuery.data?.data,
+    relatedArticles: relatedArticlesQuery.data,
+    recentArticles: recentArticlesQuery.data,
+    popularArticles: popularArticlesQuery.data,
+    paginationMeta: listQuery.data?.meta || articlesByCategoryQuery.data?.meta || articlesByTagQuery.data?.meta || articlesByAuthorQuery.data?.meta || searchArticlesQuery.data?.meta,
+    isLoading: listQuery.isLoading || articleBySlugQuery.isLoading || articleByIdQuery.isLoading || articlesByCategoryQuery.isLoading || articlesByTagQuery.isLoading || articlesByAuthorQuery.isLoading || searchArticlesQuery.isLoading || relatedArticlesQuery.isLoading || recentArticlesQuery.isLoading || popularArticlesQuery.isLoading,
+    isError: listQuery.isError || articleBySlugQuery.isError || articleByIdQuery.isError || articlesByCategoryQuery.isError || articlesByTagQuery.isError || articlesByAuthorQuery.isError || searchArticlesQuery.isError || relatedArticlesQuery.isError || recentArticlesQuery.isError || popularArticlesQuery.isError,
+    error: listQuery.error || articleBySlugQuery.error || articleByIdQuery.error || articlesByCategoryQuery.error || articlesByTagQuery.error || articlesByAuthorQuery.error || searchArticlesQuery.error || relatedArticlesQuery.error || recentArticlesQuery.error || popularArticlesQuery.error,
+    refetch: () => {
+      listQuery.refetch();
+      articleBySlugQuery.refetch();
+      articleByIdQuery.refetch();
+      articlesByCategoryQuery.refetch();
+      articlesByTagQuery.refetch();
+      articlesByAuthorQuery.refetch();
+      searchArticlesQuery.refetch();
+      relatedArticlesQuery.refetch();
+      recentArticlesQuery.refetch();
+      popularArticlesQuery.refetch();
+    },
+    createArticle: createArticleMutation.mutateAsync,
+    updateArticle: updateArticleMutation.mutateAsync,
+    deleteArticle: deleteArticleMutation.mutateAsync,
+    publishArticle: publishArticleMutation.mutateAsync,
+    unpublishArticle: unpublishArticleMutation.mutateAsync,
+    incrementViews: incrementViewsMutation.mutateAsync,
+  };
+};
+```
+
+---
+
+### FILE 8: `src/hooks/use-editor.ts` (80 righe)
+
+```typescript
+import { useEditor, EditorContent, EditorOptions } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import Placeholder from '@tiptap/extension-placeholder';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight'; // For code highlighting
+
+const lowlight = createLowlight(common);
+
+interface UseEditorProps {
+  content: string;
+  onUpdate: (html: string, markdown: string) => void;
+  editable?: boolean;
+  placeholder?: string;
+}
+
+export const useRichTextEditor = ({ content, onUpdate, editable = true, placeholder = 'Start writing...' }: UseEditorProps) => {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bulletList: { keepMarks: true, keepAttributes: false },
+        orderedList: { keepMarks: true, keepAttributes: false },
+        codeBlock: false, // Disable default code block to use CodeBlockLowlight
+      }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        HTMLAttributes: {
+          rel: 'noopener noreferrer nofollow',
+          target: '_blank',
+        },
+      }),
+      Image.configure({
+        inline: true,
+        allowBase64: true, // For drag-and-drop or pasting images directly
+      }),
+      Placeholder.configure({
+        placeholder,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+      // Add more extensions as needed (e.g., Table, TaskList, etc.)
+    ],
+    content: content,
+    editable: editable,
+    onUpdate: ({ editor }) => {
+      onUpdate(editor.getHTML(), editor.getMarkdown()); // Assuming you have getMarkdown if using markdown extension
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-xl focus:outline-none max-w-none',
+      },
+    },
+  }, [content, editable]); // Re-initialize if content or editable changes
+
+  return editor;
+};
+```
+
+---
+
+### FILE 9: `src/components/blog/article-card.tsx` (120 righe)
+
+```typescript
+import Image from 'next/image';
+import Link from 'next/link';
+import { Article, Category, Tag, User } from '@prisma/client';
+import { format } from 'date-fns';
+import { CalendarIcon, EyeIcon, TagIcon, UserIcon } from 'lucide-react';
+
+interface ArticleCardProps {
+  article: Article & {
+    author: User;
+    category?: Category | null;
+    tags: Tag[];
+  };
+  layout?: 'grid' | 'list';
+}
+
+export function ArticleCard({ article, layout = 'grid' }: ArticleCardProps) {
+  const publishDate = article.publishedAt ? format(new Date(article.publishedAt), 'MMM dd, yyyy') : 'Draft';
+
+  return (
+    <article className={`group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800 ${layout === 'list' ? 'md:flex-row' : ''}`}>
+      {article.featuredImage && (
+        <div className={`relative ${layout === 'list' ? 'h-48 w-full md:h-auto md:w-1/3 flex-shrink-0' : 'h-48 w-full'}`}>
+          <Image
+            src={article.featuredImage}
+            alt={article.featuredImageAlt || article.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
+          />
+        </div>
+      )}
+      <div className={`flex flex-col p-4 ${layout === 'list' ? 'flex-grow' : ''}`}>
+        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+          {article.category && (
+            <Link href={`/blog/category/${article.
+
+---
+_Modello: gemini-2.5-flash (Google AI Studio)_

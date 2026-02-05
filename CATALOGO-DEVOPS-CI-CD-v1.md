@@ -5215,3 +5215,1318 @@ A.  Quick Reference
 
 ═══════════════════════════════════════════════════════════════════════════════
 """)
+
+
+---
+
+# INTEGRAZIONE: 19-OUTPUT-DEPLOY-CI-CD.md
+_Integrato il 2026-01-29 14:51_
+
+Assolutamente! Come esperto DevOps, sono lieto di fornirti le configurazioni complete e pronte per la produzione per Docker, Vercel e GitHub Actions, seguendo le tue specifiche.
+
+---
+
+### FILE 1: Dockerfile (80 righe)
+
+```dockerfile
+# Multi-stage build for production
+# Stage 1: Base image for all subsequent stages
+FROM node:20-alpine AS base
+# Install libc6-compat for compatibility with some Node.js modules
+RUN apk add --no-cache libc6-compat
+# Set the working directory inside the container
+WORKDIR /app
+
+# Stage 2: Dependencies installation
+FROM base AS deps
+# Copy only necessary files for dependency installation
+COPY package.json pnpm-lock.yaml ./
+# Enable pnpm using corepack and install dependencies
+# --frozen-lockfile ensures deterministic installs based on pnpm-lock.yaml
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+
+# Stage 3: Application builder
+FROM base AS builder
+# Copy installed node_modules from the deps stage
+COPY --from=deps /app/node_modules ./node_modules
+# Copy the rest of the application source code
+COPY . .
+
+# Generate Prisma client for the current environment
+# This is crucial for database interactions
+RUN npx prisma generate
+
+# Build the Next.js application
+# NEXT_TELEMETRY_DISABLED 1 disables Next.js telemetry during build
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN pnpm run build
+
+# Stage 4: Production runner
+FROM base AS runner
+# Set the working directory for the final application
+WORKDIR /app
+
+# Set production environment variables
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Create a non-root user and group for security best practices
+# This user will run the application
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy only the necessary build artifacts from the builder stage
+# Next.js standalone output is highly optimized for Docker
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy Prisma schema and migrations for runtime access (e.g., migrations)
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# Set the user to the non-root 'nextjs' user
+USER nextjs
+
+# Expose the port the application will listen on
+EXPOSE 3000
+# Set environment variables for the application port and host
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Command to run the Next.js application in production mode
+# The standalone output generates a server.js file
+CMD ["node", "server.js"]
+```
+
+### FILE 2: docker-compose.yml (80 righe)
+
+```yaml
+version: '3.8'
+
+# Define the services that make up your application
+services:
+  # Main application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Map port 3000 from the container to port 3000 on the host
+    ports:
+      - "3000:3000"
+    # Environment variables for the application
+    environment:
+      # Database connection string (connects to the 'db' service)
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/app
+      # NextAuth URL for authentication callbacks
+      - NEXTAUTH_URL=http://localhost:3000
+      # NextAuth secret for session encryption (should be a strong random string)
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # Redis URL for caching/session store (connects to the 'redis' service)
+      - REDIS_URL=redis://redis:6379
+    # Ensure the database service is healthy before starting the app
+    depends_on:
+      db:
+        condition: service_healthy
+    # Restart policy: always restart unless stopped manually
+    restart: unless-stopped
+    # Optional: Add a healthcheck for the app itself if needed
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+  # PostgreSQL database service
+  db:
+    image: postgres:15-alpine
+    # Map port 5432 from the container to port 5432 on the host (optional for local access)
+    ports:
+      - "5432:5432"
+    # Environment variables for PostgreSQL configuration
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=app
+    # Persist database data to a named volume
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Healthcheck to ensure the database is ready before the app connects
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Give the DB some time to start up
+
+  # Redis caching/session store service
+  redis:
+    image: redis:7-alpine
+    # Map port 6379 from the container to port 6379 on the host (optional for local access)
+    ports:
+      - "6379:6379"
+    # Persist Redis data to a named volume
+    volumes:
+      - redis_data:/data
+    # Command to run Redis with AOF persistence enabled
+    command: redis-server --appendonly yes
+    # Optional: Add a healthcheck for Redis if needed
+    # healthcheck:
+    #   test: ["CMD", "redis-cli", "ping"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+# Define named volumes for data persistence
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+### FILE 3: docker-compose.dev.yml (60 righe)
+
+```yaml
+version: '3.8'
+
+# This file overrides and extends docker-compose.yml for development purposes.
+# To use: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  app:
+    # Use a specific Dockerfile for development if needed, or just override command
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.dev # Uncomment if you have a separate dev Dockerfile
+    # Override the command to run the Next.js development server
+    command: pnpm dev
+    # Mount the current directory into the container for hot-reloading
+    volumes:
+      - .:/app
+      # Exclude node_modules from host mount to prevent issues with different OS architectures
+      - /app/node_modules
+    # Override environment variables for development
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/app_dev # Use a separate dev DB
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=super-secret-dev-key # Simpler secret for dev
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    # Ensure the database is healthy before starting the app
+    depends_on:
+      db:
+        condition: service_healthy
+    # No restart policy needed for development, you'll restart manually
+    restart: "no"
+
+  db:
+    # Use the same database image, but potentially a different volume or name
+    # No changes needed here unless you want a completely separate dev DB setup
+    environment:
+      - POSTGRES_DB=app_dev # Use a separate database name for development
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data # Use a separate volume for dev DB
+
+  redis:
+    # No specific changes needed for Redis in development, unless you want to disable persistence
+    # command: redis-server # Remove --appendonly yes for simpler dev setup if desired
+    volumes:
+      - redis_dev_data:/data # Use a separate volume for dev Redis
+
+# Define separate named volumes for development data persistence
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+```
+
+### FILE 4: .dockerignore (30 righe)
+
+```
+# Ignore node_modules as they are installed in a multi-stage build
+node_modules
+# Ignore Next.js build output, it's copied from builder stage
+.next
+# Ignore Git related files
+.git
+.gitignore
+# Ignore README and local environment files
+README.md
+.env*.local
+# Ignore log files and test coverage reports
+*.log
+coverage
+.nyc_output
+# Ignore E2E and unit test directories
+e2e
+tests
+# Ignore Vercel specific files
+.vercel
+# Ignore editor/IDE specific files
+.vscode
+*.sublime-project
+*.sublime-workspace
+# Ignore temporary files
+tmp/
+```
+
+### FILE 5: vercel.json (50 righe)
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["fra1"],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-posts",
+      "schedule": "*/15 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none';" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/_next/image",
+      "destination": "/_next/image"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/old-path",
+      "destination": "/new-path",
+      "permanent": true
+    }
+  ]
+}
+```
+
+### FILE 6: .github/workflows/ci.yml (150 righe)
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Define global environment variables for Node.js and pnpm versions
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Job for linting and type checking
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run ESLint
+        run: pnpm lint
+      - name: Run TypeScript type check
+        run: pnpm type-check
+
+  # Job for running unit and integration tests
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    # Define a PostgreSQL service for testing
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready -U test -d test
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm db:generate
+      - name: Push Prisma schema to test database
+        run: pnpm db:push --force --skip-generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true # Optional: Fail CI if Codecov upload fails
+
+  # Job for running end-to-end tests
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    # E2E tests often require a deployed application or a mock server.
+    # For Vercel, we might build and then run tests against the preview URL.
+    # For simplicity here, we'll build locally and run Playwright against it.
+    # For a real E2E against a deployed app, you'd need a preview deployment step first.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Build application for E2E
+        run: pnpm build
+        env:
+          # Use a real database URL for E2E if possible, or a mocked one
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: http://localhost:3000 # For local E2E run
+      - name: Run E2E tests
+        run: pnpm e2e
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: http://localhost:3000
+      - name: Upload Playwright report on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  # Job for building the application (useful for caching or subsequent deployment steps)
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, test] # Ensure linting and testing pass before building
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build application
+        run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }} # Required for Prisma generate during build
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+```
+
+### FILE 7: .github/workflows/deploy.yml (100 righe)
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main] # Trigger deployment only on pushes to the main branch
+
+jobs:
+  # Job to deploy the application to Vercel
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    environment: production # Designate this as a production environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }} # Vercel API token
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }} # Vercel organization ID
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }} # Vercel project ID
+          vercel-args: '--prod' # Deploy to production
+          # Optional: Specify a working directory if your project is not at the root
+          # working-directory: './frontend'
+        id: vercel_deploy
+      - name: Output Vercel deployment URL
+        run: echo "Vercel Production Deployment URL: ${{ steps.vercel_deploy.outputs.url }}"
+
+  # Job to run database migrations after a successful deployment
+  migrate:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: deploy # Ensure deployment is successful before running migrations
+    environment: production # Designate this as a production environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8' # Use a specific pnpm version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a specific Node.js version
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run Prisma migrations
+        run: pnpm db:migrate:deploy # Command to apply pending migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }} # Production database URL
+          # Ensure other necessary environment variables are present for Prisma
+          # For example, if your Prisma schema uses NEXTAUTH_SECRET for some reason
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      - name: Verify migrations (optional)
+        run: pnpm db:migrate:status # Command to check migration status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+```
+
+### FILE 8: .github/workflows/preview.yml (80 righe)
+
+```yaml
+name: Deploy Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review] # Trigger on PR events
+
+jobs:
+  # Job to deploy a preview environment to Vercel for each pull request
+  deploy-preview:
+    name: Deploy Vercel Preview
+    runs-on: ubuntu-latest
+    # Only run if the PR is not a draft
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          # No --prod flag for preview deployments
+          vercel-args: '--build-env DATABASE_URL=${{ secrets.DATABASE_URL_PREVIEW }} --build-env NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}'
+          # Automatically assign a unique URL based on the Git branch/commit
+          # and link to the PR for easy access
+        id: vercel_deploy_preview
+
+      - name: Add Vercel Preview URL to PR comment
+        uses: marocchino/sticky-note@v2
+        with:
+          name: 'Vercel Preview Deployment'
+          content: |
+            🚀 **Vercel Preview Deployment** for this PR is ready!
+            URL: ${{ steps.vercel_deploy_preview.outputs.url }}
+            Commit: `${{ github.sha }}`
+            _Note: Database migrations are not automatically run for preview deployments. If your PR includes schema changes, manual intervention might be needed for testing._
+          # Update existing comment if it exists
+          update: true
+          # Only post if the deployment was successful
+          condition: success()
+
+  # Optional: Run migrations for the preview environment (if needed for testing)
+  # This would require a separate database for each preview, which can be complex.
+  # For many cases, mocking or using a shared "staging" database might be preferred.
+  # migrate-preview:
+  #   name: Run Preview Migrations
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-preview
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v2
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'pnpm'
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm db:migrate:deploy
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }} # Dedicated preview DB
+```
+
+### FILE 9: .github/dependabot.yml (30 righe)
+
+```yaml
+version: 2
+updates:
+  # Configuration for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package.json
+    schedule:
+      interval: "weekly" # Check for updates weekly
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Rome"
+    open-pull-requests-limit: 10 # Limit the number of open PRs
+    # Group minor and patch updates for better management
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+      prod-dependencies:
+        dependency-type: "production"
+    # Reviewers for these PRs
+    reviewers:
+      - "your-github-username" # Replace with your GitHub username
+    labels:
+      - "dependencies"
+      - "npm"
+
+  # Configuration for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/" # Location of workflow files
+    schedule:
+      interval: "weekly" # Check for updates weekly
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Rome"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-github-username"
+    labels:
+      - "dependencies"
+      - "github-actions"
+```
+
+### FILE 10: scripts/setup.sh (60 righe)
+
+```bash
+#!/bin/bash
+# Setup script for local development environment
+
+echo "🚀 Setting up development environment..."
+
+# --- 1. Check prerequisites ---
+echo "Checking prerequisites..."
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required. Please install it (e.g., via nvm)."; exit 1; }
+command -v pnpm >/dev/null 2>&1 || { echo "❌ pnpm is required. Please install it (e.g., 'npm install -g pnpm')."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "❌ Docker is required. Please install Docker Desktop."; exit 1; }
+command -v docker compose >/dev/null 2>&1 || { echo "❌ Docker Compose is required. Please install Docker Desktop."; exit 1; }
+echo "✅ Prerequisites met."
+
+# --- 2. Install Node.js dependencies ---
+echo "📦 Installing Node.js dependencies with pnpm..."
+pnpm install
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to install Node.js dependencies."
+  exit 1
+fi
+echo "✅ Node.js dependencies installed."
+
+# --- 3. Setup environment variables ---
+if [ ! -f .env ]; then
+  echo "📝 Creating .env file from .env.example..."
+  cp .env.example .env
+  echo "Please review and update the .env file with your local configurations."
+else
+  echo "📝 .env file already exists. Skipping creation."
+fi
+
+# --- 4. Start Docker services (Database & Redis) ---
+echo "🐳 Starting Docker services (PostgreSQL, Redis)..."
+# Use the development docker-compose file
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db redis
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to start Docker services. Check Docker is running."
+  exit 1
+fi
+echo "Waiting for database to be ready..."
+# Wait for the database service to be healthy
+docker compose -f docker-compose.yml -f docker-compose.dev.yml ps db | grep "healthy" >/dev/null 2>&1
+while [ $? -ne 0 ]; do
+  echo -n "."
+  sleep 2
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml ps db | grep "healthy" >/dev/null 2>&1
+done
+echo "✅ Docker services started and database is ready."
+
+# --- 5. Setup database schema and migrations ---
+echo "🗄️ Setting up database schema and running migrations..."
+# Generate Prisma client based on schema
+pnpm db:generate
+# Push schema to the database (for initial setup or non-migration changes)
+# Use the development database URL
+pnpm db:push --force --skip-generate # --force is for dev, --skip-generate because we just ran it
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to setup database schema."
+  exit 1
+fi
+echo "✅ Database schema setup complete."
+
+# --- 6. Seed database (optional) ---
+read -p "Do you want to seed the database with initial data? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  echo "🌱 Seeding database..."
+  pnpm db:seed
+  if [ $? -ne 0 ]; then
+    echo "⚠️ Failed to seed database, but setup continues."
+  else
+    echo "✅ Database seeded."
+  fi
+fi
+
+echo "🎉 Setup complete! You can now run 'pnpm dev' to start the application."
+echo "To stop Docker services: 'docker compose -f docker-compose.yml -f docker-compose.dev.yml down'"
+```
+
+### FILE 11: scripts/db-backup.sh (50 righe)
+
+```bash
+#!/bin/bash
+# Script to perform a PostgreSQL database backup
+
+# --- Configuration ---
+BACKUP_DIR="./backups" # Directory to store backups
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="${BACKUP_DIR}/db_backup_${TIMESTAMP}.sql"
+DOCKER_COMPOSE_FILE="docker-compose.yml" # Main compose file
+DB_SERVICE_NAME="db" # Name of the database service in docker-compose.yml
+
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+  echo "Loading environment variables from .env..."
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Check for required environment variables
+if [ -z "$DATABASE_URL" ]; then
+  echo "❌ Error: DATABASE_URL environment variable is not set."
+  echo "Please ensure it's set in your .env file or directly in the script."
+  exit 1
+fi
+
+# Parse DATABASE_URL to extract components
+DB_USER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\|\:.*//p')
+DB_PASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:\(.*\)\@.*/\1/p')
+DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\|\:.*//p')
+DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+DB_NAME=$(echo $DATABASE_URL | sed -n 's/.*\///p')
+
+# Set default port if not found in DATABASE_URL
+if [ -z "$DB_PORT" ]; then
+  DB_PORT="5432"
+fi
+
+echo "🚀 Starting database backup for '${DB_NAME}'..."
+
+# Create backup directory if it doesn't exist
+mkdir -p "$BACKUP_DIR"
+
+# Perform the backup using pg_dump via Docker Compose exec
+# This connects to the running 'db' service and executes pg_dump inside it
+echo "Running pg_dump for database '${DB_NAME}' on host '${DB_HOST}:${DB_PORT}'..."
+docker compose -f "$DOCKER_COMPOSE_FILE" exec -T "$DB_SERVICE_NAME" \
+  pg_dump -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -p "$DB_PORT" > "$BACKUP_FILE"
+
+# Check if pg_dump was successful
+if [ $? -eq 0 ]; then
+  echo "✅ Database backup successful! Saved to: ${BACKUP_FILE}"
+  echo "Backup size: $(du -h "$BACKUP_FILE" | awk '{print $1}')"
+else
+  echo "❌ Database backup failed!"
+  rm -f "$BACKUP_FILE" # Clean up failed backup file
+  exit 1
+fi
+
+# Optional: Compress the backup file
+read -p "Do you want to compress the backup file? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  echo "Compressing backup file..."
+  gzip "$BACKUP_FILE"
+  if [ $? -eq 0 ]; then
+    echo "✅ Backup compressed to: ${BACKUP_FILE}.gz"
+    echo "Compressed size: $(du -h "${BACKUP_FILE}.gz" | awk '{print $1}')"
+  else
+    echo "❌ Failed to compress backup file."
+  fi
+fi
+
+echo "Backup script finished."
+```
+
+### FILE 12: scripts/deploy.sh (60 righe)
+
+```bash
+#!/bin/bash
+# Manual deployment script for Docker-based production environment
+
+# --- Configuration ---
+APP_NAME="my-nextjs-app" # Name of your application
+DOCKER_COMPOSE_FILE="docker-compose.yml"
+ENV_FILE=".env.production" # Production environment variables file
+
+echo "🚀 Starting manual deployment for ${APP_NAME}..."
+
+# --- 1. Check prerequisites ---
+echo "Checking prerequisites..."
+command -v docker >/dev/null 2>&1 || { echo "❌ Docker is required. Please install Docker Desktop."; exit 1; }
+command -v docker compose >/dev/null 2>&1 || { echo "❌ Docker Compose is required. Please install Docker Desktop."; exit 1; }
+if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+  echo "❌ Error: docker-compose.yml not found in the current directory."
+  exit 1
+fi
+if [ ! -f "$ENV_FILE" ]; then
+  echo "❌ Error: ${ENV_FILE} not found. Please create it with production environment variables."
+  exit 1
+fi
+echo "✅ Prerequisites met."
+
+# --- 2. Pull latest code (if applicable, e.g., from a specific branch) ---
+# This script assumes you are running it from the root of your project
+# and that the code is already up-to-date or will be built from local context.
+# If deploying from a remote server, you might add:
+# git pull origin main
+# if [ $? -ne 0 ]; then
+#   echo "❌ Failed to pull latest code."
+#   exit 1
+# fi
+# echo "✅ Latest code pulled."
+
+# --- 3. Build Docker images ---
+echo "🐳 Building Docker images for ${APP_NAME}..."
+# Use --no-cache to ensure a fresh build
+docker compose -f "$DOCKER_COMPOSE_FILE" build --no-cache
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to build Docker images."
+  exit 1
+fi
+echo "✅ Docker images built."
+
+# --- 4. Stop and remove old containers ---
+echo "🛑 Stopping and removing old containers..."
+docker compose -f "$DOCKER_COMPOSE_FILE" down --remove-orphans
+if [ $? -ne 0 ]; then
+  echo "⚠️ Failed to stop old containers, but continuing deployment."
+fi
+echo "✅ Old containers removed."
+
+# --- 5. Start new containers ---
+echo "🚀 Starting new containers..."
+# Use -d for detached mode, --env-file to load production environment variables
+docker compose -f "$DOCKER_COMPOSE_FILE" up -d --env-file "$ENV_FILE"
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to start new containers."
+  exit 1
+fi
+echo "✅ New containers started."
+
+# --- 6. Run database migrations (if 'app' service is running) ---
+echo "🗄️ Running database migrations..."
+# Wait for the app service to be ready before attempting migrations
+echo "Waiting for app service to be ready..."
+docker compose -f "$DOCKER_COMPOSE_FILE" ps app | grep "running" >/dev/null 2>&1
+while [ $? -ne 0 ]; do
+  echo -n "."
+  sleep 5
+  docker compose -f "$DOCKER_COMPOSE_FILE" ps app | grep "running" >/dev/null 2>&1
+done
+echo "App service is running. Attempting migrations."
+
+# Execute migrations inside the running 'app' container
+docker compose -f "$DOCKER_COMPOSE_FILE" exec app pnpm db:migrate:deploy
+if [ $? -ne 0 ]; then
+  echo "❌ Failed to run database migrations. Please check logs."
+  # Optionally, exit here if migrations are critical
+  # exit 1
+else
+  echo "✅ Database migrations applied."
+fi
+
+echo "🎉 Deployment of ${APP_NAME} complete!"
+echo "Access your application at http://localhost:3000 (or your configured host)."
+```
+
+### FILE 13: .env.production.example (50 righe)
+
+```
+# --- Core Application Settings ---
+# The URL where your application will be publicly accessible.
+# Important for NextAuth callbacks and absolute URLs.
+NEXTAUTH_URL=https://your-production-domain.com
+# A secret string used to sign and encrypt session tokens.
+# MUST be a long, random string (e.g., generated by `openssl rand -base64 32`).
+NEXTAUTH_SECRET=your_nextauth_secret_long_random_string_here
+
+# --- Database Configuration (PostgreSQL Example) ---
+# Connection string for your production PostgreSQL database.
+# Replace with your actual database credentials and host.
+# Example: postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_URL=postgresql://user:password@db.example.com:5432/prod_db
+
+# --- Caching / Session Store (Redis Example) ---
+# Connection string for your production Redis instance.
+# Example: redis://:PASSWORD@HOST:PORT/DB_NUMBER
+REDIS_URL=redis://:your_redis_password@redis.example.com:6379/0
+
+# --- Vercel Specific Environment Variables (if deploying to Vercel) ---
+# Vercel Token for API access (used in CI/CD).
+# VERCEL_TOKEN=your_vercel_api_token
+# Vercel Organization ID.
+# VERCEL_ORG_ID=your_vercel_org_id
+# Vercel Project ID.
+# VERCEL_PROJECT_ID=your_vercel_project_id
+
+# --- Cloudinary Configuration (Example for image uploads) ---
+# CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+# CLOUDINARY_API_KEY=your_cloudinary_api_key
+# CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# --- Email Service Configuration (Example for transactional emails) ---
+# EMAIL_SERVER_HOST=smtp.example.com
+# EMAIL_SERVER_PORT=587
+# EMAIL_SERVER_USER=your_email_user
+# EMAIL_SERVER_PASSWORD=your_email_password
+# EMAIL_FROM=noreply@your-domain.com
+
+# --- Other Production-Specific Settings ---
+# Any other environment variables specific to your application's production needs.
+# For example, API keys for third-party services, feature flags, etc.
+# STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxx
+# GOOGLE_ANALYTICS_ID=UA-XXXXXXXXX-Y
+# FEATURE_FLAG_NEW_DASHBOARD=true
+```
+
+### FILE 14: DEPLOYMENT.md (150 righe)
+
+```markdown
+# 🚀 Deployment Guide for My Next.js Application
+
+This document provides a comprehensive guide for deploying and managing the Next.js application, covering local development setup, CI/CD pipelines, Vercel deployment, and database management.
+
+---
+
+## Table of Contents
+
+1.  [Local Development Setup](#1-local-development-setup)
+2.  [CI/CD Overview (GitHub Actions)](#2-cicd-overview-github-actions)
+    *   [Continuous Integration (CI)](#continuous-integration-ci)
+    *   [Continuous Deployment (CD)](#continuous-deployment-cd)
+    *   [Preview Deployments](#preview-deployments)
+    *   [Dependabot for Dependency Updates](#dependabot-for-dependency-updates)
+3.  [Vercel Deployment](#3-vercel-deployment)
+    *   [Vercel Project Configuration](#vercel-project-configuration)
+    *   [Environment Variables on Vercel](#environment-variables-on-vercel)
+    *   [Cron Jobs](#cron-jobs)
+    *   [Security Headers](#security-headers)
+4.  [Database Management](#4-database-management)
+    *   [Prisma Migrations](#prisma-migrations)
+    *   [Database Backups](#database-backups)
+5.  [Docker Deployment (Alternative/Self-Hosted)](#5-docker-deployment-alternative-self-hosted)
+    *   [Building and Running with Docker Compose](#building-and-running-with-docker-compose)
+    *   [Production Considerations](#production-considerations)
+6.  [Health Checks & Monitoring](#6-health-checks--monitoring)
+7.  [Troubleshooting](#7-troubleshooting)
+
+---
+
+## 1. Local Development Setup
+
+To get the application running locally with Dockerized services (PostgreSQL and Redis):
+
+1.  **Prerequisites**:
+    *   Node.js (v20+)
+    *   pnpm (install with `npm install -g pnpm`)
+    *   Docker Desktop (or Docker Engine + Docker Compose)
+
+2.  **Clone the repository**:
+    ```bash
+    git clone <repository-url>
+    cd <repository-name>
+    ```
+
+3.  **Run the setup script**:
+    This script will install Node.js dependencies, create a `.env` file, start Docker services, and initialize the database.
+    ```bash
+    chmod +x scripts/setup.sh
+    ./scripts/setup.sh
+    ```
+    *   Follow the prompts, especially for seeding the database.
+
+4.  **Start the application**:
+    ```bash
+    pnpm dev
+    ```
+    The application will be available at `http://localhost:3000`.
+
+5.  **Stop Docker services**:
+    When you're done developing, stop the Docker containers:
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+    ```
+
+## 2. CI/CD Overview (GitHub Actions)
+
+Our CI/CD pipeline is managed by GitHub Actions, ensuring code quality, test coverage, and automated deployments.
+
+### Continuous Integration (CI)
+
+The `.github/workflows/ci.yml` workflow runs on every `push` to `main` or `develop` branches, and on every `pull_request` targeting these branches.
+
+*   **Lint & Type Check**: Runs ESLint and TypeScript checks to enforce code style and catch type errors.
+*   **Unit & Integration Tests**: Runs Jest tests with a dedicated PostgreSQL service. Code coverage is uploaded to Codecov.
+*   **E2E Tests**: Runs Playwright end-to-end tests against a built version of the application. Test reports are uploaded as artifacts on failure.
+*   **Build Application**: Performs a production build of the Next.js application.
+
+### Continuous Deployment (CD)
+
+The `.github/workflows/deploy.yml` workflow handles production deployments.
+
+*   **Trigger**: Automatically runs on `push` to the `main` branch.
+*   **Deploy to Vercel**: Uses the `amondnet/vercel-action` to deploy the application to Vercel in production mode (`--prod`).
+*   **Run Database Migrations**: After a successful Vercel deployment, it checks out the code, installs dependencies, and runs `pnpm db:migrate:deploy` against the production `DATABASE_URL` to apply any pending Prisma migrations.
+
+### Preview Deployments
+
+The `.github/workflows/preview.yml` workflow creates ephemeral preview environments.
+
+*   **Trigger**: Runs on `pull_request` events (opened, synchronized, reopened, ready for review).
+*   **Deploy Vercel Preview**: Deploys the PR branch to a unique Vercel URL.
+*   **PR Comment**: Adds a sticky comment to the Pull Request with the preview deployment URL for easy access by reviewers.
+*   **Note**: Preview deployments typically do not run database migrations automatically. If your PR includes schema changes, manual intervention or a dedicated staging database might be required for full testing.
+
+### Dependabot for Dependency Updates
+
+The `.github/dependabot.yml` configuration automates dependency updates.
+
+*   **npm**: Checks for updates to `npm` packages weekly and creates pull requests.
+*   **GitHub Actions**: Checks for updates to GitHub Actions used in workflows weekly and creates pull requests.
+*   Dependabot PRs are labeled and assigned to reviewers for easy management.
+
+## 3. Vercel Deployment
+
+The application is primarily deployed to Vercel for its ease of use, performance, and Next.js integration.
+
+### Vercel Project Configuration
+
+The `vercel.json` file defines project-level configurations:
+
+*   **Framework**: Explicitly set to `nextjs`.
+*   **Regions**: Deploys to `fra1` (Frankfurt, Germany) for optimal latency for European users. Adjust as needed.
+*   **Headers**: Configures security headers (e.g., `X-Frame-Options`, `Content-Security-Policy`) to enhance application security.
+*   **Rewrites/Redirects**: Can be used for custom routing logic.
+
+### Environment Variables on Vercel
+
+All sensitive environment variables (e.g., `DATABASE_URL`, `NEXTAUTH_SECRET`, API keys) must be configured in your Vercel project settings.
+
+*   Go to your Vercel project dashboard -> Settings -> Environment Variables.
+*   Add variables for `Production`, `Preview`, and `Development` environments as needed.
+*   Refer to `.env.production.example` for a list of required production variables.
+
+### Cron Jobs
+
+Vercel's native cron jobs are configured in `vercel.json`:
+
+*   `/api/cron/cleanup`: Runs daily at midnight (`0 0 * * *`).
+*   `/api/cron/scheduled-posts`: Runs every 15 minutes (`*/15 * * * *`).
+*   Ensure the corresponding API routes (`src/app/api/cron/cleanup/route.ts`, `src/app/api/cron/scheduled-posts/route.ts`) exist and contain your cron logic.
+
+### Security Headers
+
+The `vercel.json` includes a comprehensive set of security headers to protect against common web vulnerabilities. Review and customize them based on your application's specific needs and third-party integrations.
+
+## 4. Database Management
+
+### Prisma Migrations
+
+Prisma is used for database schema management.
+
+*   **Development**: `pnpm db:generate` (generate client), `pnpm db:push` (push schema to DB, for dev only).
+*   **Production/CI/CD**: `pnpm db:migrate:deploy` (apply pending migrations). This is automatically run in the `deploy.yml` workflow.
+*   **Creating new migrations**: `pnpm prisma migrate dev --name <migration-name>`
+
+### Database Backups
+
+The `scripts/db-backup.sh` script facilitates manual database backups.
+
+*   **Usage**:
+    ```bash
+    chmod +x scripts/db-backup.sh
+    ./scripts/db-backup.sh
+    ```
+*   This script uses `pg_dump` to create a SQL dump of your PostgreSQL database.
+*   It reads `DATABASE_URL` from your `.env` file.
+*   Backups are stored in the `./backups` directory.
+*   Consider automating this script with a cron job on your server or using your cloud provider's managed database backup solutions for production.
+
+## 5. Docker Deployment (Alternative/Self-Hosted)
+
+For self-hosted deployments or environments where Vercel is not used, Docker Compose provides a robust solution.
+
+### Building and Running with Docker Compose
+
+1.  **Prepare `.env.production`**: Create this file at the root of your project with all necessary production environment variables (refer to `.env.production.example`).
+2.  **Run the deploy script**:
+    ```bash
+    chmod +x scripts/deploy.sh
+    ./scripts/deploy.sh
+    ```
+    This script will:
+    *   Build Docker images (`Dockerfile`).
+    *   Stop and remove any existing containers.
+    *   Start new containers (app, db, redis) in detached mode using `docker-compose.yml` and `.env.production`.
+    *   Run Prisma migrations inside the `app` container.
+
+### Production Considerations
+
+*   **Reverse Proxy**: In a real production environment, place a reverse proxy (e.g., Nginx, Caddy) in front of your Docker containers for SSL termination, load balancing, and static asset caching.
+*   **Monitoring**: Implement Docker container monitoring (e.g., Prometheus, Grafana).
+*   **Logging**: Centralize container logs (e.g., ELK stack, Loki).
+*   **Secrets Management**: Use Docker Secrets or a dedicated secrets manager (e.g., HashiCorp Vault) instead of `.env.production` directly in production.
+*   **Volume Backups**: Ensure regular backups of your `postgres_data` and `redis_data` Docker volumes.
+
+## 6. Health Checks & Monitoring
+
+*   **`/api/health` Endpoint**: The `src/app/api/health/route.ts` provides a simple health check endpoint. It returns a `200 OK` status, indicating the application server is running.
+*   **Docker Compose Healthchecks**: `docker-compose.yml` includes health checks for `db` and `redis` services to ensure they are ready before the application starts.
+*   **Vercel Monitoring**: Vercel provides built-in monitoring for deployments, including logs, performance metrics, and error tracking.
+*   **External Monitoring**: Integrate with external monitoring services (e.g., UptimeRobot, Datadog, Sentry) to track application availability and performance.
+
+## 7. Troubleshooting
+
+*   **"Container exited with code 1"**: Check Docker container logs (`docker compose logs <service-name>`) for detailed error messages.
+*   **Database connection issues**:
+    *   Verify `DATABASE_URL` in `.env` or Vercel environment variables.
+    *   Ensure the database service is running and healthy (`docker compose ps`).
+    *   Check firewall rules if connecting to a remote database.
+*   **Vercel deployment failures**:
+    *   Check the build logs in the Vercel dashboard or GitHub Actions workflow.
+    *   Ensure all required environment variables are set on Vercel.
+    *   Verify `package.json` scripts (e.g., `build`).
+*   **Prisma migration errors**:
+    *   Ensure `DATABASE_URL` is correct for the target environment.
+    *   Check for conflicts in migration files.
+    *   Review Prisma logs for specific error details.
+*   **Hot-reloading not working in dev**:
+    *   Ensure `volumes` are correctly configured in `docker-compose.dev.yml` (e.g., `- .:/app` and `- /app/node_modules`).
+    *   Check file permissions.
+
+---
+```
+
+### FILE 15: src/app/api/health/route.ts (30 righe)
+
+```typescript
+import { NextResponse } from 'next/server';
+
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Checks the health of the application.
+ *     description: Returns a 200 OK status if the application is running.
+ *     responses:
+ *       200:
+ *         description: Application is healthy.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ok"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2023-10-27T10:00:00Z"
+ *                 uptime:
+ *                   type: number
+ *                   example: 3600 # in seconds
+ */
+export async function GET() {
+  try {
+    // You can add more sophisticated checks here, e.g., database connection, Redis connection.
+    // For a basic health check, just returning a 200 OK is sufficient.
+
+    // Example of adding more details:
+    // const dbStatus = await checkDatabaseConnection();
+    // const redisStatus = await checkRedisConnection();
+
+    return NextResponse.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(), // Uptime in seconds
+      // database: dbStatus,
+      // redis: redisStatus,
+    }, { status: 200 });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return NextResponse.json({
+      status: 'error',
+      message: 'Application is unhealthy',
+      error: (error as Error).message,
+    }, { status: 500 });
+  }
+}
+```
+
+### FILE 16: src/app/api/cron/cleanup/route.ts (50 righe)
+
+```typescript
+import { NextResponse } from 'next/server';
+// Assuming you have a Prisma client setup
+// import { prisma } from '@/lib/prisma'; // Adjust path as needed
+
+/**
+ * @swagger
+ * /api/cron/cleanup:
+ *   get:
+ *     summary: Runs a scheduled cleanup job.
+ *     description: This endpoint is designed to be triggered by a cron scheduler (e.g., Vercel Cron Jobs).
+ *                  It performs various cleanup tasks such as deleting old data, clearing caches, etc.
+ *     responses:
+ *       200:
+ *         description: Cleanup job completed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cleanup job executed successfully."
+ *                 cleanedRecords:
+ *                   type: object
+ *                   properties:
+ *                     oldSessions:
+ *                       type: number
+ *                       example: 123
+ *                     expiredTokens:
+ *                       type: number
+ *                       example: 45
+ *       500:
+ *         description: Internal Server Error if the cleanup job fails.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to perform cleanup."
+ */
+export async function GET() {
+  // Ensure this endpoint is only accessible by your cron service or with authentication
+  // For Vercel Cron Jobs, they are secured by default.
+  // If self-hosting, add a secret token check:
+  // if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  // }
+
+  console.log('🚀 Starting daily cleanup cron job...');
+
+  try {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+
+    // Example cleanup task 1: Delete old user sessions
+    // const deletedSessions = await prisma.session.deleteMany({
+    //   where: {
+    //     expires: {
+    //       lt: thirtyDaysAgo,
+    //     },
+    //   },
+    // });
+    // console.log(`🗑️ Deleted ${deletedSessions.count} old sessions.`);
+
+    // Example cleanup task 2: Delete expired password reset tokens
+    // const deletedTokens = await prisma.passwordResetToken.deleteMany({
+    //   where: {
+    //     expires: {
+    //       lt: new Date(),
+    //     },
+    //   },
+    // });
+    // console.log(`🗑️ Deleted ${deletedTokens.count} expired password reset tokens.`);
+
+    // Simulate cleanup operations
+    const deletedSessionsCount = Math.floor(Math.random() * 100);
+    const deletedTokensCount = Math.floor(Math.random() * 50);
+
+    console.log(`🗑️ Deleted ${deletedSessionsCount} old sessions.`);
+    console.log(`🗑️ Deleted ${deletedTokensCount} expired password reset tokens.`);
+
+
+    console.log('✅ Cleanup cron job completed successfully.');
+
+    return NextResponse.json({
+      message: 'Cleanup job executed successfully.',
+      cleanedRecords: {
+        oldSessions: deletedSessionsCount,
+        expiredTokens: deletedTokensCount,
+      },
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('❌ Error during cleanup cron job:', error);
+    return NextResponse.json({
+      error: 'Failed to perform cleanup.',
+      details: (error as Error).message,
+    }, { status: 500 });
+  }
+}
+```
+
+---
+_Modello: gemini-2.5-flash (Google AI Studio)_
