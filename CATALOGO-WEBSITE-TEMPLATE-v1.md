@@ -1438,3 +1438,204 @@ export default function SidebarNavigation() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
+
+## 9. STRATEGY/DECISION TABLES
+
+### 9.1 Decision Table per Gestione Pagine
+
+| Condizione | Azione |
+|------------|--------|
+| Pagina non esiste | Crea nuova pagina |
+| Pagina esiste, ma non è pubblicata | Aggiorna pagina e pubblica |
+| Pagina esiste e è pubblicata | Aggiorna pagina |
+
+### 9.2 Decision Table per Menu Dinamici
+
+| Condizione | Azione |
+|------------|--------|
+| Menu non esiste | Crea nuovo menu |
+| Menu esiste, ma non ha elementi | Aggiungi elementi al menu |
+| Menu esiste e ha elementi | Aggiorna elementi del menu |
+
+## 10. BEST PRACTICES
+
+### 10.1 ✅ DO
+
+* Utilizzare tipi TypeScript per garantire la sicurezza dei dati
+* Utilizzare Prisma per gestire il database
+* Utilizzare tRPC per gestire le API
+* Utilizzare componenti UI personalizzati per migliorare l'esperienza utente
+
+### 10.2 ❌ DON'T
+
+* Non utilizzare tipi TypeScript per garantire la sicurezza dei dati
+* Non utilizzare Prisma per gestire il database
+* Non utilizzare tRPC per gestire le API
+* Non utilizzare componenti UI personalizzati per migliorare l'esperienza utente
+
+## 11. PERFORMANCE CONSIDERATIONS
+
+### 11.1 Ottimizzazione del Database
+
+* Utilizzare indici per migliorare la velocità di query
+* Utilizzare caching per ridurre il carico del database
+* Utilizzare query ottimizzate per ridurre il tempo di esecuzione
+
+### 11.2 Ottimizzazione del Codice
+
+* Utilizzare funzioni pure per migliorare la velocità di esecuzione
+* Utilizzare memoizzazione per ridurre il carico del codice
+* Utilizzare codice ottimizzato per ridurre il tempo di esecuzione
+
+## 12. TESTING PATTERNS (Vitest)
+
+### 12.1 Test per Componenti Principali
+
+```typescript
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { PageComponent } from '../components/page';
+
+describe('PageComponent', () => {
+  it('rende il titolo della pagina', () => {
+    const { getByText } = render(<PageComponent title="Titolo della pagina" />);
+    expect(getByText('Titolo della pagina')).toBeInTheDocument();
+  });
+
+  it('rende il contenuto della pagina', () => {
+    const { getByText } = render(<PageComponent content="Contenuto della pagina" />);
+    expect(getByText('Contenuto della pagina')).toBeInTheDocument();
+  });
+});
+```
+
+### 12.2 Test per API
+
+```typescript
+import { createTRPCClient } from '@trpc/client';
+import { createTRPCServer } from '@trpc/server';
+import { z } from 'zod';
+import { apiRouter } from '../server/trpc/routers/api';
+
+describe('apiRouter', () => {
+  it('rende il risultato della query', async () => {
+    const client = createTRPCClient();
+    const server = createTRPCServer({
+      router: apiRouter,
+      createContext: () => ({}),
+    });
+
+    const result = await client.query('api.example', { input: 'input' });
+    expect(result).toBe('risultato');
+  });
+});
+```
+
+## 13. COMMON PITFALLS & TROUBLESHOOTING
+
+### 13.1 Problemi Comuni
+
+* Errore di tipo: assicurarsi di utilizzare tipi TypeScript corretti
+* Errore di database: assicurarsi di utilizzare Prisma correttamente
+* Errore di API: assicurarsi di utilizzare tRPC correttamente
+
+### 13.2 Soluzioni Comuni
+
+* Utilizzare il debugger per identificare l'origine dell'errore
+* Utilizzare la documentazione per risolvere problemi comuni
+* Utilizzare la community per chiedere aiuto
+
+## 14. MIGRATION/UPGRADE PATTERNS
+
+### 14.1 Migrazione del Database
+
+* Utilizzare Prisma per eseguire la migrazione del database
+* Utilizzare script di migrazione per eseguire la migrazione del database
+
+### 14.2 Upgrade del Codice
+
+* Utilizzare TypeScript per eseguire l'upgrade del codice
+* Utilizzare funzioni di upgrade per eseguire l'upgrade del codice
+
+## 15. EDGE CASES
+
+### 15.1 Gestione di Errori
+
+* Utilizzare try-catch per gestire gli errori
+* Utilizzare error handling per gestire gli errori
+
+### 15.2 Gestione di Input Invalidi
+
+* Utilizzare validazione per gestire input invalidi
+* Utilizzare error handling per gestire input invalidi
+
+## 16. ERROR HANDLING
+
+### 16.1 Gestione di Errori
+
+* Utilizzare try-catch per gestire gli errori
+* Utilizzare error handling per gestire gli errori
+
+### 16.2 Gestione di Eccezioni
+
+* Utilizzare try-catch per gestire le eccezioni
+* Utilizzare error handling per gestire le eccezioni
+
+## 17. CODE ORGANIZATION
+
+### 17.1 Organizzazione del Codice
+
+* Utilizzare una struttura di directory per organizzare il codice
+* Utilizzare moduli per organizzare il codice
+
+### 17.2 Gestione di Dipendenze
+
+* Utilizzare dipendenze per gestire le dipendenze
+* Utilizzare gestione di dipendenze per gestire le dipendenze
+
+## 18. SECURITY
+
+### 18.1 Gestione di Password
+
+* Utilizzare hashing per gestire le password
+* Utilizzare salting per gestire le password
+
+### 18.2 Gestione di Autenticazione
+
+* Utilizzare autenticazione per gestire l'accesso
+* Utilizzare autorizzazione per gestire l'accesso
+
+## 19. DEPLOYMENT
+
+### 19.1 Deploy su Server
+
+* Utilizzare un server per deployare l'applicazione
+* Utilizzare un servizio di deploy per deployare l'applicazione
+
+### 19.2 Deploy su Cloud
+
+* Utilizzare un servizio cloud per deployare l'applicazione
+* Utilizzare un servizio di deploy per deployare l'applicazione
+
+## 20. MONITORING
+
+### 20.1 Monitoraggio dell'Applicazione
+
+* Utilizzare strumenti di monitoraggio per monitorare l'applicazione
+* Utilizzare log per monitorare l'applicazione
+
+### 20.2 Monitoraggio del Server
+
+* Utilizzare strumenti di monitoraggio per monitorare il server
+* Utilizzare log per monitorare il server
+
+## 21. OPTIMIZATION
+
+### 21.1 Ottimizzazione dell'Applicazione
+
+* Utilizzare strumenti di ottimizzazione per ottimizzare l'applicazione
+* Utilizzare tecniche di ottimizzazione per ottimizzare l'applicazione
+
+### 21.2 Ottimizzazione del Server
+
+* Utilizzare strumenti di ottimizzazione per ottimizzare il server
+* Utilizzare tecniche di ottimizzazione per ottimizzare il server

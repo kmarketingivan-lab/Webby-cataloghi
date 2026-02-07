@@ -2017,3 +2017,184 @@ services:
             <span className="relative inline-flex items-center justify-center">
               {showCount && unreadCount > 9 ? (
                 <
+
+## 3. ADVANCED EDGE CASES
+
+### 3.1 Handling Disconnections and Reconnections
+
+In real-time applications, handling disconnections and reconnections is crucial for maintaining a seamless user experience. Here's an example of how to handle disconnections and reconnections using WebSocket:
+
+```typescript
+import WebSocket, { WebSocketServer } from 'ws';
+
+interface WSClient extends WebSocket {
+  userId?: string;
+  rooms: Set<string>;
+  isAlive: boolean;
+}
+
+const wss = new WebSocketServer({ port: 8080 });
+const clients = new Set<WSClient>();
+
+// Connection handler
+wss.on('connection', (ws: WSClient, req: IncomingMessage) => {
+  // ...
+
+  // Handle disconnections
+  ws.on('close', () => {
+    // Remove client from rooms
+    for (const room of ws.rooms) {
+      // ...
+    }
+    // Remove client from clients set
+    clients.delete(ws);
+  });
+
+  // Handle reconnections
+  ws.on('reconnect', () => {
+    // Rejoin rooms
+    for (const room of ws.rooms) {
+      // ...
+    }
+    // Update client state
+    ws.isAlive = true;
+  });
+});
+```
+
+### 3.2 Error Handling and Logging
+
+Error handling and logging are essential for debugging and monitoring real-time applications. Here's an example of how to handle errors and log messages using WebSocket:
+
+```typescript
+import WebSocket, { WebSocketServer } from 'ws';
+import winston from 'winston';
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+// Connection handler
+wss.on('connection', (ws: WSClient, req: IncomingMessage) => {
+  // ...
+
+  // Handle errors
+  ws.on('error', (error) => {
+    logger.error('Error occurred:', error);
+  });
+
+  // Handle messages
+  ws.on('message', (raw) => {
+    try {
+      const data = JSON.parse(raw.toString());
+      // ...
+    } catch (error) {
+      logger.error('Error parsing message:', error);
+    }
+  });
+});
+```
+
+## 4. PERFORMANCE CONSIDERATIONS
+
+### 4.1 Optimizing WebSocket Connections
+
+Optimizing WebSocket connections is crucial for improving the performance of real-time applications. Here are some best practices for optimizing WebSocket connections:
+
+| Best Practice | Description |
+| --- | --- |
+| ✅ Use connection pooling | Reuse existing connections to reduce overhead |
+| ✅ Use batching | Send multiple messages in a single packet to reduce overhead |
+| ✅ Use compression | Compress messages to reduce payload size |
+| ❌ Use unnecessary features | Avoid using features that are not necessary for your application |
+
+### 4.2 Optimizing Server-Side Performance
+
+Optimizing server-side performance is crucial for improving the performance of real-time applications. Here are some best practices for optimizing server-side performance:
+
+| Best Practice | Description |
+| --- | --- |
+| ✅ Use clustering | Use multiple worker processes to handle incoming connections |
+| ✅ Use load balancing | Distribute incoming connections across multiple servers |
+| ✅ Use caching | Cache frequently accessed data to reduce database queries |
+| ❌ Use synchronous operations | Avoid using synchronous operations that can block the event loop |
+
+## 5. TESTING PATTERNS
+
+### 5.1 Testing WebSocket Connections
+
+Testing WebSocket connections is crucial for ensuring the reliability and performance of real-time applications. Here's an example of how to test WebSocket connections using Vitest:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import WebSocket from 'ws';
+
+describe('WebSocket connection', () => {
+  it('should establish a connection', async () => {
+    const ws = new WebSocket('ws://localhost:8080');
+    await new Promise((resolve) => {
+      ws.on('open', () => {
+        resolve();
+      });
+    });
+    expect(ws.readyState).toBe(WebSocket.OPEN);
+  });
+
+  it('should send and receive messages', async () => {
+    const ws = new WebSocket('ws://localhost:8080');
+    await new Promise((resolve) => {
+      ws.on('open', () => {
+        resolve();
+      });
+    });
+    ws.send('Hello, world!');
+    await new Promise((resolve) => {
+      ws.on('message', (message) => {
+        expect(message.toString()).toBe('Hello, world!');
+        resolve();
+      });
+    });
+  });
+});
+```
+
+## 6. COMMON PITFALLS AND TROUBLESHOOTING
+
+### 6.1 Handling Connection Drops
+
+Handling connection drops is crucial for maintaining a seamless user experience. Here are some common pitfalls and troubleshooting tips for handling connection drops:
+
+| Pitfall | Description | Troubleshooting Tip |
+| --- | --- | --- |
+| Connection drops due to network issues | Connection drops due to network issues can cause data loss and corruption | Implement retry mechanisms and use connection pooling to reduce the impact of connection drops |
+| Connection drops due to server overload | Connection drops due to server overload can cause data loss and corruption | Implement load balancing and use clustering to distribute incoming connections across multiple servers |
+| Connection drops due to client-side issues | Connection drops due to client-side issues can cause data loss and corruption | Implement client-side retry mechanisms and use caching to reduce the impact of connection drops |
+
+## 7. MIGRATION AND UPGRADE PATTERNS
+
+### 7.1 Migrating from WebSocket to Socket.io
+
+Migrating from WebSocket to Socket.io can be a complex process. Here are some best practices for migrating from WebSocket to Socket.io:
+
+| Best Practice | Description |
+| --- | --- |
+| ✅ Use a gradual migration approach | Migrate one feature at a time to reduce the impact of changes |
+| ✅ Use a compatibility layer | Implement a compatibility layer to ensure backward compatibility with existing WebSocket clients |
+| ✅ Use testing and validation | Thoroughly test and validate the migration to ensure that it works as expected |
+| ❌ Use a big-bang approach | Avoid migrating everything at once, as this can cause significant downtime and disruption |
+
+### 7.2 Upgrading from Socket.io 3 to Socket.io 4
+
+Upgrading from Socket.io 3 to Socket.io 4 can be a complex process. Here are some best practices for upgrading from Socket.io 3 to Socket.io 4:
+
+| Best Practice | Description |
+| --- | --- |
+| ✅ Use a gradual upgrade approach | Upgrade one feature at a time to reduce the impact of changes |
+| ✅ Use a compatibility layer | Implement a compatibility layer to ensure backward compatibility with existing Socket.io 3 clients |
+| ✅ Use testing and validation | Thoroughly test and validate the upgrade to ensure that it works as expected |
+| ❌ Use a big-bang approach | Avoid upgrading everything at once, as this can cause significant downtime and disruption |

@@ -1552,3 +1552,158 @@ const DataTable = <T extends { id: string | number }>({
 border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-start justify-between mb-4">
         <div
+
+## PATTERN 3: Higher-Order Components (HOC)
+
+**Metadata:**
+
+| Campo         | Valore                                        |
+| ------------- | --------------------------------------------- |
+| Categoria     | Structural                                    |
+| Complessità   | Medium                                        |
+| React Version | 18+                                           |
+| Use Case      | Condivisione logica tra componenti non correlati |
+
+**Implementazione:**
+
+```typescript
+import React, { useState, useEffect } from 'react';
+
+interface WithLoadingIndicatorProps {
+  isLoading: boolean;
+  children: React.ReactNode;
+}
+
+const withLoadingIndicator = <P extends {}>(WrappedComponent: React.ComponentType<P>) => {
+  const EnhancedComponent = ({ isLoading, ...props }: WithLoadingIndicatorProps & P) => {
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+    return <WrappedComponent {...props} />;
+  };
+  return EnhancedComponent;
+};
+
+export const MyComponent = withLoadingIndicator(({ name }: { name: string }) => {
+  return <div>Hello, {name}!</div>;
+});
+```
+
+**Quando Usare:** ✅ Condivisione logica tra componenti non correlati | ✅ Gestione stato di caricamento
+
+**Quando Evitare:** ❌ Componenti semplici | ❌ Performance critiche
+
+## PATTERN 4: React Hooks
+
+**Metadata:**
+
+| Campo         | Valore                                        |
+| ------------- | --------------------------------------------- |
+| Categoria     | Behavioral                                    |
+| Complessità   | Medium                                        |
+| React Version | 18+                                           |
+| Use Case      | Gestione stato e effetti collaterali in componenti funzionali |
+
+**Implementazione:**
+
+```typescript
+import { useState, useEffect } from 'react';
+
+export const useFetchData = (url: string) => {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        setData(data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [url]);
+
+  return { data, error, isLoading };
+};
+```
+
+**Quando Usare:** ✅ Gestione stato e effetti collaterali in componenti funzionali | ✅ Fetching dati da API
+
+**Quando Evitare:** ❌ Componenti classici | ❌ Performance critiche
+
+## Testing Patterns con Vitest
+
+### Test di un componente React
+
+```typescript
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { MyComponent } from './MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    const { getByText } = render(<MyComponent />);
+    expect(getByText('Hello, World!')).toBeInTheDocument();
+  });
+
+  it('handles click event', () => {
+    const { getByText } = render(<MyComponent />);
+    const button = getByText('Click me!');
+    fireEvent.click(button);
+    expect(getByText('Button clicked!')).toBeInTheDocument();
+  });
+});
+```
+
+### Test di un hook React
+
+```typescript
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useFetchData } from './useFetchData';
+
+describe('useFetchData', () => {
+  it('fetches data correctly', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useFetchData('https://api.example.com/data'));
+    await waitForNextUpdate();
+    expect(result.current.data).toEqual({ /* expected data */ });
+  });
+
+  it('handles error correctly', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useFetchData('https://api.example.com/error'));
+    await waitForNextUpdate();
+    expect(result.current.error).toBeInstanceOf(Error);
+  });
+});
+```
+
+## Best Practices
+
+### ✅ DO
+
+* Utilizzare componenti funzionali invece di classici
+* Utilizzare hooks per gestire stato e effetti collaterali
+* Utilizzare librerie di testing come Vitest per testare i componenti
+
+### ❌ DON'T
+
+* Utilizzare componenti classici per nuove implementazioni
+* Utilizzare stato locale in componenti funzionali senza hooks
+* Non testare i componenti prima di deployarli
+
+## Common Pitfalls & Troubleshooting
+
+* **Stato non aggiornato**: Assicurarsi di utilizzare `useState` e `useEffect` correttamente per gestire lo stato dei componenti.
+* **Errori di rendering**: Verificare che i componenti siano correttamente importati e utilizzati nel codice.
+* **Problemi di performance**: Utilizzare strumenti di profiling per identificare le cause di problemi di performance e ottimizzare il codice di conseguenza.
+
+## Migration/Upgrade Patterns
+
+* **Migrazione da React 17 a React 18**: Utilizzare la documentazione ufficiale di React per eseguire la migrazione e risolvere eventuali problemi.
+* **Aggiornamento di librerie**: Utilizzare npm o yarn per aggiornare le librerie e risolvere eventuali problemi di compatibilità.
+* **Rifattorizzazione del codice**: Utilizzare strumenti di analisi del codice per identificare aree di miglioramento e rifattorizzare il codice per renderlo più efficiente e facile da mantenere.

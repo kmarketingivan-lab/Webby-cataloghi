@@ -1,1150 +1,1273 @@
-# CATALOGO REST API DESIGN v2
+# CATALOGO-REST-API-DESIGN-v2
 
-> **Versione**: 2.0
-> **Data**: 2026-01-27
-> **Ambito**: URL design, HTTP methods, Status codes, Response formats, Pagination, Versioning, Authentication, tRPC, OpenAPI, Webhooks, Testing, Gateway patterns
-> **Sezioni**: 1-20 (13 originali + 7 espansione)
+Catálogo Completo: REST API Design per Next.js 14
+§ REST FUNDAMENTALS
+HTTP Methods Semantics
+typescript
+/**
+ * HTTP Methods e loro semantica RESTful
+ */
+export const HTTP_METHODS = {
+  GET: {
+    method: 'GET',
+    description: 'Recupera una rappresentazione della risorsa',
+    idempotent: true,
+    safe: true,
+    requestBody: false,
+    responseBody: true
+  },
+  POST: {
+    method: 'POST',
+    description: 'Crea una nuova risorsa o esegue un\'azione',
+    idempotent: false,
+    safe: false,
+    requestBody: true,
+    responseBody: true
+  },
+  PUT: {
+    method: 'PUT',
+    description: 'Sostituisce completamente una risorsa',
+    idempotent: true,
+    safe: false,
+    requestBody: true,
+    responseBody: true
+  },
+  PATCH: {
+    method: 'PATCH',
+    description: 'Modifica parzialmente una risorsa',
+    idempotent: false,
+    safe: false,
+    requestBody: true,
+    responseBody: true
+  },
+  DELETE: {
+    method: 'DELETE',
+    description: 'Rimuove una risorsa',
+    idempotent: true,
+    safe: false,
+    requestBody: false,
+    responseBody: true
+  },
+  HEAD: {
+    method: 'HEAD',
+    description: 'Recupera solo gli header della risposta',
+    idempotent: true,
+    safe: true,
+    requestBody: false,
+    responseBody: false
+  },
+  OPTIONS: {
+    method: 'OPTIONS',
+    description: 'Descrive le opzioni di comunicazione',
+    idempotent: true,
+    safe: true,
+    requestBody: false,
+    responseBody: true
+  }
+} as const;
+Status Codes Reference
+typescript
+/**
+ * Codici di stato HTTP organizzati per categoria
+ */
+export const STATUS_CODES = {
+  // 2xx Success
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204,
+  RESET_CONTENT: 205,
+  PARTIAL_CONTENT: 206,
 
----
+  // 3xx Redirection
+  MOVED_PERMANENTLY: 301,
+  FOUND: 302,
+  SEE_OTHER: 303,
+  NOT_MODIFIED: 304,
+  TEMPORARY_REDIRECT: 307,
+  PERMANENT_REDIRECT: 308,
 
-## 1. URL DESIGN RULES
+  // 4xx Client Errors
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  NOT_ACCEPTABLE: 406,
+  CONFLICT: 409,
+  GONE: 410,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
 
-| Rule                      | Correct                                 | Wrong                               | Reason                                          | HTTP Verb |
-| ------------------------- | --------------------------------------- | ----------------------------------- | ----------------------------------------------- | --------- |
-| Resource naming plural    | `/users`                                | `/user`                             | REST convention: resources are plural           | GET, POST |
-| Nested resource limit     | `/users/123/posts`                      | `/users/123/posts/456/comments/789` | Avoid deep nesting >2 levels                    | GET       |
-| Path vs query             | `/users/123`                            | `/users?id=123`                     | Use path for resource id                        | GET       |
-| Filtering                 | `/posts?status=published`               | `/posts/status/published`           | Query parameters better for filters             | GET       |
-| Sorting                   | `/posts?sort=-createdAt`                | `/posts/sort/desc`                  | Query params more flexible                      | GET       |
-| Pagination                | `/posts?page=2&pageSize=20`             | `/posts/2/20`                       | Explicit query params standard                  | GET       |
-| Versioning in URL         | `/v1/users`                             | `/users?version=1`                  | URL versioning is clear                         | GET, POST |
-| Versioning in header      | `Accept: application/vnd.myapi.v1+json` | `/users?v=1`                        | Header versioning allows backward compatibility | GET       |
-| No verbs in URL           | `/users`                                | `/getUsers`                         | REST is resource-based, not action-based        | GET       |
-| Consistent casing         | `/users`                                | `/Users`                            | URLs should be lowercase                        | GET       |
-| Use hyphens               | `/user-profiles`                        | `/user_profiles`                    | Hyphens improve readability                     | GET       |
-| Avoid file extensions     | `/users`                                | `/users.json`                       | MIME types should be in headers                 | GET       |
-| Singular resource in POST | `/users`                                | `/users/create`                     | POST to collection, not action                  | POST      |
-| Action via HTTP           | `POST /users/123/activate`              | `/users/123/activateUser`           | Use HTTP method semantics                       | POST      |
-| Boolean filters           | `/posts?published=true`                 | `/posts/published/true`             | Query params for filtering                      | GET       |
-| Range filters             | `/orders?amount_gt=100`                 | `/orders/minAmount/100`             | Query params flexible for ranges                | GET       |
-| Optional segments         | `/users/{id}/posts?limit=10`            | `/users/{id}/posts/10`              | Query params are optional                       | GET       |
-| Search query              | `/products?search=laptop`               | `/products/search/laptop`           | Query params standard                           | GET       |
-| Resource identifiers      | `/users/123`                            | `/users/name/john`                  | IDs preferred over names                        | GET       |
-| Relationships             | `/users/123/friends`                    | `/users/123?include=friends`        | Both valid, nested preferred for direct child   | GET       |
-| Batch actions             | `/users/batch`                          | `/users/multiUpdate`                | Endpoint name generic for batch                 | POST      |
+  // 5xx Server Errors
+  INTERNAL_SERVER_ERROR: 500,
+  NOT_IMPLEMENTED: 501,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504
+} as const;
 
----
+/**
+ * Mappa codici di stato a messaggi descrittivi
+ */
+export const STATUS_MESSAGES: Record<number, string> = {
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  204: 'No Content',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  409: 'Conflict',
+  422: 'Unprocessable Entity',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  503: 'Service Unavailable'
+};
+Idempotency
+typescript
+/**
+ * Implementazione idempotenza con chiavi idempotenti
+ */
+export class IdempotencyManager {
+  private static readonly store = new Map<string, { response: any; timestamp: number }>();
+  private static readonly TTL = 24 * 60 * 60 * 1000; // 24 ore
 
-## 2. HTTP METHODS MATRIX
+  static async executeWithIdempotency<T>(
+    key: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    this.cleanupExpired();
+    
+    const cached = this.store.get(key);
+    if (cached) {
+      return cached.response;
+    }
+    
+    const result = await operation();
+    this.store.set(key, {
+      response: result,
+      timestamp: Date.now()
+    });
+    
+    return result;
+  }
 
-| Method  | Idempotent | Safe | Request Body | Response Body | Status Codes  | Use Case                  |
-| ------- | ---------- | ---- | ------------ | ------------- | ------------- | ------------------------- |
-| GET     | Yes        | Yes  | No           | JSON          | 200, 404      | Fetch resource            |
-| POST    | No         | No   | Yes          | JSON          | 201, 400      | Create resource           |
-| PUT     | Yes        | No   | Yes          | JSON          | 200, 204, 400 | Replace resource          |
-| PATCH   | No         | No   | Partial JSON | JSON          | 200, 204, 400 | Update resource partially |
-| DELETE  | Yes        | No   | No           | JSON          | 204, 404      | Delete resource           |
-| OPTIONS | Yes        | Yes  | No           | Headers       | 200           | Preflight CORS            |
-| HEAD    | Yes        | Yes  | No           | Headers only  | 200, 404      | Check existence           |
+  static generateKey(
+    method: string,
+    path: string,
+    userId: string,
+    bodyHash?: string
+  ): string {
+    return `${method}:${path}:${userId}:${bodyHash || ''}`;
+  }
 
----
+  private static cleanupExpired(): void {
+    const now = Date.now();
+    for (const [key, value] of this.store.entries()) {
+      if (now - value.timestamp > this.TTL) {
+        this.store.delete(key);
+      }
+    }
+  }
+}
 
-## 3. STATUS CODES REFERENCE
+// Middleware per gestire header Idempotency-Key
+export const idempotencyMiddleware = async (
+  request: Request,
+  next: () => Promise<Response>
+) => {
+  const idempotencyKey = request.headers.get('Idempotency-Key');
+  
+  if (!idempotencyKey) {
+    return next();
+  }
+  
+  const userId = request.headers.get('X-User-ID') || 'anonymous';
+  const method = request.method;
+  const path = new URL(request.url).pathname;
+  
+  // Hash del body per chiave più precisa
+  const bodyText = await request.clone().text();
+  const bodyHash = bodyText ? await crypto.subtle.digest('SHA-256', new TextEncoder().encode(bodyText)).then(hash => Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')) : undefined;
+  
+  const key = IdempotencyManager.generateKey(method, path, userId, bodyHash);
+  
+  return IdempotencyManager.executeWithIdempotency(key, next);
+};
+HATEOAS Basics
+typescript
+/**
+ * Interfaccia per link HATEOAS
+ */
+export interface HALink {
+  href: string;
+  rel: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  title?: string;
+  type?: string;
+  templated?: boolean;
+}
 
-| Code | Name                   | When to Use         | Response Body | Retry |
-| ---- | ---------------------- | ------------------- | ------------- | ----- |
-| 200  | OK                     | Success GET         | `{data:...}`  | No    |
-| 201  | Created                | Resource created    | `{data:...}`  | No    |
-| 202  | Accepted               | Async processing    | `{jobId:...}` | Yes   |
-| 204  | No Content             | Success w/o body    | None          | No    |
-| 301  | Moved Permanently      | Redirect URL        | `Location`    | Yes   |
-| 302  | Found                  | Temporary redirect  | `Location`    | Yes   |
-| 304  | Not Modified           | Caching             | None          | No    |
-| 400  | Bad Request            | Validation error    | `{error:...}` | No    |
-| 401  | Unauthorized           | Auth missing        | `{error:...}` | No    |
-| 403  | Forbidden              | Auth insufficient   | `{error:...}` | No    |
-| 404  | Not Found              | Resource missing    | `{error:...}` | No    |
-| 405  | Method Not Allowed     | Wrong verb          | `{error:...}` | No    |
-| 406  | Not Acceptable         | MIME not supported  | `{error:...}` | No    |
-| 409  | Conflict               | Duplicate resource  | `{error:...}` | No    |
-| 410  | Gone                   | Resource deleted    | `{error:...}` | No    |
-| 415  | Unsupported Media Type | Bad Content-Type    | `{error:...}` | No    |
-| 422  | Unprocessable Entity   | Validation failed   | `{error:...}` | No    |
-| 429  | Too Many Requests      | Rate limit exceeded | `{error:...}` | Yes   |
-| 500  | Internal Server Error  | Unexpected          | `{error:...}` | Yes   |
-| 502  | Bad Gateway            | Upstream error      | `{error:...}` | Yes   |
-| 503  | Service Unavailable    | Maintenance         | `{error:...}` | Yes   |
-| 504  | Gateway Timeout        | Upstream timeout    | `{error:...}` | Yes   |
-
----
-
-## 4. RESPONSE FORMATS
-
-### 4.1 Success Response Schema
-
-```typescript
-export interface SuccessResponse<T> {
-  success: true;
+/**
+ * Wrapper per risorse con link HATEOAS
+ */
+export interface HATEOASResource<T> {
+  _links: {
+    self: HALink;
+    [key: string]: HALink | HALink[];
+  };
+  _embedded?: {
+    [key: string]: HATEOASResource<any> | HATEOASResource<any>[];
+  };
   data: T;
-  meta?: {
-    pagination?: {
-      page: number;
-      pageSize: number;
-      total: number;
-      totalPages: number;
-      hasNext: boolean;
-      hasPrev: boolean;
+}
+
+/**
+ * Builder per risorse HATEOAS
+ */
+export class HATEOASBuilder<T> {
+  private resource: Partial<HATEOASResource<T>> = {
+    _links: {} as any
+  };
+
+  constructor(private baseUrl: string) {}
+
+  withData(data: T): this {
+    this.resource.data = data;
+    return this;
+  }
+
+  withSelfLink(path: string, method: string = 'GET'): this {
+    this.resource._links!.self = {
+      href: `${this.baseUrl}${path}`,
+      rel: 'self',
+      method: method as any
     };
+    return this;
+  }
+
+  withLink(rel: string, path: string, method?: string, templated?: boolean): this {
+    this.resource._links![rel] = {
+      href: `${this.baseUrl}${path}`,
+      rel,
+      method: method as any,
+      templated
+    };
+    return this;
+  }
+
+  withCollectionLink(rel: string, path: string): this {
+    this.resource._links![rel] = {
+      href: `${this.baseUrl}${path}`,
+      rel: 'collection',
+      method: 'GET'
+    };
+    return this;
+  }
+
+  build(): HATEOASResource<T> {
+    if (!this.resource._links!.self) {
+      throw new Error('Self link is required');
+    }
+    return this.resource as HATEOASResource<T>;
+  }
+}
+
+// Esempio di utilizzo
+export const createUserResource = (user: any, baseUrl: string): HATEOASResource<any> => {
+  return new HATEOASBuilder(baseUrl)
+    .withData(user)
+    .withSelfLink(`/users/${user.id}`)
+    .withLink('update', `/users/${user.id}`, 'PUT')
+    .withLink('delete', `/users/${user.id}`, 'DELETE')
+    .withCollectionLink('users', '/users')
+    .build();
+};
+Content Negotiation
+typescript
+/**
+ * Supporto per content negotiation
+ */
+export const SUPPORTED_CONTENT_TYPES = {
+  JSON: 'application/json',
+  JSON_API: 'application/vnd.api+json',
+  HAL_JSON: 'application/hal+json',
+  FORM_URLENCODED: 'application/x-www-form-urlencoded',
+  MULTIPART_FORM: 'multipart/form-data',
+  XML: 'application/xml',
+  TEXT: 'text/plain'
+} as const;
+
+export class ContentNegotiator {
+  static getBestMatch(
+    acceptHeader: string | null,
+    availableTypes: string[]
+  ): string | null {
+    if (!acceptHeader) {
+      return availableTypes[0] || null;
+    }
+
+    const accepted = this.parseAcceptHeader(acceptHeader);
+    
+    for (const { type, q } of accepted) {
+      if (availableTypes.includes(type)) {
+        return type;
+      }
+      
+      // Cerca pattern (es. application/*)
+      if (type.includes('/*')) {
+        const mimeType = type.replace('/*', '');
+        const match = availableTypes.find(t => t.startsWith(mimeType));
+        if (match) return match;
+      }
+    }
+    
+    return null;
+  }
+
+  private static parseAcceptHeader(header: string): Array<{ type: string; q: number }> {
+    return header.split(',')
+      .map(part => {
+        const [type, ...params] = part.trim().split(';');
+        const q = params.find(p => p.startsWith('q='));
+        return {
+          type,
+          q: q ? parseFloat(q.split('=')[1]) : 1.0
+        };
+      })
+      .sort((a, b) => b.q - a.q);
+  }
+
+  static isContentTypeSupported(contentType: string | null): boolean {
+    if (!contentType) return false;
+    const type = contentType.split(';')[0].trim();
+    return Object.values(SUPPORTED_CONTENT_TYPES).includes(type as any);
+  }
+}
+
+// Middleware per content negotiation
+export const contentNegotiationMiddleware = async (
+  request: Request,
+  next: (contentType: string) => Promise<Response>
+) => {
+  const acceptHeader = request.headers.get('Accept');
+  const availableTypes = Object.values(SUPPORTED_CONTENT_TYPES);
+  
+  const bestType = ContentNegotiator.getBestMatch(acceptHeader, availableTypes);
+  
+  if (!bestType) {
+    return new Response(
+      JSON.stringify({
+        error: 'Not Acceptable',
+        message: 'None of the requested content types are supported'
+      }),
+      {
+        status: 406,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': availableTypes.join(', ')
+        }
+      }
+    );
+  }
+  
+  return next(bestType);
+};
+§ NEXT.JS ROUTE HANDLERS
+GET, POST, PUT, PATCH, DELETE Handlers
+typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+/**
+ * Template per Route Handlers in Next.js 14
+ */
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const params = await context.params;
+    const searchParams = request.nextUrl.searchParams;
+    
+    // Esempio: GET /api/users?page=1&limit=10
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    
+    // Logica business
+    const users = await getUsers({ page, limit });
+    
+    return NextResponse.json({
+      success: true,
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total: users.length
+      }
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Validazione con Zod
+    const userSchema = z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      age: z.number().min(18).optional()
+    });
+    
+    const validatedData = userSchema.parse(body);
+    
+    // Creazione risorsa
+    const newUser = await createUser(validatedData);
+    
+    return NextResponse.json(
+      {
+        success: true,
+        data: newUser,
+        message: 'User created successfully'
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation Error',
+          details: error.errors
+        },
+        { status: 422 }
+      );
+    }
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal Server Error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const params = await context.params;
+    const body = await request.json();
+    
+    // Sostituzione completa
+    const updatedResource = await replaceResource(params.id, body);
+    
+    return NextResponse.json({
+      success: true,
+      data: updatedResource,
+      message: 'Resource replaced successfully'
+    });
+  } catch (error) {
+    // Gestione errori
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const params = await context.params;
+    const body = await request.json();
+    
+    // Aggiornamento parziale
+    const patchedResource = await updatePartial(params.id, body);
+    
+    return NextResponse.json({
+      success: true,
+      data: patchedResource,
+      message: 'Resource updated successfully'
+    });
+  } catch (error) {
+    // Gestione errori
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const params = await context.params;
+    
+    await deleteResource(params.id);
+    
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Not Found',
+        message: 'Resource not found'
+      },
+      { status: 404 }
+    );
+  }
+}
+
+// Funzioni helper di esempio
+async function getUsers(params: { page: number; limit: number }) {
+  return [];
+}
+
+async function createUser(data: any) {
+  return { id: '1', ...data };
+}
+
+async function replaceResource(id: string, data: any) {
+  return { id, ...data };
+}
+
+async function updatePartial(id: string, data: any) {
+  return { id, ...data };
+}
+
+async function deleteResource(id: string) {
+  // Logica eliminazione
+}
+Request Parsing (params, query, body)
+typescript
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+
+/**
+ * Utility per parsing richieste
+ */
+export class RequestParser {
+  static async parseBody<T>(request: NextRequest, schema: z.ZodSchema<T>): Promise<T> {
+    const contentType = request.headers.get('content-type');
+    
+    if (contentType?.includes('application/json')) {
+      const body = await request.json();
+      return schema.parse(body);
+    }
+    
+    if (contentType?.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData();
+      const body = Object.fromEntries(formData.entries());
+      return schema.parse(body);
+    }
+    
+    if (contentType?.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const body: Record<string, any> = {};
+      
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          body[key] = {
+            name: value.name,
+            type: value.type,
+            size: value.size
+          };
+        } else {
+          body[key] = value;
+        }
+      }
+      
+      return schema.parse(body);
+    }
+    
+    throw new Error('Unsupported content type');
+  }
+
+  static parseQuery(request: NextRequest, schema: z.ZodSchema<any>) {
+    const searchParams = request.nextUrl.searchParams;
+    const query: Record<string, string | string[]> = {};
+    
+    for (const [key, value] of searchParams.entries()) {
+      if (query[key]) {
+        if (Array.isArray(query[key])) {
+          (query[key] as string[]).push(value);
+        } else {
+          query[key] = [query[key] as string, value];
+        }
+      } else {
+        query[key] = value;
+      }
+    }
+    
+    return schema.parse(query);
+  }
+
+  static parseParams(params: Record<string, string>, schema: z.ZodSchema<any>) {
+    return schema.parse(params);
+  }
+
+  static getPaginationParams(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const offset = (page - 1) * limit;
+    
+    return { page, limit, offset };
+  }
+}
+
+/**
+ * Schema per query parameters comuni
+ */
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.string().optional(),
+  order: z.enum(['asc', 'desc']).default('desc')
+});
+
+export const filterSchema = z.object({
+  search: z.string().optional(),
+  status: z.string().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional()
+});
+
+// Esempio di utilizzo in Route Handler
+export async function GET(request: NextRequest) {
+  try {
+    const query = RequestParser.parseQuery(request, paginationSchema.merge(filterSchema));
+    const pagination = RequestParser.getPaginationParams(request);
+    
+    return NextResponse.json({
+      query,
+      pagination
+    });
+  } catch (error) {
+    // Gestione errori
+  }
+}
+Response Formatting
+typescript
+import { NextResponse } from 'next/server';
+
+/**
+ * Formato standard per risposte API
+ */
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  meta?: {
+    timestamp: string;
+    version: string;
     [key: string]: any;
   };
-}
-```
-
-### 4.2 Error Response Schema
-
-```typescript
-export interface ErrorResponse {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: Record<string, string[]>;
-  };
-}
-```
-
-### 4.3 Pagination Response
-
-```typescript
-export interface PaginatedResponse<T> {
-  success: true;
-  data: T[];
-  pagination: {
+  pagination?: {
     page: number;
-    pageSize: number;
+    limit: number;
     total: number;
     totalPages: number;
     hasNext: boolean;
     hasPrev: boolean;
   };
-}
-```
-
-### 4.4 API Response Type Union
-
-```typescript
-export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
-
-// Usage
-function handleResponse<T>(res: ApiResponse<T>) {
-  if (res.success) {
-    return res.data;
-  } else {
-    throw new Error(res.error.message);
-  }
-}
-```
-
----
-
-## 5. PAGINATION PATTERNS
-
-| Pattern    | Pros                | Cons                | Best For       | Implementation          |
-| ---------- | ------------------- | ------------------- | -------------- | ----------------------- |
-| Offset     | Simple, standard    | Large datasets slow | Small tables   | `?page=2&pageSize=20`   |
-| Cursor     | Efficient, stable   | Complex client      | Feeds, streams | `?cursor=xyz&limit=20`  |
-| Keyset     | Fast, no duplicates | Cannot jump pages   | Big tables     | `?afterId=100&limit=20` |
-| Page Token | Encoded cursor      | Hard to debug       | Public APIs    | `?pageToken=abc123`     |
-
-### 5.1 Offset Pagination Implementation
-
-```typescript
-// Query
-const page = parseInt(req.query.page as string) || 1;
-const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
-const offset = (page - 1) * pageSize;
-
-const [data, total] = await Promise.all([
-  db.users.findMany({ skip: offset, take: pageSize }),
-  db.users.count(),
-]);
-
-return {
-  success: true,
-  data,
-  pagination: {
-    page,
-    pageSize,
-    total,
-    totalPages: Math.ceil(total / pageSize),
-    hasNext: page * pageSize < total,
-    hasPrev: page > 1,
-  },
-};
-```
-
-### 5.2 Cursor Pagination Implementation
-
-```typescript
-const cursor = req.query.cursor as string | undefined;
-const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-
-const data = await db.users.findMany({
-  take: limit + 1,
-  cursor: cursor ? { id: cursor } : undefined,
-  skip: cursor ? 1 : 0,
-  orderBy: { id: 'asc' },
-});
-
-const hasNext = data.length > limit;
-if (hasNext) data.pop();
-
-return {
-  success: true,
-  data,
-  pagination: {
-    nextCursor: hasNext ? data[data.length - 1].id : null,
-    hasNext,
-  },
-};
-```
-
----
-
-## 6. VERSIONING STRATEGIES
-
-| Strategy | URL Example        | Header Example                        | Pros                  | Cons             | Recommendation |
-| -------- | ------------------ | ------------------------------------- | --------------------- | ---------------- | -------------- |
-| URL      | `/v1/users`        | —                                     | Easy, visible         | Harder to evolve | ✅ Recommended |
-| Header   | `/users`           | `Accept: application/vnd.app.v1+json` | Transparent, flexible | Hard to discover | Optional       |
-| Query    | `/users?version=1` | —                                     | Simple                | Bad convention   | ❌ Avoid       |
-
----
-
-## 7. AUTHENTICATION PATTERNS
-
-| Pattern      | Security | Stateless | Use Case        | Implementation                         |
-| ------------ | -------- | --------- | --------------- | -------------------------------------- |
-| Bearer Token | High     | ✅        | Mobile apps     | `Authorization: Bearer <token>`        |
-| API Key      | Medium   | ✅        | Public APIs     | `x-api-key: <key>`                     |
-| OAuth2       | High     | ✅        | User delegation | `Authorization: Bearer <access_token>` |
-| JWT          | High     | ✅        | Microservices   | `Authorization: Bearer <jwt>`          |
-
-### 7.1 JWT Middleware
-
-```typescript
-import jwt from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
-
-export interface AuthRequest extends Request {
-  userId?: string;
-}
-
-export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Missing token' },
-    });
-  }
-
-  const token = authHeader.slice(7);
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    req.userId = payload.userId;
-    next();
-  } catch {
-    return res.status(401).json({
-      success: false,
-      error: { code: 'INVALID_TOKEN', message: 'Invalid or expired token' },
-    });
-  }
-}
-```
-
----
-
-## 8. RATE LIMITING
-
-### 8.1 Standard Headers
-
-```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 50
-X-RateLimit-Reset: 1675000000
-Retry-After: 60
-```
-
-### 8.2 Redis Implementation
-
-```typescript
-import Redis from 'ioredis';
-import { Request, Response, NextFunction } from 'express';
-
-const redis = new Redis();
-
-interface RateLimitOptions {
-  windowMs: number;
-  max: number;
-}
-
-export function rateLimit(options: RateLimitOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const key = `rate:${req.ip}`;
-    const count = await redis.incr(key);
-    
-    if (count === 1) {
-      await redis.expire(key, Math.ceil(options.windowMs / 1000));
-    }
-
-    const ttl = await redis.ttl(key);
-    
-    res.setHeader('X-RateLimit-Limit', options.max);
-    res.setHeader('X-RateLimit-Remaining', Math.max(0, options.max - count));
-    res.setHeader('X-RateLimit-Reset', Date.now() + ttl * 1000);
-
-    if (count > options.max) {
-      res.setHeader('Retry-After', ttl);
-      return res.status(429).json({
-        success: false,
-        error: { code: 'RATE_LIMIT', message: 'Too many requests' },
-      });
-    }
-
-    next();
+  links?: {
+    self: string;
+    next?: string;
+    prev?: string;
+    first?: string;
+    last?: string;
   };
 }
 
-// Usage: app.use(rateLimit({ windowMs: 60000, max: 100 }));
-```
-
----
-
-## 9. HATEOAS & LINKS
-
-```typescript
-interface Link {
-  rel: string;
-  href: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-}
-
-interface HypermediaResponse<T> {
-  success: true;
-  data: T;
-  links: Link[];
-}
-
-// Example response
-const userResponse: HypermediaResponse<User> = {
-  success: true,
-  data: { id: '123', name: 'John', email: 'john@example.com' },
-  links: [
-    { rel: 'self', href: '/users/123', method: 'GET' },
-    { rel: 'update', href: '/users/123', method: 'PATCH' },
-    { rel: 'delete', href: '/users/123', method: 'DELETE' },
-    { rel: 'posts', href: '/users/123/posts', method: 'GET' },
-  ],
-};
-```
-
----
-
-## 10. API DOCUMENTATION (OpenAPI + Zod)
-
-```typescript
-import { z } from 'zod';
-import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
-
-extendZodWithOpenApi(z);
-
-const registry = new OpenAPIRegistry();
-
-// Define schemas
-const UserSchema = z.object({
-  id: z.string().openapi({ example: 'usr_123' }),
-  name: z.string().min(2).max(100).openapi({ example: 'John Doe' }),
-  email: z.string().email().openapi({ example: 'john@example.com' }),
-}).openapi('User');
-
-// Register endpoints
-registry.registerPath({
-  method: 'get',
-  path: '/users/{id}',
-  tags: ['Users'],
-  request: {
-    params: z.object({ id: z.string() }),
-  },
-  responses: {
-    200: {
-      description: 'User found',
-      content: { 'application/json': { schema: UserSchema } },
-    },
-    404: { description: 'User not found' },
-  },
-});
-
-// Generate OpenAPI document
-const generator = new OpenApiGeneratorV3(registry.definitions);
-const openApiDoc = generator.generateDocument({
-  openapi: '3.1.0',
-  info: { title: 'My API', version: '1.0.0' },
-  servers: [{ url: 'https://api.example.com/v1' }],
-});
-```
-
----
-
-## 11. EXPRESS CRUD EXAMPLE
-
-```typescript
-import express from 'express';
-import { z } from 'zod';
-
-const app = express();
-app.use(express.json());
-
-// Schemas
-const CreateUserSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-});
-
-const UpdateUserSchema = CreateUserSchema.partial();
-
-// Validation middleware
-function validate<T>(schema: z.ZodSchema<T>) {
-  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(422).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid input',
-          details: result.error.flatten().fieldErrors,
-        },
-      });
-    }
-    req.body = result.data;
-    next();
-  };
-}
-
-// Routes
-app.get('/users', async (req, res) => {
-  const users = await db.users.findMany();
-  res.json({ success: true, data: users });
-});
-
-app.get('/users/:id', async (req, res) => {
-  const user = await db.users.findUnique({ where: { id: req.params.id } });
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: 'User not found' },
-    });
-  }
-  res.json({ success: true, data: user });
-});
-
-app.post('/users', validate(CreateUserSchema), async (req, res) => {
-  const user = await db.users.create({ data: req.body });
-  res.status(201).json({ success: true, data: user });
-});
-
-app.patch('/users/:id', validate(UpdateUserSchema), async (req, res) => {
-  const user = await db.users.update({
-    where: { id: req.params.id },
-    data: req.body,
-  });
-  res.json({ success: true, data: user });
-});
-
-app.delete('/users/:id', async (req, res) => {
-  await db.users.delete({ where: { id: req.params.id } });
-  res.status(204).send();
-});
-
-// Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err);
-  res.status(500).json({
-    success: false,
-    error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' },
-  });
-});
-
-app.listen(3000);
-```
-
----
-
-## 12. NEXT.JS API ROUTES (App Router)
-
-```typescript
-// app/api/users/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-
-const CreateUserSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-});
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get('page') || '1');
-  const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '20'), 100);
-
-  const users = await db.users.findMany({
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-  });
-
-  return NextResponse.json({ success: true, data: users });
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const result = CreateUserSchema.safeParse(body);
-
-  if (!result.success) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid input',
-          details: result.error.flatten().fieldErrors,
-        },
-      },
-      { status: 422 }
-    );
-  }
-
-  const user = await db.users.create({ data: result.data });
-  return NextResponse.json({ success: true, data: user }, { status: 201 });
-}
-```
-
-```typescript
-// app/api/users/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const user = await db.users.findUnique({ where: { id: params.id } });
-
-  if (!user) {
-    return NextResponse.json(
-      { success: false, error: { code: 'NOT_FOUND', message: 'User not found' } },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({ success: true, data: user });
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  await db.users.delete({ where: { id: params.id } });
-  return new NextResponse(null, { status: 204 });
-}
-```
-
----
-
-## 13. API DESIGN CHECKLIST
-
-| Category | Item |
-| -------- | ---- |
-| URL Design | ✅ Plural resource naming |
-| URL Design | ✅ No verbs in URL |
-| URL Design | ✅ Use hyphens, not underscores |
-| URL Design | ✅ Lowercase URLs only |
-| URL Design | ✅ No file extensions |
-| URL Design | ✅ Path for IDs, query for filters |
-| Versioning | ✅ Strategy defined (URL recommended) |
-| HTTP Methods | ✅ Correct verbs for operations |
-| Status Codes | ✅ Consistent status codes |
-| Validation | ✅ Input validation on all endpoints |
-| Response | ✅ Consistent response schema |
-| Response | ✅ Success/Error differentiation |
-| Pagination | ✅ Pagination implemented |
-| Filtering | ✅ Filtering & sorting available |
-| Security | ✅ Rate limiting applied |
-| Security | ✅ Authentication enforced |
-| Error Handling | ✅ Global error handler |
-| Observability | ✅ Logging & metrics |
-| Documentation | ✅ OpenAPI docs up-to-date |
-| HATEOAS | ⚠️ Links added (optional) |
-
-
----
-
-## 14. REST vs GRAPHQL vs tRPC COMPARISON
-
-### 14.1 Technology Decision Matrix
-
-| Aspect | REST | GraphQL | tRPC | gRPC |
-|--------|------|---------|------|------|
-| Protocol | HTTP/1.1+ | HTTP/1.1+ | HTTP/1.1+ | HTTP/2 |
-| Data Format | JSON | JSON | JSON | Protobuf |
-| Schema | OpenAPI (optional) | SDL (required) | TypeScript (inferred) | .proto (required) |
-| Type Safety | ❌ Manual | ⚠️ Codegen needed | ✅ Native | ✅ Native |
-| Overfetching | ❌ Common | ✅ Solved | ✅ Solved | ✅ Solved |
-| Underfetching | ❌ Common | ✅ Solved | ⚠️ Depends | ⚠️ Depends |
-| HTTP Caching | ✅ Native | ❌ Complex | ❌ Custom | ❌ None |
-| File Upload | ✅ Native | ⚠️ Multipart spec | ✅ Native | ⚠️ Streaming |
-| Real-time | ⚠️ SSE/WebSocket | ✅ Subscriptions | ✅ Subscriptions | ✅ Streaming |
-| Learning Curve | 🟢 Low | 🟡 Medium | 🟢 Low | 🔴 High |
-| Tooling | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| Best For | Public APIs | Complex UIs | Full-stack TS | Microservices |
-
-### 14.2 When to Use What
-
-| Scenario | Recommended | Why |
-|----------|-------------|-----|
-| Public API for third parties | REST | Universal, cacheable, well-documented |
-| Mobile app with limited bandwidth | GraphQL | Fetch exactly what's needed |
-| Full-stack TypeScript monorepo | tRPC | End-to-end type safety, no codegen |
-| Internal microservices | gRPC | High performance, strong contracts |
-| Real-time dashboard | GraphQL | Subscriptions built-in |
-| CRUD-heavy admin panel | REST or tRPC | Simple, predictable |
-| Serverless functions | tRPC or REST | Simple deployment |
-| Rapid prototyping | tRPC | Zero boilerplate |
-
----
-
-## 15. tRPC IMPLEMENTATION
-
-### 15.1 Server Setup (Next.js App Router)
-
-```typescript
-// server/trpc.ts
-import { initTRPC, TRPCError } from '@trpc/server';
-import { ZodError } from 'zod';
-import superjson from 'superjson';
-import { getServerSession } from 'next-auth';
-
-export interface Context {
-  session: Awaited<ReturnType<typeof getServerSession>> | null;
-  headers: Headers;
-}
-
-export const createTRPCContext = async (opts: { headers: Headers }): Promise<Context> => {
-  const session = await getServerSession();
-  return { session, headers: opts.headers };
-};
-
-const t = initTRPC.context<Context>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
-});
-
-export const router = t.router;
-export const publicProcedure = t.procedure;
-export const middleware = t.middleware;
-
-// Auth middleware
-const enforceAuth = middleware(async ({ ctx, next }) => {
-  if (!ctx.session?.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-  return next({ ctx: { session: ctx.session, user: ctx.session.user } });
-});
-
-export const protectedProcedure = t.procedure.use(enforceAuth);
-```
-
-### 15.2 Router Definition
-
-```typescript
-// server/routers/user.ts
-import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { prisma } from '@/lib/prisma';
-import { TRPCError } from '@trpc/server';
-
-export const userRouter = router({
-  getById: publicProcedure
-    .input(z.object({ id: z.string().cuid() }))
-    .query(async ({ input }) => {
-      const user = await prisma.user.findUnique({
-        where: { id: input.id },
-        select: { id: true, name: true, email: true, image: true },
-      });
-      if (!user) throw new TRPCError({ code: 'NOT_FOUND' });
-      return user;
-    }),
-
-  me: protectedProcedure.query(async ({ ctx }) => {
-    return prisma.user.findUnique({
-      where: { id: ctx.user.id },
-      include: { profile: true },
-    });
-  }),
-
-  update: protectedProcedure
-    .input(z.object({
-      name: z.string().min(2).max(100).optional(),
-      email: z.string().email().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      return prisma.user.update({
-        where: { id: ctx.user.id },
-        data: input,
-      });
-    }),
-
-  list: publicProcedure
-    .input(z.object({
-      cursor: z.string().cuid().optional(),
-      limit: z.number().min(1).max(100).default(20),
-    }))
-    .query(async ({ input }) => {
-      const users = await prisma.user.findMany({
-        take: input.limit + 1,
-        cursor: input.cursor ? { id: input.cursor } : undefined,
-        orderBy: { createdAt: 'desc' },
-      });
-
-      let nextCursor: string | undefined;
-      if (users.length > input.limit) {
-        nextCursor = users.pop()?.id;
-      }
-      return { items: users, nextCursor };
-    }),
-});
-```
-
-### 15.3 Client Setup
-
-```typescript
-// lib/trpc.ts
-import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '@/server/routers/_app';
-
-export const trpc = createTRPCReact<AppRouter>();
-
-// providers/trpc-provider.tsx
-'use client';
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
-import { useState } from 'react';
-import superjson from 'superjson';
-import { trpc } from '@/lib/trpc';
-
-export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
-      links: [
-        httpBatchLink({
-          url: '/api/trpc',
-          transformer: superjson,
-        }),
-      ],
-    })
-  );
-
-  return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </trpc.Provider>
-  );
-}
-```
-
-
----
-
-## 16. OPENAPI 3.1 SPECIFICATION
-
-### 16.1 OpenAPI Template Structure
-
-```yaml
-# openapi.yaml
-openapi: 3.1.0
-info:
-  title: My API
-  version: 1.0.0
-  description: Production-ready REST API
-
-servers:
-  - url: https://api.example.com/v1
-    description: Production
-  - url: http://localhost:3000/api/v1
-    description: Development
-
-paths:
-  /users:
-    get:
-      tags: [Users]
-      summary: List all users
-      operationId: listUsers
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: Users list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserListResponse'
-
-components:
-  schemas:
-    User:
-      type: object
-      required: [id, email, name]
-      properties:
-        id:
-          type: string
-          format: cuid
-        email:
-          type: string
-          format: email
-        name:
-          type: string
-
-    UserListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-
-    Pagination:
-      type: object
-      properties:
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        total:
-          type: integer
-        hasNext:
-          type: boolean
-
-  parameters:
-    PageParam:
-      name: page
-      in: query
-      schema:
-        type: integer
-        default: 1
-
-    LimitParam:
-      name: limit
-      in: query
-      schema:
-        type: integer
-        default: 20
-        maximum: 100
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-```
-
----
-
-## 17. WEBHOOK IMPLEMENTATION
-
-### 17.1 Webhook Event Types
-
-| Event | Payload | Retry Policy | Idempotency |
-|-------|---------|--------------|-------------|
-| user.created | Full user object | 3x exponential | webhook_id |
-| user.updated | User with changed fields | 3x exponential | webhook_id |
-| user.deleted | User ID only | 3x exponential | webhook_id |
-| order.placed | Order with items | 5x exponential | order_id |
-| order.paid | Order with payment | 5x exponential | payment_id |
-| subscription.created | Subscription details | 3x exponential | subscription_id |
-| subscription.cancelled | Subscription ID + reason | 3x exponential | webhook_id |
-
-### 17.2 Webhook Service Implementation
-
-```typescript
-// lib/webhooks/webhook-service.ts
-import crypto from 'crypto';
-
-interface WebhookPayload {
-  id: string;
-  type: string;
-  timestamp: string;
-  data: Record<string, unknown>;
-}
-
-export class WebhookService {
-  private static readonly MAX_RETRIES = 3;
-  private static readonly RETRY_DELAYS = [1000, 5000, 30000];
-
-  static createPayload(type: string, data: Record<string, unknown>): WebhookPayload {
-    return {
-      id: crypto.randomUUID(),
-      type,
+/**
+ * Builder per risposte API consistenti
+ */
+export class ApiResponseBuilder {
+  private response: Partial<ApiResponse> = {
+    success: true,
+    meta: {
       timestamp: new Date().toISOString(),
+      version: '1.0'
+    }
+  };
+
+  static success<T>(data: T, message?: string): ApiResponse<T> {
+    return {
+      success: true,
       data,
+      message,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
     };
   }
 
-  static sign(payload: string, secret: string): string {
-    return crypto.createHmac('sha256', secret).update(payload, 'utf8').digest('hex');
-  }
-
-  static verify(payload: string, signature: string, secret: string): boolean {
-    const expected = this.sign(payload, secret);
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(signature, 'hex'),
-        Buffer.from(expected, 'hex')
-      );
-    } catch {
-      return false;
-    }
-  }
-
-  static async send(url: string, secret: string, payload: WebhookPayload) {
-    const body = JSON.stringify(payload);
-    const signature = this.sign(body, secret);
-
-    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Webhook-ID': payload.id,
-            'X-Webhook-Signature': `sha256=${signature}`,
-          },
-          body,
-          signal: AbortSignal.timeout(30000),
-        });
-
-        if (response.ok) return { success: true, statusCode: response.status };
-        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-          return { success: false, statusCode: response.status };
-        }
-        if (attempt < this.MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, this.RETRY_DELAYS[attempt]));
-        }
-      } catch (error) {
-        if (attempt === this.MAX_RETRIES) {
-          return { success: false, error: String(error) };
-        }
-        await new Promise(r => setTimeout(r, this.RETRY_DELAYS[attempt]));
+  static error(error: string, message?: string, details?: any): ApiResponse {
+    return {
+      success: false,
+      error,
+      message,
+      data: details,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: '1.0'
       }
+    };
+  }
+
+  static paginated<T>(
+    data: T[],
+    page: number,
+    limit: number,
+    total: number,
+    baseUrl: string
+  ): ApiResponse<T[]> {
+    const totalPages = Math.ceil(total / limit);
+    
+    return {
+      success: true,
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
+      links: {
+        self: `${baseUrl}?page=${page}&limit=${limit}`,
+        first: `${baseUrl}?page=1&limit=${limit}`,
+        last: `${baseUrl}?page=${totalPages}&limit=${limit}`,
+        next: page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined,
+        prev: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
+    };
+  }
+
+  withData<T>(data: T): this {
+    this.response.data = data;
+    return this;
+  }
+
+  withMessage(message: string): this {
+    this.response.message = message;
+    return this;
+  }
+
+  withPagination(
+    page: number,
+    limit: number,
+    total: number,
+    baseUrl: string
+  ): this {
+    const totalPages = Math.ceil(total / limit);
+    
+    this.response.pagination = {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    };
+    
+    this.response.links = {
+      self: `${baseUrl}?page=${page}&limit=${limit}`,
+      first: `${baseUrl}?page=1&limit=${limit}`,
+      last: totalPages > 0 ? `${baseUrl}?page=${totalPages}&limit=${limit}` : `${baseUrl}?page=1&limit=${limit}`,
+      next: page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined,
+      prev: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined
+    };
+    
+    return this;
+  }
+
+  withMeta(key: string, value: any): this {
+    if (!this.response.meta) {
+      this.response.meta = {};
     }
-    return { success: false, error: 'Max retries exceeded' };
+    this.response.meta[key] = value;
+    return this;
+  }
+
+  build(): ApiResponse {
+    return this.response as ApiResponse;
   }
 }
-```
 
+/**
+ * Wrapper per NextResponse con formato standard
+ */
+export class ApiResponseFormatter {
+  static json<T>(
+    data: ApiResponse<T>,
+    status: number = 200,
+    headers?: Record<string, string>
+  ): NextResponse {
+    const response = NextResponse.json(data, { status });
+    
+    // Headers standard
+    response.headers.set('Content-Type', 'application/json');
+    response.headers.set('X-API-Version', '1.0');
+    response.headers.set('X-Response-Time', Date.now().toString());
+    
+    // Headers personalizzati
+    if (headers) {
+      Object.entries(headers).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+    }
+    
+    return response;
+  }
 
----
+  static success<T>(data: T, status: number = 200, message?: string) {
+    return this.json(ApiResponseBuilder.success(data, message), status);
+  }
 
-## 18. API TESTING
-
-### 18.1 Testing Strategy Matrix
-
-| Test Type | Tool | Scope | Run Frequency | Duration |
-|-----------|------|-------|---------------|----------|
-| Unit | Vitest/Jest | Handler logic | Every commit | <1s |
-| Integration | Supertest | Full HTTP cycle | Every commit | 5-30s |
-| Contract | Pact | API compatibility | Daily/PR | 1-5m |
-| E2E | Playwright | Full flow | Daily | 5-15m |
-| Load | k6/Artillery | Performance | Weekly/Release | 10-30m |
-| Security | OWASP ZAP | Vulnerabilities | Weekly | 30m-2h |
-
-### 18.2 API Route Unit Tests
-
-```typescript
-// __tests__/api/users.test.ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GET, POST } from '@/app/api/users/route';
-import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findMany: vi.fn(),
-      create: vi.fn(),
-    },
-  },
-}));
-
-describe('GET /api/users', () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it('returns paginated users list', async () => {
-    const mockUsers = [
-      { id: '1', name: 'User 1', email: 'user1@test.com' },
-      { id: '2', name: 'User 2', email: 'user2@test.com' },
-    ];
-
-    vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers);
-
-    const request = new NextRequest('http://localhost/api/users?page=1&limit=20');
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.data).toHaveLength(2);
-  });
-});
-
-describe('POST /api/users', () => {
-  it('creates user with valid data', async () => {
-    const newUser = { id: 'new-id', email: 'new@test.com', name: 'New User' };
-    vi.mocked(prisma.user.create).mockResolvedValue(newUser);
-
-    const request = new NextRequest('http://localhost/api/users', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'new@test.com', name: 'New User' }),
-    });
-
-    const response = await POST(request);
-    expect(response.status).toBe(201);
-  });
-
-  it('returns 422 for invalid email', async () => {
-    const request = new NextRequest('http://localhost/api/users', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'invalid-email', name: 'Test' }),
-    });
-
-    const response = await POST(request);
-    expect(response.status).toBe(422);
-  });
-});
-```
-
----
-
-## 19. API GATEWAY PATTERNS
-
-### 19.1 Gateway Pattern Comparison
-
-| Pattern | Use Case | Complexity | Latency | Best For |
-|---------|----------|------------|---------|----------|
-| API Gateway | Single entry point | Medium | +5-20ms | Microservices |
-| BFF (Backend for Frontend) | Client-specific APIs | High | +10-30ms | Mobile + Web |
-| GraphQL Federation | Unified graph | High | +15-50ms | Large organizations |
-| Service Mesh | Inter-service | Very High | +2-5ms | Kubernetes |
-| Edge Functions | Low latency | Low | +1-5ms | Global distribution |
-
-### 19.2 Rate Limiting Implementation
-
-```typescript
-// middleware/rate-limit.ts
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
-import { NextRequest, NextResponse } from 'next/server';
-
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, '1 m'), // 100 req/min
-  analytics: true,
-});
-
-export async function rateLimitMiddleware(req: NextRequest) {
-  const ip = req.ip ?? req.headers.get('x-forwarded-for') ?? '127.0.0.1';
-  const { success, limit, remaining, reset } = await ratelimit.limit(ip);
-
-  if (!success) {
-    return NextResponse.json(
-      { error: 'Too many requests' },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-          'X-RateLimit-Reset': reset.toString(),
-          'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
-        },
-      }
+  static error(
+    error: string,
+    status: number = 500,
+    message?: string,
+    details?: any
+  ) {
+    return this.json(
+      ApiResponseBuilder.error(error, message, details),
+      status
     );
   }
 
-  return null; // Continue to handler
+  static paginated<T>(
+    data: T[],
+    page: number,
+    limit: number,
+    total: number,
+    request: Request
+  ) {
+    const url = new URL(request.url);
+    const baseUrl = `${url.origin}${url.pathname}`;
+    
+    return this.json(
+      ApiResponseBuilder.paginated(data, page, limit, total, baseUrl),
+      200
+    );
+  }
 }
-```
+Headers Handling
+typescript
+import { NextRequest, NextResponse } from 'next/server';
 
----
+/**
+ * Gestione avanzata degli header
+ */
+export class HeaderManager {
+  // Header standardizzati
+  static readonly STANDARD_HEADERS = {
+    CORS: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, Idempotency-Key',
+      'Access-Control-Max-Age': '86400'
+    },
+    SECURITY: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
+    },
+    CACHING: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+    API_INFO: {
+      'X-API-Version': '1.0',
+      'X-API-Name': 'My API',
+      'X-Powered-By': 'Next.js 14'
+    }
+  };
 
-## 20. REST API EXPANSION CHECKLIST
+  static applyStandardHeaders(response: NextResponse): NextResponse {
+    const headers = {
+      ...this.STANDARD_HEADERS.CORS,
+      ...this.STANDARD_HEADERS.SECURITY,
+      ...this.STANDARD_HEADERS.API_INFO
+    };
 
-```
-API ARCHITECTURE
-□ REST vs tRPC decision documented
-□ OpenAPI 3.1 spec complete
-□ Versioning strategy defined
-□ Error response schema standardized
-□ Pagination implemented
+    Object.entries(headers).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
 
-tRPC (if applicable)
-□ Server context configured
-□ Router structure defined
-□ Auth middleware implemented
-□ Client provider setup
-□ Type inference working
+    return response;
+  }
 
-WEBHOOKS
-□ Event types documented
-□ Signature verification
-□ Retry policy defined
-□ Idempotency keys
-□ Delivery logging
+  static setCacheHeaders(
+    response: NextResponse,
+    cacheControl: string,
+    etag?: string,
+    lastModified?: string
+  ): NextResponse {
+    response.headers.set('Cache-Control', cacheControl);
+    
+    if (etag) {
+      response.headers.set('ETag', etag);
+    }
+    
+    if (lastModified) {
+      response.headers.set('Last-Modified', lastModified);
+    }
+    
+    return response;
+  }
 
-TESTING
-□ Unit tests for handlers
-□ Integration tests with HTTP
-□ Contract tests (if multi-team)
-□ Load testing baseline
-□ Security scan scheduled
+  static setRateLimitHeaders(
+    response: NextResponse,
+    limit: number,
+    remaining: number,
+    reset: number
+  ): NextResponse {
+    response.headers.set('X-RateLimit-Limit', limit.toString());
+    response.headers.set('X-RateLimit-Remaining', remaining.toString());
+    response.headers.set('X-RateLimit-Reset', reset.toString());
+    return response;
+  }
 
-GATEWAY / INFRASTRUCTURE
-□ Rate limiting configured
-□ CORS policy set
-□ Request logging enabled
-□ Response caching (where applicable)
-□ Health check endpoint
+  static parseCustomHeaders(request: NextRequest): {
+    apiKey?: string;
+    authorization?: string;
+    correlationId?: string;
+    idempotencyKey?: string;
+  } {
+    return {
+      apiKey: request.headers.get('X-API-Key') || undefined,
+      authorization: request.headers.get('Authorization') || undefined,
+      correlationId: request.headers.get('X-Correlation-ID') || undefined,
+      idempotencyKey: request.headers.get('Idempotency-Key') || undefined
+    };
+  }
 
-DOCUMENTATION
-□ OpenAPI spec up-to-date
-□ Examples for all endpoints
-□ Error codes documented
-□ Authentication flow explained
-□ Changelog maintained
-```
+  static createConditionalHeaders(
+    request: NextRequest,
+    etag: string,
+    lastModified: string
+  ): { status: number; headers: Headers } | null {
+    const ifNoneMatch = request.headers.get('If-None-Match');
+    const ifModifiedSince = request.headers.get('If-Modified-Since');
+    
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return {
+        status: 304,
+        headers: new Headers({
+          'ETag': etag,
+          'Cache-Control': 'public, max-age=3600'
+        })
+      };
+    }
+    
+    if (ifModifiedSince && new Date(ifModifiedSince) >= new Date(lastModified)) {
+      return {
+        status: 304,
+        headers: new Headers({
+          'Last-Modified': lastModified,
+          'Cache-Control': 'public, max-age=3600'
+        })
+      };
+    }
+    
+    return null;
+  }
+}
+
+/**
+ * Middleware per gestione header
+ */
+export const headerMiddleware = async (
+  request: NextRequest,
+  next: () => Promise<NextResponse>
+) => {
+  // Pre-processing: log headers
+  console.log('Request Headers:', Object.fromEntries(request.headers.entries()));
+  
+  // Gestione CORS preflight
+  if (request.method === 'OPTIONS') {
+    const response = new NextResponse(null, { status: 204 });
+    HeaderManager.applyStandardHeaders(response);
+    return response;
+  }
+  
+  // Esegui la richiesta
+  const response = await next();
+  
+  // Post-processing: applica header standard
+  HeaderManager.applyStandardHeaders(response);
+  
+  // Aggiungi correlation ID se presente
+  const correlationId = request.headers.get('X-Correlation-ID');
+  if (correlationId) {
+    response.headers.set('X-Correlation-ID', correlationId);
+  }
+  
+  // Aggiungi tempo di risposta
+  const startTime = parseInt(request.headers.get('X-Request-Start') || Date.now().toString());
+  const responseTime = Date.now() - startTime;
+  response.headers.set('X-Response-Time', responseTime.toString());
+  
+  return response;
+};
+Streaming Responses
+typescript
+import { NextRequest } from 'next/server';
+
+/**
+ * Utility per streaming responses
+ */
+export class StreamResponse {
+  static async jsonStream<T>(
+    dataStream: AsyncIterable<T>,
+    request?: NextRequest
+  ): Promise<Response> {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          controller.enqueue(encoder.encode('{"data":['));
+          
+          let first = true;
+          for await (const item of dataStream) {
+            if (!first) {
+              controller.enqueue(encoder.encode(','));
+            }
+            controller.enqueue(encoder.encode(JSON.stringify(item)));
+            first = false;
+          }
+          
+          controller.enqueue(encoder.encode(']}'));
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      }
+    });
+    
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Transfer-Encoding': 'chunked',
+        'X-Content-Type-Options': 'nosniff'
+      }
+    });
+  }
+
+  static async ndjsonStream<T>(
+    dataStream: AsyncIterable<T>
+  ): Promise<Response> {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const item of dataStream) {
+            controller.enqueue(encoder.encode(JSON.stringify(item) + '\n'));
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      }
+    });
+    
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'application/x-ndjson',
+        'Transfer-Encoding': 'chunked'
+      }
+    });
+  }
+
+  static async sseStream(
+    eventStream: AsyncIterable<{ event?: string; data: any; id?: string; retry?: number }>
+  ): Promise<Response> {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const message of eventStream) {
+            let lines = [];
+            
+            if (message.event) {
+              lines.push(`event: ${message.event}`);
+            }
+            
+            if (message.id) {
+              lines.push(`id: ${message.id}`);
+            }
+            
+            if (message.retry) {
+              lines.push(`retry: ${message.retry}`);
+            }
+            
+            lines.push(`data: ${JSON.stringify(message.data)}`);
+            controller.enqueue(encoder.encode(lines.join('\n') + '\n\n'));
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      }
+    });
+    
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      }
+    });
+  }
+}
+
+/**
+ * Esempio di generatore di dati streaming
+ */
+async function* generateLargeDataSet(count: number) {
+  for (let i = 0; i < count; i++) {
+    yield {
+      id: i,
+      name: `Item ${i}`,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Simula qualche elaborazione
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+}
+
+/**
+ * Route Handler con streaming
+ */
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const count = parseInt(searchParams.get('count') || '1000');
+  const format = searchParams.get('format') || 'json';
+  
+  const dataStream = generateLargeDataSet(count);
+  
+  switch (format) {
+    case 'ndjson':
+      return StreamResponse.ndjsonStream(dataStream);
+    case 'sse':
+      return StreamResponse.sseStream(dataStream);
+    default:
+      return StreamResponse.jsonStream(dataStream, request);
+  }
+}
+§ URL DESIGN
+Resource Naming Conventions
+typescript
+/**
+ * Convenzioni per naming delle risorse RESTful
+ */
+export class ResourceNaming {
+  // Regole per naming delle risorse
+  static readonly RULES = {
+    // Use nouns, not verbs
+    // Bad: /getUsers, /createOrder
+    // Good: /users, /orders
+    
+    // Use plural nouns for collections
+    // /users, /orders, /products
+    
+    // Use singular nouns for specific resources
+    // /users/{id}, /orders/{id}
+    
+    // Use hyphens for multi-word resources
+    // /user-roles, /shipping-addresses
+    
+    // Use lowercase letters
+    // /users, not /Users
+    
+    // Avoid file extensions
+    // /api/users, not /api/users.json
+  };
+
+  /**
+   * Genera URL per risorse secondo le convenzioni
+   */
+  static generateResourceUrl(
+    resourceName: string,
+    baseUrl: string = '/api',
+    id?: string,
+    subResource?: string
+  ): string {
+    // Normalizza il nome della risorsa
+    const normalized = this.normalizeResourceName(resourceName);
+    
+    // Costruisci il percorso base
+    let path = `${baseUrl}/${normalized}`;
+    
+    // Aggiungi ID se specificato
+    if (id) {
+      path += `/${id}`;
+    }
+    
+    // Aggiungi sotto-risorsa se specificata
+    if (subResource) {
+      path += `/${this.normalizeResourceName(subResource)}`;
+    }
+    
+    return path;
+  }
+
+  /**
+   * Normalizza il nome della risorsa
+   */
+  private static normalizeResourceName(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  /**
+   * Estrae informazioni dalla URL
+   */
+  static parseResourceUrl(
+    url: string,
+    baseUrl: string = '/api'
+  ): {
+    resource: string;
+    id?: string;
+    subResource?: string;
+    action?: string;
+  } {
+    const path = url.replace(baseUrl, '').replace(/^\/|\/$/g, '');
+    const parts = path.split('/').filter(Boolean);
+    
+    const result: any = {};
+    
+    if (parts.length >= 1) {
+      result.resource = parts[0];
+   

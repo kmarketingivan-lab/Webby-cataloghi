@@ -1,947 +1,1217 @@
-# CATALOGO UI/UX - DESIGN SYSTEM FUNDAMENTALS v2
+# CATALOGO-UI-UX-DESIGN-SYSTEM-v2
 
-> **Versione**: 2.0
-> **Data**: 2026-01-27
-> **Ambito**: Design Tokens, Component Hierarchy, Spacing, Typography, Colors, Animation, Dark Mode, Responsive, Icons, Accessibility
-> **Sezioni**: 1-18 (12 originali + 6 espansione)
+CATALOGO-UI-UX-DESIGN-SYSTEM per Next.js 14
+§ DESIGN SYSTEM FOUNDATIONS
+Purpose and Benefits
 
----
+Il Design System unifica l'esperienza utente e lo sviluppo attraverso componenti riutilizzabili, garantendo coerenza, accessibilità e manutenibilità.
 
-## 1. DESIGN TOKENS
+Benefici principali:
 
-### 1.1 Token Categories Table
+Consistenza: Esperienza utente uniforme across prodotti
 
-| Categoria              | Token Name            | Valore Esempio 1 | Valore Esempio 2 | Valore Esempio 3 | Formato      |
-| ---------------------- | --------------------- | ---------------- | ---------------- | ---------------- | ------------ |
-| Color Primary          | --color-primary-500   | #3B82F6          | #2563EB          | #1D4ED8          | CSS Variable |
-| Color Secondary        | --color-secondary-500 | #8B5CF6          | #7C3AED          | #6D28D9          | CSS Variable |
-| Color Semantic         | --color-success       | #16A34A          | #15803D          | #166534          | CSS Variable |
-| Color Neutral          | --color-gray-500      | #6B7280          | #4B5563          | #374151          | CSS Variable |
-| Typography Font Family | --font-sans           | Inter            | system-ui        | sans-serif       | CSS Variable |
-| Typography Font Size   | --text-body           | 16px             | 14px             | 18px             | CSS Variable |
-| Typography Line Height | --line-body           | 24px             | 20px             | 28px             | CSS Variable |
-| Typography Weight      | --font-weight-regular | 400              | 500              | 600              | CSS Variable |
-| Spacing                | --space-4             | 16px             | 1rem             | 0.5rem           | CSS Variable |
-| Sizing                 | --size-avatar-md      | 40px             | 48px             | 56px             | CSS Variable |
-| Border Radius          | --radius-md           | 8px              | 12px             | 16px             | CSS Variable |
-| Border Width           | --border-default      | 1px              | 2px              | 4px              | CSS Variable |
-| Shadow                 | --shadow-soft         | 0 2px 8px        | 0 4px 16px       | 0 8px 24px       | CSS Variable |
-| Opacity                | --opacity-disabled    | 0.4              | 0.6              | 0.8              | CSS Variable |
-| Z-Index                | --z-modal             | 40               | 50               | 60               | CSS Variable |
+Efficienza: Riduzione del tempo di sviluppo del 40-60%
 
-### 1.2 Token Implementation
+Accessibilità: Conformità WCAG 2.1 AA integrata
 
-```typescript
-// tokens.ts
-export const tokens = {
-  colors: {
-    primary: {
-      50: '#EFF6FF',
-      100: '#DBEAFE',
-      200: '#BFDBFE',
-      300: '#93C5FD',
-      400: '#60A5FA',
-      500: '#3B82F6',
-      600: '#2563EB',
-      700: '#1D4ED8',
-      800: '#1E40AF',
-      900: '#1E3A8A',
-    },
-    semantic: {
-      success: '#16A34A',
-      warning: '#F59E0B',
-      error: '#DC2626',
-      info: '#0EA5E9',
-    },
-  },
-  spacing: {
-    0: '0px',
-    1: '0.25rem',
-    2: '0.5rem',
-    3: '0.75rem',
-    4: '1rem',
-    5: '1.25rem',
-    6: '1.5rem',
-    8: '2rem',
-    10: '2.5rem',
-    12: '3rem',
-    16: '4rem',
-    20: '5rem',
-    24: '6rem',
-  },
-  typography: {
-    fontFamily: {
-      sans: ['Inter', 'system-ui', 'sans-serif'],
-      mono: ['JetBrains Mono', 'monospace'],
-    },
-    fontSize: {
-      display2xl: '4.5rem',
-      displayXl: '3.75rem',
-      displayLg: '3rem',
-      h1: '2.25rem',
-      h2: '1.875rem',
-      h3: '1.5rem',
-      h4: '1.25rem',
-      bodyLg: '1.125rem',
-      body: '1rem',
-      bodySm: '0.875rem',
-      caption: '0.75rem',
-    },
-    lineHeight: {
-      tight: '1.1',
-      snug: '1.25',
-      normal: '1.5',
-      relaxed: '1.6',
-    },
-    fontWeight: {
-      regular: 400,
-      medium: 500,
-      semibold: 600,
-      bold: 700,
-    },
-  },
-} as const;
+Scalabilità: Facile onboarding per nuovi sviluppatori
 
-export type Tokens = typeof tokens;
-```
+Quality Assurance: Test centralizzati e standardizzati
 
----
+typescript
+// design-system.config.ts
+export const designSystemConfig = {
+  name: 'Catalogo Design System',
+  version: '1.0.0',
+  foundation: {
+    principles: ['Consistency', 'Accessibility', 'Efficiency', 'Clarity'],
+    compliance: ['WCAG 2.1 AA', 'GDPR', 'Web Standards'],
+    browserSupport: {
+      evergreen: 'last 2 versions',
+      ie: 'none'
+    }
+  }
+};
+Team Collaboration
 
-## 2. COMPONENT HIERARCHY (ATOMIC DESIGN)
+Ruoli e responsabilità:
 
-### 2.1 Hierarchy Table
+Design Lead: Definisce principi visivi e UX
 
-| Level    | Nome Componente    | Descrizione (max 10 parole) | Props Principali          |
-| -------- | ------------------ | --------------------------- | ------------------------- |
-| Atom     | Button             | Azione primaria cliccabile  | variant, size, disabled   |
-| Atom     | Input              | Campo input testuale        | value, placeholder, error |
-| Atom     | Label              | Etichetta campo form        | htmlFor, required         |
-| Atom     | Icon               | Icona vettoriale            | name, size, color         |
-| Atom     | Spinner            | Indicatore caricamento      | size, color               |
-| Atom     | Badge              | Etichetta stato             | variant                   |
-| Atom     | Avatar             | Immagine utente             | src, size                 |
-| Atom     | Checkbox           | Selezione booleana          | checked, onChange         |
-| Atom     | Switch             | Toggle booleano             | checked, disabled         |
-| Atom     | Divider            | Separatore visivo           | orientation               |
-| Molecule | SearchField        | Input con azione ricerca    | onSearch, placeholder     |
-| Molecule | FormField          | Label + Input + Error       | name, control             |
-| Molecule | CardHeader         | Titolo e azioni card        | title, actions            |
-| Molecule | CardFooter         | Azioni card                 | children                  |
-| Molecule | Dropdown           | Menu a discesa              | items, onSelect           |
-| Molecule | ModalHeader        | Titolo modale               | title, onClose            |
-| Molecule | ModalFooter        | Azioni modale               | confirmText               |
-| Molecule | InputGroup         | Input con addon             | prefix, suffix            |
-| Molecule | ListItem           | Riga lista                  | icon, label               |
-| Molecule | Toast              | Messaggio temporaneo        | variant, message          |
-| Organism | Navbar             | Header navigazione          | links, user               |
-| Organism | Sidebar            | Navigazione laterale        | items, collapsed          |
-| Organism | Footer             | Footer applicazione         | links                     |
-| Organism | LoginForm          | Form autenticazione         | onSubmit                  |
-| Organism | UserMenu           | Menu utente                 | user, actions             |
-| Organism | DataTable          | Tabella dati                | columns, data             |
-| Organism | FilterPanel        | Filtri ricerca              | filters, onApply          |
-| Organism | NotificationCenter | Lista notifiche             | items                     |
-| Organism | DashboardCards     | KPI cards                   | metrics                   |
-| Organism | SettingsForm       | Impostazioni utente         | values, onSave            |
-| Template | DashboardLayout    | Layout dashboard            | sidebar, children         |
-| Template | AuthLayout         | Layout autenticazione       | children                  |
-| Template | MarketingLayout    | Layout marketing            | header, footer            |
-| Template | SettingsLayout     | Layout impostazioni         | tabs                      |
-| Template | EmptyStateLayout   | Layout stato vuoto          | icon, message             |
-| Page     | LoginPage          | Pagina login                | onLogin                   |
-| Page     | DashboardPage      | Home dashboard              | data                      |
-| Page     | SettingsPage       | Impostazioni utente         | sections                  |
-| Page     | ProfilePage        | Profilo utente              | user                      |
-| Page     | NotFoundPage       | Errore 404                  | redirect                  |
+System Architect: Struttura token e componenti
 
----
+Frontend Lead: Implementa componenti core
 
-## 3. SPACING SCALE
+Accessibility Specialist: Garantisce conformità WCAG
 
-### 3.1 Scale Table
+Product Manager: Allinea roadmap con bisogni prodotto
 
-| Token     | Pixels | REM       | Tailwind Class | Use Case                   |
-| --------- | ------ | --------- | -------------- | -------------------------- |
-| space-0   | 0px    | 0rem      | p-0, m-0       | Reset                      |
-| space-px  | 1px    | 0.0625rem | p-px           | Border spacing             |
-| space-0.5 | 2px    | 0.125rem  | p-0.5          | Tight icon gaps            |
-| space-1   | 4px    | 0.25rem   | p-1            | Inline element spacing     |
-| space-2   | 8px    | 0.5rem    | p-2            | Compact component padding  |
-| space-3   | 12px   | 0.75rem   | p-3            | Default icon spacing       |
-| space-4   | 16px   | 1rem      | p-4            | Standard component padding |
-| space-5   | 20px   | 1.25rem   | p-5            | Card padding small         |
-| space-6   | 24px   | 1.5rem    | p-6            | Card padding default       |
-| space-8   | 32px   | 2rem      | p-8            | Section spacing            |
-| space-10  | 40px   | 2.5rem    | p-10           | Large section spacing      |
-| space-12  | 48px   | 3rem      | p-12           | Container padding          |
-| space-16  | 64px   | 4rem      | p-16           | Page section gap           |
-| space-20  | 80px   | 5rem      | p-20           | Hero section spacing       |
-| space-24  | 96px   | 6rem      | p-24           | Maximum spacing            |
+Workflow collaborativo:
 
----
+text
+Design → Tokenizzazione → Prototipo → Sviluppo → Documentazione → Release
+Documentation Requirements
 
-## 4. TYPOGRAPHY SCALE
+Documentazione obbligatoria per ogni componente:
 
-### 4.1 Type Scale Table
+Descrizione e use case
 
-| Token            | Font Size       | Line Height | Letter Spacing | Font Weight | Use Case         |
-| ---------------- | --------------- | ----------- | -------------- | ----------- | ---------------- |
-| text-display-2xl | 72px / 4.5rem   | 1.1         | -0.02em        | 700         | Hero headlines   |
-| text-display-xl  | 60px / 3.75rem  | 1.1         | -0.02em        | 700         | Page titles      |
-| text-display-lg  | 48px / 3rem     | 1.1         | -0.015em       | 600         | Section titles   |
-| text-h1          | 36px / 2.25rem  | 1.2         | -0.01em        | 600         | H1               |
-| text-h2          | 30px / 1.875rem | 1.25        | -0.01em        | 600         | H2               |
-| text-h3          | 24px / 1.5rem   | 1.3         | 0em            | 600         | H3               |
-| text-h4          | 20px / 1.25rem  | 1.4         | 0em            | 500         | H4               |
-| text-body-lg     | 18px / 1.125rem | 1.6         | 0em            | 400         | Lead paragraphs  |
-| text-body        | 16px / 1rem     | 1.5         | 0em            | 400         | Body text        |
-| text-body-sm     | 14px / 0.875rem | 1.45        | 0em            | 400         | Secondary text   |
-| text-caption     | 12px / 0.75rem  | 1.4         | 0.01em         | 400         | Captions, labels |
+API completa con TypeScript
 
----
+Varianti e stati
 
-## 5. COLOR SYSTEM
+Accessibilità (ARIA, keyboard nav)
 
-### 5.1 Primary Palette
+Comportamento responsive
 
-| Shade       | Hex     | RGB         | HSL          | Use Case           |
-| ----------- | ------- | ----------- | ------------ | ------------------ |
-| primary-50  | #EFF6FF | 239,246,255 | 214,100%,97% | Backgrounds hover  |
-| primary-100 | #DBEAFE | 219,234,254 | 214,95%,93%  | Backgrounds active |
-| primary-200 | #BFDBFE | 191,219,254 | 213,97%,87%  | Borders light      |
-| primary-300 | #93C5FD | 147,197,253 | 212,96%,78%  | Borders            |
-| primary-400 | #60A5FA | 96,165,250  | 213,94%,68%  | Icons secondary    |
-| primary-500 | #3B82F6 | 59,130,246  | 217,91%,60%  | Primary default    |
-| primary-600 | #2563EB | 37,99,235   | 221,83%,53%  | Primary hover      |
-| primary-700 | #1D4ED8 | 29,78,216   | 224,76%,48%  | Primary active     |
-| primary-800 | #1E40AF | 30,64,175   | 226,71%,40%  | Text on light      |
-| primary-900 | #1E3A8A | 30,58,138   | 224,64%,33%  | Text emphasis      |
+Dos & Don'ts
 
-### 5.2 Semantic Colors
+Esempi d'uso reali
 
-| Name    | Default | Hover   | Active  | Light BG | Use Case                |
-| ------- | ------- | ------- | ------- | -------- | ----------------------- |
-| success | #16A34A | #15803D | #166534 | #DCFCE7  | Conferme, completamenti |
-| warning | #F59E0B | #D97706 | #B45309 | #FEF3C7  | Avvisi, attenzione      |
-| error   | #DC2626 | #B91C1C | #991B1B | #FEE2E2  | Errori, eliminazioni    |
-| info    | #0EA5E9 | #0284C7 | #0369A1 | #E0F2FE  | Informazioni, help      |
+Versioning Strategy
 
-### 5.3 Neutral Grays
+Semantic Versioning (SemVer):
 
-| Shade    | Hex     | Use Case          |
-| -------- | ------- | ----------------- |
-| gray-50  | #F9FAFB | Page background   |
-| gray-100 | #F3F4F6 | Card background   |
-| gray-200 | #E5E7EB | Borders, dividers |
-| gray-300 | #D1D5DB | Disabled borders  |
-| gray-400 | #9CA3AF | Placeholder text  |
-| gray-500 | #6B7280 | Secondary text    |
-| gray-600 | #4B5563 | Body text         |
-| gray-700 | #374151 | Headings          |
-| gray-800 | #1F2937 | Primary text      |
-| gray-900 | #111827 | Highest contrast  |
+MAJOR: Breaking changes API
 
----
+MINOR: Nuove features retrocompatibili
 
-## 6. BREAKPOINTS
+PATCH: Bug fixes e miglioramenti minori
 
-### 6.1 Breakpoint Table
+Release Channels:
 
-| Name | Min Width | Max Width | Tailwind Prefix | Target Devices             |
-| ---- | --------- | --------- | --------------- | -------------------------- |
-| xs   | 0px       | 639px     | (default)       | Mobile portrait            |
-| sm   | 640px     | 767px     | sm:             | Mobile landscape           |
-| md   | 768px     | 1023px    | md:             | Tablet portrait            |
-| lg   | 1024px    | 1279px    | lg:             | Tablet landscape / Desktop |
-| xl   | 1280px    | 1535px    | xl:             | Desktop                    |
-| 2xl  | 1536px    | ∞         | 2xl:            | Large desktop              |
+typescript
+// release-channels.config.ts
+export const releaseChannels = {
+  alpha: { audience: 'internal team', stability: 'unstable' },
+  beta: { audience: 'selected partners', stability: 'testing' },
+  rc: { audience: 'wider team', stability: 'stable' },
+  stable: { audience: 'all consumers', stability: 'production' }
+};
+§ DESIGN TOKENS ARCHITECTURE
+Token Hierarchy
 
-### 6.2 Container Widths
+Architettura a 3 livelli:
 
-```typescript
-// tailwind.config.ts
-import type { Config } from 'tailwindcss';
-
-export default {
-  theme: {
-    container: {
-      center: true,
-      padding: {
-        DEFAULT: '1rem',
-        sm: '2rem',
-        lg: '4rem',
-        xl: '5rem',
-        '2xl': '6rem',
-      },
-      screens: {
-        sm: '640px',
-        md: '768px',
-        lg: '1024px',
-        xl: '1280px',
-        '2xl': '1400px',
-      },
-    },
-  },
-} satisfies Config;
-```
-
----
-
-## 7. TAILWIND CONFIG COMPLETO
-
-```typescript
-// tailwind.config.ts
-import type { Config } from 'tailwindcss';
-
-export default {
-  content: ['./src/**/*.{ts,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          300: '#93C5FD',
-          400: '#60A5FA',
-          500: '#3B82F6',
-          600: '#2563EB',
-          700: '#1D4ED8',
-          800: '#1E40AF',
-          900: '#1E3A8A',
-        },
-        success: '#16A34A',
-        warning: '#F59E0B',
-        error: '#DC2626',
-        info: '#0EA5E9',
-      },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-      },
-      fontSize: {
-        'display-2xl': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
-        'display-xl': ['3.75rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
-        'display-lg': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.015em' }],
+typescript
+// tokens/token-hierarchy.ts
+export const tokenHierarchy = {
+  // Livello 1: Token primitivi (valori assoluti)
+  global: {
+    color: {
+      blue: {
+        50: '#eff6ff',
+        100: '#dbeafe',
+        // ... fino a 900
       },
       spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-        '112': '28rem',
-        '128': '32rem',
-      },
-      borderRadius: {
-        '4xl': '2rem',
-      },
-      boxShadow: {
-        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-      },
-    },
+        unit: 4, // 4px base unit
+        1: '4px',
+        2: '8px',
+        // ... scale
+      }
+    }
   },
-  plugins: [],
-} satisfies Config;
-```
-
----
-
-## 8. ACCESSIBILITY FUNDAMENTALS
-
-### 8.1 WCAG Mapping Table
-
-| Area           | Requirement          | Token / Rule     | Valore Specifico        | Standard    |
-| -------------- | -------------------- | ---------------- | ----------------------- | ----------- |
-| Color Contrast | Text on background   | Contrast ratio   | ≥ 4.5:1                 | WCAG 2.1 AA |
-| Color Contrast | Large text           | Contrast ratio   | ≥ 3:1                   | WCAG 2.1 AA |
-| Focus Visible  | Interactive elements | Outline          | 2px solid #2563EB       | WCAG 2.1 AA |
-| Hit Area       | Touch targets        | Min size         | 44px × 44px             | WCAG 2.1 AA |
-| Keyboard       | Navigation           | Tab order        | Logical DOM order       | WCAG 2.1 AA |
-| Screen Reader  | Buttons              | aria-label       | Required when icon-only | ARIA        |
-| Screen Reader  | Forms                | aria-describedby | Error/help text id      | ARIA        |
-| Motion         | Animations           | Reduced motion   | prefers-reduced-motion  | WCAG 2.1 AA |
-
-### 8.2 Focus Styles
-
-```typescript
-// focusStyles.ts
-import type { CSSProperties } from 'react';
-
-export const focusRing: CSSProperties = {
-  outline: '2px solid #2563EB',
-  outlineOffset: '2px',
+  
+  // Livello 2: Token semantici (significato contestuale)
+  semantic: {
+    color: {
+      background: {
+        primary: '{color.blue.500}',
+        danger: '{color.red.500}',
+      },
+      text: {
+        primary: '{color.gray.900}',
+        secondary: '{color.gray.600}',
+      }
+    }
+  },
+  
+  // Livello 3: Token component-specific
+  component: {
+    button: {
+      background: {
+        primary: '{semantic.color.background.primary}',
+        hover: '{semantic.color.background.primary-dark}',
+      }
+    }
+  }
 };
-```
+Token Naming Conventions
 
----
+Sistema di naming basato su design-tokens.org:
 
-## 9. COMPONENT STATES
+typescript
+// naming-conventions.ts
+export const namingConventions = {
+  structure: '{category}.{type}.{item}.{state}.{property}',
+  examples: [
+    'color.background.primary.hover', // Stato hover
+    'size.font.heading.large', // Dimensione
+    'spacing.padding.button.small', // Spacing specifico
+    'border.radius.card.default' // Proprietà
+  ],
+  rules: [
+    'Usare camelCase per tutti i token',
+    'Seguire ordine gerarchico',
+    'Evitare nomi basati su valori',
+    'Priorità semantica su valori'
+  ]
+};
+Token Storage Format
 
-### 9.1 State Table
+Formato JSON standardizzato con Style Dictionary:
 
-| State    | Background | Border  | Text    | Opacity | Use Case          |
-| -------- | ---------- | ------- | ------- | ------- | ----------------- |
-| Default  | #FFFFFF    | #E5E7EB | #111827 | 1       | Normal            |
-| Hover    | #EFF6FF    | #BFDBFE | #1D4ED8 | 1       | Pointer hover     |
-| Active   | #DBEAFE    | #93C5FD | #1E40AF | 1       | Pressed           |
-| Focus    | #FFFFFF    | #2563EB | #111827 | 1       | Keyboard focus    |
-| Disabled | #F3F4F6    | #E5E7EB | #9CA3AF | 0.6     | Non-interactive   |
-| Error    | #FEE2E2    | #DC2626 | #991B1B | 1       | Validation error  |
-| Success  | #DCFCE7    | #16A34A | #166534 | 1       | Positive feedback |
-
----
-
-## 10. MOTION SYSTEM
-
-### 10.1 Motion Tokens Table
-
-| Token        | Duration | Easing                     | Use Case        |
-| ------------ | -------- | -------------------------- | --------------- |
-| motion-fast  | 100ms    | ease-out                   | Hover feedback  |
-| motion-base  | 200ms    | ease-in-out                | UI transitions  |
-| motion-slow  | 300ms    | ease-in-out                | Modals, drawers |
-| motion-enter | 250ms    | cubic-bezier(0.16,1,0.3,1) | Enter animation |
-| motion-exit  | 200ms    | cubic-bezier(0.7,0,0.84,0) | Exit animation  |
-
-### 10.2 Reduced Motion Handling
-
-```typescript
-// motion.ts
-export const prefersReducedMotion =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-export const transitionDuration = prefersReducedMotion ? '0ms' : '200ms';
-```
-
----
-
-## 11. COMPONENT IMPLEMENTATION EXAMPLE
-
-### 11.1 Button Component
-
-```typescript
-// Button.tsx
-import React from 'react';
-import clsx from 'clsx';
-
-type ButtonVariant = 'primary' | 'secondary' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant: ButtonVariant;
-  size: ButtonSize;
+json
+// tokens/global.json
+{
+  "color": {
+    "blue": {
+      "50": { "value": "#eff6ff", "type": "color" },
+      "100": { "value": "#dbeafe", "type": "color" }
+    }
+  },
+  "spacing": {
+    "unit": { "value": 4, "type": "spacing" },
+    "1": { "value": "{spacing.unit}px", "type": "spacing" },
+    "2": { "value": "{spacing.unit * 2}px", "type": "spacing" }
+  },
+  "font": {
+    "family": {
+      "sans": { 
+        "value": ["Inter", "system-ui", "sans-serif"],
+        "type": "fontFamily" 
+      }
+    }
+  }
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  variant,
-  size,
-  disabled,
+Configurazione Style Dictionary:
+
+javascript
+// style-dictionary.config.js
+module.exports = {
+  source: ['tokens/**/*.json'],
+  platforms: {
+    css: {
+      transformGroup: 'css',
+      buildPath: 'styles/tokens/',
+      files: [{
+        destination: '_variables.css',
+        format: 'css/variables'
+      }]
+    },
+    ts: {
+      transformGroup: 'js',
+      buildPath: 'tokens/generated/',
+      files: [{
+        destination: 'tokens.ts',
+        format: 'typescript/es6-declarations'
+      }]
+    },
+    ios: {
+      // ... configurazione per iOS
+    },
+    android: {
+      // ... configurazione per Android
+    }
+  }
+};
+Cross-Platform Tokens
+
+Token system per multiple piattaforme:
+
+typescript
+// tokens/platform-specific.ts
+export const platformTokens = {
+  shared: {
+    // Token comuni a tutte le piattaforme
+    color: {
+      brand: { value: '#0066cc' }
+    }
+  },
+  web: {
+    // Token specifici web
+    shadow: {
+      elevation: {
+        low: { value: '0 1px 3px rgba(0,0,0,0.12)' }
+      }
+    }
+  },
+  mobile: {
+    // Token specifici mobile
+    shadow: {
+      elevation: {
+        low: { 
+          ios: { value: '{shadow.color} 0px 0.5px 2px' },
+          android: { value: '{shadow.color} 0px 1px 2px' }
+        }
+      }
+    }
+  }
+};
+§ COMPONENT LIBRARY STRUCTURE
+Atomic Design Levels
+
+Implementazione dei 5 livelli di Atomic Design:
+
+text
+src/components/
+├── atoms/           # Componenti base indivisibili
+│   ├── Button/
+│   ├── Icon/
+│   └── Text/
+├── molecules/       # Combinazioni di atoms
+│   ├── FormField/
+│   ├── Card/
+│   └── Alert/
+├── organisms/       # Sezioni complesse
+│   ├── Header/
+│   ├── Footer/
+│   └── Sidebar/
+├── templates/       # Layout strutturati
+│   ├── Dashboard/
+│   ├── AuthLayout/
+│   └── ProductPage/
+└── pages/          # Pagine specifiche (Next.js)
+    ├── HomePage/
+    └── ProductDetail/
+Component Categories
+
+Categorizzazione per funzione:
+
+typescript
+// components/categories.ts
+export const componentCategories = {
+  layout: ['Grid', 'Container', 'Flex', 'Box', 'Stack'],
+  navigation: ['Button', 'Link', 'Breadcrumb', 'Pagination', 'Tabs'],
+  forms: ['Input', 'Select', 'Checkbox', 'Radio', 'Form', 'Label'],
+  feedback: ['Alert', 'Toast', 'Spinner', 'Progress', 'Skeleton'],
+  dataDisplay: ['Table', 'List', 'Card', 'Badge', 'Chip', 'Avatar'],
+  overlay: ['Modal', 'Drawer', 'Popover', 'Tooltip', 'Dropdown'],
+  typography: ['Heading', 'Text', 'Label', 'Code', 'Blockquote'],
+  media: ['Image', 'Icon', 'Video', 'Figure']
+};
+Component API Design
+
+Pattern standard per component props:
+
+typescript
+// components/button/types.ts
+export interface BaseComponentProps {
+  /** Identificatore unico per testing */
+  'data-testid'?: string;
+  /** Classi CSS aggiuntive */
+  className?: string;
+  /** Stili inline */
+  style?: React.CSSProperties;
+  /** Elemento DOM da utilizzare come root */
+  as?: React.ElementType;
+  /** Handler eventi */
+  onClick?: React.MouseEventHandler;
+  /** Accessibilità */
+  'aria-label'?: string;
+}
+
+export interface ButtonProps extends BaseComponentProps {
+  /** Tipo di bottone */
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  /** Dimensione */
+  size?: 'sm' | 'md' | 'lg';
+  /** Stato di caricamento */
+  loading?: boolean;
+  /** Bottone disabilitato */
+  disabled?: boolean;
+  /** Icona prima del testo */
+  startIcon?: React.ReactNode;
+  /** Icona dopo il testo */
+  endIcon?: React.ReactNode;
+  /** Contenuto del bottone */
+  children: React.ReactNode;
+  /** Tipo HTML button */
+  type?: 'button' | 'submit' | 'reset';
+  /** URL per link button */
+  href?: string;
+}
+
+// Pattern di default props
+export const defaultButtonProps: Partial<ButtonProps> = {
+  variant: 'primary',
+  size: 'md',
+  type: 'button',
+  disabled: false,
+  loading: false
+};
+Props Standardization
+
+Props comuni a tutti i componenti:
+
+typescript
+// components/shared/types.ts
+export type SpacingProps = {
+  /** Margin top */
+  mt?: SpacingToken;
+  /** Margin bottom */
+  mb?: SpacingToken;
+  /** Padding vertical */
+  py?: SpacingToken;
+  // ... tutte le direzioni
+};
+
+export type LayoutProps = {
+  /** Width */
+  w?: string | number;
+  /** Height */
+  h?: string | number;
+  /** Display property */
+  display?: 'block' | 'inline' | 'flex' | 'grid';
+  /** Flexbox alignment */
+  alignItems?: 'flex-start' | 'center' | 'flex-end';
+  /** Grid template columns */
+  gridTemplateColumns?: string;
+};
+
+export type ResponsiveProps<T> = {
+  /** Valore per mobile (<768px) */
+  mobile?: T;
+  /** Valore per tablet (768px-1024px) */
+  tablet?: T;
+  /** Valore per desktop (>1024px) */
+  desktop?: T;
+};
+
+// Utility type per combinare tutti i props standard
+export type StandardComponentProps = 
+  BaseComponentProps & 
+  SpacingProps & 
+  LayoutProps & 
+  Partial<Record<keyof ResponsiveProps<any>, any>>;
+§ TYPOGRAPHY SYSTEM
+Font Stack
+
+Sistema gerarchico di font:
+
+typescript
+// typography/font-stack.ts
+export const fontStacks = {
+  sans: [
+    'Inter',
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'Segoe UI',
+    'Roboto',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif'
+  ],
+  serif: [
+    'Georgia',
+    'Times New Roman',
+    'serif'
+  ],
+  mono: [
+    'SFMono-Regular',
+    'Menlo',
+    'Monaco',
+    'Consolas',
+    'Liberation Mono',
+    'Courier New',
+    'monospace'
+  ],
+  display: [
+    'Inter Display',
+    ...fontStacks.sans
+  ]
+};
+
+// Configurazione Next.js Font Optimization
+import { Inter, Roboto_Mono } from 'next/font/google';
+
+export const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  fallback: ['system-ui', 'sans-serif']
+});
+
+export const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto-mono',
+  fallback: ['monospace']
+});
+Type Scale
+
+Scala tipografica modulare (1.25 ratio):
+
+typescript
+// typography/type-scale.ts
+export const typeScale = {
+  // Scala per display text
+  display: {
+    '2xl': {
+      fontSize: '4.5rem',      // 72px
+      lineHeight: 1.1,
+      letterSpacing: '-0.02em',
+      fontWeight: 700
+    },
+    xl: {
+      fontSize: '3.75rem',     // 60px
+      lineHeight: 1.1,
+      letterSpacing: '-0.02em',
+      fontWeight: 700
+    },
+    lg: {
+      fontSize: '3rem',        // 48px
+      lineHeight: 1.2,
+      letterSpacing: '-0.01em',
+      fontWeight: 700
+    },
+    md: {
+      fontSize: '2.25rem',     // 36px
+      lineHeight: 1.2,
+      letterSpacing: '-0.01em',
+      fontWeight: 600
+    },
+    sm: {
+      fontSize: '1.875rem',    // 30px
+      lineHeight: 1.2,
+      letterSpacing: '-0.01em',
+      fontWeight: 600
+    },
+    xs: {
+      fontSize: '1.5rem',      // 24px
+      lineHeight: 1.3,
+      letterSpacing: '0em',
+      fontWeight: 600
+    }
+  },
+  
+  // Scala per body text
+  text: {
+    xl: {
+      fontSize: '1.25rem',     // 20px
+      lineHeight: 1.5,
+      letterSpacing: '0em',
+      fontWeight: 400
+    },
+    lg: {
+      fontSize: '1.125rem',    // 18px
+      lineHeight: 1.5,
+      letterSpacing: '0em',
+      fontWeight: 400
+    },
+    md: {
+      fontSize: '1rem',        // 16px
+      lineHeight: 1.5,
+      letterSpacing: '0em',
+      fontWeight: 400
+    },
+    sm: {
+      fontSize: '0.875rem',    // 14px
+      lineHeight: 1.5,
+      letterSpacing: '0.01em',
+      fontWeight: 400
+    },
+    xs: {
+      fontSize: '0.75rem',     // 12px
+      lineHeight: 1.5,
+      letterSpacing: '0.02em',
+      fontWeight: 400
+    }
+  }
+};
+Line Heights
+
+Sistema di line-height basato su unità relative:
+
+typescript
+// typography/line-heights.ts
+export const lineHeights = {
+  // Valori relativi (senza unità)
+  tight: 1.1,      // Per titoli
+  snug: 1.25,     // Per sottotitoli
+  normal: 1.5,    // Per body text
+  relaxed: 1.75,  // Per testo lungo
+  loose: 2,       // Per poesia o citazioni
+  
+  // Mapping per componenti
+  heading: {
+    h1: 'tight',
+    h2: 'snug',
+    h3: 'normal'
+  },
+  body: {
+    paragraph: 'relaxed',
+    label: 'normal',
+    caption: 'tight'
+  }
+};
+Letter Spacing
+
+Tracking values per leggibilità:
+
+typescript
+// typography/letter-spacing.ts
+export const letterSpacing = {
+  tighter: '-0.05em',
+  tight: '-0.025em',
+  normal: '0em',
+  wide: '0.025em',
+  wider: '0.05em',
+  widest: '0.1em',
+  
+  // Applicazioni specifiche
+  applications: {
+    uppercase: 'wide',      // Per testo in maiuscolo
+    smallCaps: 'tight',     // Per small caps
+    displayHeadings: 'tighter', // Per display text
+    code: 'normal'          // Per codice
+  }
+};
+Font Weights
+
+Gerarchia dei pesi font:
+
+typescript
+// typography/font-weights.ts
+export const fontWeights = {
+  thin: 100,
+  extralight: 200,
+  light: 300,
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+  extrabold: 800,
+  black: 900,
+  
+  // Semantic mapping
+  semantic: {
+    display: 'bold',
+    heading: 'semibold',
+    subheading: 'medium',
+    body: 'normal',
+    label: 'medium',
+    caption: 'normal',
+    strong: 'bold',
+    emphasis: 'semibold'
+  }
+};
+Responsive Typography
+
+Sistema tipografico responsive:
+
+typescript
+// typography/responsive.ts
+export const responsiveTypography = {
+  // Breakpoints
+  breakpoints: {
+    mobile: '320px',
+    tablet: '768px',
+    desktop: '1024px',
+    wide: '1440px'
+  },
+  
+  // Fluid typography scaling
+  fluidScale: (minSize: number, maxSize: number) => {
+    const minViewport = 320;
+    const maxViewport = 1440;
+    
+    return `
+      font-size: ${minSize}px;
+      @media (min-width: ${minViewport}px) {
+        font-size: calc(${minSize}px + (${maxSize} - ${minSize}) * 
+          ((100vw - ${minViewport}px) / (${maxViewport} - ${minViewport})));
+      }
+      @media (min-width: ${maxViewport}px) {
+        font-size: ${maxSize}px;
+      }
+    `;
+  },
+  
+  // Predefined fluid scales
+  scales: {
+    display: {
+      '2xl': fluidScale(48, 72),
+      xl: fluidScale(36, 60),
+      lg: fluidScale(32, 48)
+    },
+    text: {
+      xl: fluidScale(16, 20),
+      lg: fluidScale(14, 18),
+      md: fluidScale(13, 16)
+    }
+  }
+};
+
+// Implementazione componente con Typography
+// components/atoms/Text/Text.tsx
+import React from 'react';
+import { typeScale, fontWeights, lineHeights } from '../../../typography';
+
+interface TextProps {
+  variant?: keyof typeof typeScale.text;
+  as?: 'p' | 'span' | 'div';
+  weight?: keyof typeof fontWeights;
+  lineHeight?: keyof typeof lineHeights;
+  children: React.ReactNode;
+}
+
+export const Text: React.FC<TextProps> = ({
+  variant = 'md',
+  as: Component = 'p',
+  weight = 'normal',
+  lineHeight = 'normal',
   children,
   ...props
 }) => {
-  const classes = clsx(
-    'inline-flex items-center justify-center font-medium rounded-md transition-colors',
-    {
-      'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700': variant === 'primary',
-      'bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-300': variant === 'secondary',
-      'bg-error text-white hover:bg-red-700 active:bg-red-800': variant === 'danger',
-      'h-8 px-3 text-sm': size === 'sm',
-      'h-10 px-4 text-base': size === 'md',
-      'h-12 px-6 text-lg': size === 'lg',
-      'opacity-60 cursor-not-allowed': disabled,
-    }
-  );
+  const styles = {
+    ...typeScale.text[variant],
+    fontWeight: fontWeights[weight],
+    lineHeight: lineHeights[lineHeight]
+  };
 
   return (
-    <button
-      type="button"
-      className={classes}
-      disabled={disabled}
-      {...props}
-    >
+    <Component style={styles} {...props}>
       {children}
-    </button>
+    </Component>
   );
 };
-```
+§ COLOR SYSTEM
+Color Palette Generation
 
----
+Sistema di generazione palette basato su HSL:
 
-## 12. THEMING STRATEGY
-
-### 12.1 Theme Tokens Table
-
-| Theme         | Background | Text Primary | Primary Color | Border  |
-| ------------- | ---------- | ------------ | ------------- | ------- |
-| Light         | #FFFFFF    | #111827      | #3B82F6       | #E5E7EB |
-| Dark          | #111827    | #F9FAFB      | #60A5FA       | #374151 |
-| High Contrast | #000000    | #FFFFFF      | #FFFF00       | #FFFFFF |
-
-### 12.2 Theme Provider
-
-```typescript
-// ThemeProvider.tsx
-import React, { createContext, useContext } from 'react';
-
-export type Theme = 'light' | 'dark' | 'high-contrast';
-
-export interface ThemeContextValue {
-  theme: Theme;
+typescript
+// colors/palette-generator.ts
+export interface ColorStop {
+  name: string;
+  value: string;
+  contrastColor: string;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ theme: 'light' });
-
-export const useTheme = (): ThemeContextValue => useContext(ThemeContext);
-
-export const ThemeProvider: React.FC<{
-  theme: Theme;
-  children: React.ReactNode;
-}> = ({ theme, children }) => (
-  <ThemeContext.Provider value={{ theme }}>
-    <div data-theme={theme}>{children}</div>
-  </ThemeContext.Provider>
-);
-```
-
----
-
-## CHECKLIST DESIGN SYSTEM
-
-```
-□ Design Tokens definiti e documentati
-□ Atomic Design hierarchy implementata
-□ Spacing scale coerente (4px base)
-□ Typography scale con font loading ottimizzato
-□ Color system con semantic colors
-□ Breakpoints mobile-first
-□ Tailwind config estesa
-□ WCAG 2.1 AA compliance
-□ Component states definiti
-□ Motion system con reduced-motion
-□ Theme provider configurato
-```
-
-
----
-
-## 13. ANIMATION & MOTION SYSTEM
-
-### 13.1 Duration Tokens
-
-| Token | Value | CSS Variable | Use Case |
-|-------|-------|--------------|----------|
-| instant | 0ms | --duration-instant | Immediate feedback |
-| faster | 75ms | --duration-faster | Micro hover states |
-| fast | 150ms | --duration-fast | Button interactions |
-| normal | 200ms | --duration-normal | Standard transitions |
-| slow | 300ms | --duration-slow | Panel slides |
-| slower | 500ms | --duration-slower | Page transitions |
-| slowest | 700ms | --duration-slowest | Complex sequences |
-
-### 13.2 Easing Tokens
-
-| Token | CSS Value | Use Case | Feel |
-|-------|-----------|----------|------|
-| ease-linear | linear | Progress bars | Constant |
-| ease-in | cubic-bezier(0.4, 0, 1, 1) | Exit animations | Accelerating |
-| ease-out | cubic-bezier(0, 0, 0.2, 1) | Enter animations | Decelerating |
-| ease-in-out | cubic-bezier(0.4, 0, 0.2, 1) | Move animations | Smooth |
-| ease-spring | cubic-bezier(0.34, 1.56, 0.64, 1) | Bouncy elements | Playful |
-| ease-bounce | cubic-bezier(0.68, -0.55, 0.265, 1.55) | Attention grab | Fun |
-
-### 13.3 Framer Motion Variants
-
-```typescript
-import { Variants, Transition } from 'framer-motion';
-
-export const transitions = {
-  fast: { duration: 0.15, ease: [0, 0, 0.2, 1] } as Transition,
-  normal: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } as Transition,
-  spring: { type: 'spring', stiffness: 400, damping: 30 } as Transition,
-};
-
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: transitions.normal },
-  exit: { opacity: 0, transition: transitions.fast },
-};
-
-export const slideUp: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: transitions.normal },
-  exit: { opacity: 0, y: -8, transition: transitions.fast },
-};
-
-export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: transitions.spring },
-  exit: { opacity: 0, scale: 0.98, transition: transitions.fast },
-};
-
-export const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
-  },
-};
-```
-
-### 13.4 Reduced Motion Support
-
-```typescript
-import { useEffect, useState } from 'react';
-
-export function useReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return prefersReducedMotion;
-}
-```
-
-
-```
-
----
-
-## 14. DARK MODE IMPLEMENTATION
-
-### 14.1 Color Token Mapping
-
-| Token | Light Mode | Dark Mode | High Contrast |
-|-------|------------|-----------|---------------|
-| --background | #FFFFFF | #0A0A0A | #000000 |
-| --foreground | #0A0A0A | #FAFAFA | #FFFFFF |
-| --card | #FFFFFF | #18181B | #0A0A0A |
-| --card-foreground | #0A0A0A | #FAFAFA | #FFFFFF |
-| --primary | #2563EB | #3B82F6 | #60A5FA |
-| --primary-foreground | #FFFFFF | #FFFFFF | #000000 |
-| --secondary | #F4F4F5 | #27272A | #18181B |
-| --muted | #F4F4F5 | #27272A | #18181B |
-| --muted-foreground | #71717A | #A1A1AA | #D4D4D8 |
-| --border | #E4E4E7 | #27272A | #3F3F46 |
-| --input | #E4E4E7 | #27272A | #3F3F46 |
-| --ring | #2563EB | #3B82F6 | #60A5FA |
-
-### 14.2 CSS Variables Setup
-
-```css
-/* app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --border: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7.8%;
-    --card-foreground: 0 0% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --border: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-  }
-}
-```
-
-### 14.3 Theme Provider (next-themes)
-
-```typescript
-// providers/theme-provider.tsx
-'use client';
-
-import * as React from 'react';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
-
-export function ThemeProvider({ children, ...props }: { children: React.ReactNode }) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      storageKey="theme"
-      {...props}
-    >
-      {children}
-    </NextThemesProvider>
-  );
-}
-```
-
-### 14.4 Theme Toggle Component
-
-```typescript
-// components/theme-toggle.tsx
-'use client';
-
-import { Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-export function ThemeToggle() {
-  const { setTheme } = useTheme();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          <Sun className="mr-2 h-4 w-4" /> Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          <Moon className="mr-2 h-4 w-4" /> Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          <Monitor className="mr-2 h-4 w-4" /> System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-```
-
----
-
-## 15. RESPONSIVE PATTERNS
-
-### 15.1 Breakpoint Tokens
-
-| Token | Min Width | Max Width | Tailwind | Target |
-|-------|-----------|-----------|----------|--------|
-| xs | 0px | 479px | default | Small mobile |
-| sm | 480px | 639px | sm: | Mobile |
-| md | 640px | 767px | md: | Large mobile |
-| lg | 768px | 1023px | lg: | Tablet |
-| xl | 1024px | 1279px | xl: | Desktop |
-| 2xl | 1280px | ∞ | 2xl: | Large desktop |
-
-### 15.2 Responsive Hook
-
-```typescript
-// hooks/use-media-query.ts
-import { useEffect, useState } from 'react';
-
-type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-
-const breakpoints: Record<Breakpoint, string> = {
-  xs: '(max-width: 479px)',
-  sm: '(min-width: 480px)',
-  md: '(min-width: 640px)',
-  lg: '(min-width: 768px)',
-  xl: '(min-width: 1024px)',
-  '2xl': '(min-width: 1280px)',
-};
-
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
-    const listener = (e: MediaQueryListEvent) => setMatches(e.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [query]);
-
-  return matches;
-}
-
-export function useBreakpoint(breakpoint: Breakpoint): boolean {
-  return useMediaQuery(breakpoints[breakpoint]);
-}
-```
-
-### 15.3 Container Query Setup
-
-```typescript
-// components/adaptive-card.tsx
-export function AdaptiveCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="@container">
-      <div className="
-        flex flex-col gap-3
-        @xs:flex-row @xs:items-center @xs:gap-4
-        @sm:gap-6
-        @md:p-6
-      ">
-        {children}
-      </div>
-    </div>
-  );
-}
-```
-
----
-
-## 16. ICON SYSTEM
-
-### 16.1 Icon Library Comparison
-
-| Library | Icons | Size | Tree-shake | Style | License |
-|---------|-------|------|------------|-------|---------|
-| Lucide React | 1,400+ | 0KB base | ✅ | Outline 24px | ISC |
-| Heroicons | 450+ | 0KB base | ✅ | Outline/Solid | MIT |
-| Radix Icons | 300+ | 0KB base | ✅ | Outline 15px | MIT |
-| Phosphor | 7,000+ | 0KB base | ✅ | 6 weights | MIT |
-| Tabler Icons | 4,000+ | 0KB base | ✅ | Outline | MIT |
-
-### 16.2 Icon Component Wrapper
-
-```typescript
-// components/ui/icon.tsx
-import { LucideIcon, LucideProps } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
-const sizeMap: Record<IconSize, { class: string; strokeWidth: number }> = {
-  xs: { class: 'h-3 w-3', strokeWidth: 2.5 },
-  sm: { class: 'h-4 w-4', strokeWidth: 2 },
-  md: { class: 'h-5 w-5', strokeWidth: 2 },
-  lg: { class: 'h-6 w-6', strokeWidth: 1.75 },
-  xl: { class: 'h-8 w-8', strokeWidth: 1.5 },
-};
-
-export function Icon({ 
-  icon: IconComponent, 
-  size = 'md', 
-  className,
-  label,
-  ...props 
-}: { icon: LucideIcon; size?: IconSize; label?: string } & LucideProps) {
-  const { class: sizeClass, strokeWidth } = sizeMap[size];
+export const generateColorPalette = (
+  baseColor: string,
+  steps: number = 10
+): ColorStop[] => {
+  const baseHsl = hexToHsl(baseColor);
+  const palette: ColorStop[] = [];
   
-  return (
-    <IconComponent 
-      className={cn(sizeClass, className)} 
-      strokeWidth={strokeWidth}
-      aria-label={label}
-      aria-hidden={!label}
-      {...props} 
-    />
-  );
+  for (let i = 0; i < steps; i++) {
+    // Calcola luminosità in percentuale
+    const lightness = 100 - (i * (100 / steps));
+    const color = `hsl(${baseHsl.h}, ${baseHsl.s}%, ${lightness}%)`;
+    
+    palette.push({
+      name: `${i * 100}`,
+      value: hslToHex(color),
+      contrastColor: lightness > 50 ? '#000000' : '#FFFFFF'
+    });
+  }
+  
+  return palette;
+};
+
+// Palette completa
+export const colorPalette = {
+  // Primary colors
+  primary: generateColorPalette('#0066CC'),
+  
+  // Neutral colors
+  neutral: {
+    0: '#FFFFFF',
+    50: '#F9FAFB',
+    100: '#F3F4F6',
+    200: '#E5E7EB',
+    300: '#D1D5DB',
+    400: '#9CA3AF',
+    500: '#6B7280',
+    600: '#4B5563',
+    700: '#374151',
+    800: '#1F2937',
+    900: '#111827',
+    950: '#030712'
+  },
+  
+  // Semantic colors
+  success: generateColorPalette('#10B981'),
+  warning: generateColorPalette('#F59E0B'),
+  error: generateColorPalette('#EF4444'),
+  info: generateColorPalette('#3B82F6'),
+  
+  // Extended palette
+  extended: {
+    purple: generateColorPalette('#8B5CF6'),
+    pink: generateColorPalette('#EC4899'),
+    orange: generateColorPalette('#F97316'),
+    teal: generateColorPalette('#14B8A6')
+  }
+};
+Semantic Colors
+
+Sistema di colori semantici:
+
+typescript
+// colors/semantic-colors.ts
+export const semanticColors = {
+  // Background colors
+  background: {
+    primary: 'var(--color-neutral-0)',
+    secondary: 'var(--color-neutral-50)',
+    tertiary: 'var(--color-neutral-100)',
+    inverse: 'var(--color-neutral-900)'
+  },
+  
+  // Text colors
+  text: {
+    primary: 'var(--color-neutral-900)',
+    secondary: 'var(--color-neutral-700)',
+    tertiary: 'var(--color-neutral-500)',
+    disabled: 'var(--color-neutral-400)',
+    inverse: 'var(--color-neutral-0)',
+    link: 'var(--color-primary-600)',
+    linkHover: 'var(--color-primary-700)',
+    
+    // Semantic text colors
+    success: 'var(--color-success-700)',
+    warning: 'var(--color-warning-700)',
+    error: 'var(--color-error-700)',
+    info: 'var(--color-info-700)'
+  },
+  
+  // Border colors
+  border: {
+    default: 'var(--color-neutral-200)',
+    strong: 'var(--color-neutral-300)',
+    focus: 'var(--color-primary-500)',
+    error: 'var(--color-error-500)',
+    success: 'var(--color-success-500)'
+  },
+  
+  // Interactive states
+  interactive: {
+    primary: {
+      default: 'var(--color-primary-600)',
+      hover: 'var(--color-primary-700)',
+      active: 'var(--color-primary-800)',
+      disabled: 'var(--color-neutral-300)'
+    },
+    secondary: {
+      default: 'var(--color-neutral-200)',
+      hover: 'var(--color-neutral-300)',
+      active: 'var(--color-neutral-400)',
+      disabled: 'var(--color-neutral-100)'
+    }
+  },
+  
+  // Status colors
+  status: {
+    success: {
+      background: 'var(--color-success-50)',
+      text: 'var(--color-success-700)',
+      border: 'var(--color-success-200)',
+      icon: 'var(--color-success-500)'
+    },
+    warning: {
+      background: 'var(--color-warning-50)',
+      text: 'var(--color-warning-700)',
+      border: 'var(--color-warning-200)',
+      icon: 'var(--color-warning-500)'
+    },
+    error: {
+      background: 'var(--color-error-50)',
+      text: 'var(--color-error-700)',
+      border: 'var(--color-error-200)',
+      icon: 'var(--color-error-500)'
+    },
+    info: {
+      background: 'var(--color-info-50)',
+      text: 'var(--color-info-700)',
+      border: 'var(--color-info-200)',
+      icon: 'var(--color-info-500)'
+    }
+  }
+};
+Dark Mode Colors
+
+Sistema di colori per dark mode:
+
+typescript
+// colors/dark-mode.ts
+export const darkModeColors = {
+  // Invertiamo la scala per dark mode
+  background: {
+    primary: 'var(--color-neutral-950)',
+    secondary: 'var(--color-neutral-900)',
+    tertiary: 'var(--color-neutral-800)',
+    inverse: 'var(--color-neutral-0)'
+  },
+  
+  text: {
+    primary: 'var(--color-neutral-50)',
+    secondary: 'var(--color-neutral-300)',
+    tertiary: 'var(--color-neutral-500)',
+    disabled: 'var(--color-neutral-600)',
+    inverse: 'var(--color-neutral-950)',
+    link: 'var(--color-primary-400)',
+    linkHover: 'var(--color-primary-300)',
+    
+    success: 'var(--color-success-400)',
+    warning: 'var(--color-warning-400)',
+    error: 'var(--color-error-400)',
+    info: 'var(--color-info-400)'
+  },
+  
+  border: {
+    default: 'var(--color-neutral-800)',
+    strong: 'var(--color-neutral-700)',
+    focus: 'var(--color-primary-500)',
+    error: 'var(--color-error-500)',
+    success: 'var(--color-success-500)'
+  },
+  
+  interactive: {
+    primary: {
+      default: 'var(--color-primary-500)',
+      hover: 'var(--color-primary-400)',
+      active: 'var(--color-primary-300)',
+      disabled: 'var(--color-neutral-700)'
+    },
+    secondary: {
+      default: 'var(--color-neutral-800)',
+      hover: 'var(--color-neutral-700)',
+      active: 'var(--color-neutral-600)',
+      disabled: 'var(--color-neutral-800)'
+    }
+  }
+};
+
+// Hook per gestione dark mode
+// hooks/useDarkMode.ts
+import { useEffect, useState } from 'react';
+
+export const useDarkMode = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    // Controlla system preference
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+  
+  return { isDarkMode, setIsDarkMode };
+};
+Accessible Color Combinations
+
+Sistema per garantire accessibilità:
+
+typescript
+// colors/accessibility.ts
+export interface ColorContrast {
+  normalText: boolean;  // AA 4.5:1 per testo normale
+  largeText: boolean;   // AA 3:1 per testo grande
+  uiComponents: boolean; // AA 3:1 per componenti UI
 }
-```
 
----
+export const checkContrast = (
+  foreground: string,
+  background: string
+): ColorContrast => {
+  const contrast = calculateContrastRatio(foreground, background);
+  
+  return {
+    normalText: contrast >= 4.5,
+    largeText: contrast >= 3,
+    uiComponents: contrast >= 3
+  };
+};
 
-## 17. ACCESSIBILITY TOKENS
+export const accessibleColorPairs = {
+  // Coppie pre-testate per accessibilità
+  primary: [
+    { foreground: 'neutral-900', background: 'neutral-0', rating: 'AAA' },
+    { foreground: 'primary-600', background: 'neutral-0', rating: 'AA' },
+    { foreground: 'neutral-0', background: 'primary-600', rating: 'AAA' }
+  ],
+  
+  // Sistema di fallback automatico
+  getAccessiblePair: (foregroundToken: string, backgroundToken: string) => {
+    const pair = accessibleColorPairs.primary.find(
+      p => p.foreground === foregroundToken && p.background === backgroundToken
+    );
+    
+    if (!pair) {
+      // Trova alternativa accessibile
+      return {
+        foreground: 'neutral-900',
+        background: 'neutral-0',
+        rating: 'AAA',
+        originalPair: { foregroundToken, backgroundToken }
+      };
+    }
+    
+    return pair;
+  }
+};
 
-### 17.1 A11y Token Reference
+// Utility per calcolo contrast ratio
+const calculateContrastRatio = (color1: string, color2: string): number => {
+  const lum1 = calculateRelativeLuminance(color1);
+  const lum2 = calculateRelativeLuminance(color2);
+  
+  const brightest = Math.max(lum1, lum2);
+  const darkest = Math.min(lum1, lum2);
+  
+  return (brightest + 0.05) / (darkest + 0.05);
+};
+Color in Context
 
-| Token | Value | Purpose | WCAG Criterion |
-|-------|-------|---------|----------------|
-| --focus-ring-width | 2px | Focus indicator width | 2.4.7 |
-| --focus-ring-offset | 2px | Focus ring gap | 2.4.7 |
-| --focus-ring-color | hsl(var(--ring)) | Focus ring color | 2.4.7 |
-| --min-touch-target | 44px | Minimum touch area | 2.5.5 |
-| --contrast-text-normal | 4.5:1 | Normal text contrast | 1.4.3 AA |
-| --contrast-text-large | 3:1 | Large text contrast | 1.4.3 AA |
-| --contrast-ui | 3:1 | UI component contrast | 1.4.11 |
+Applicazione contestuale dei colori:
 
-### 17.2 Focus Ring Implementation
+typescript
+// colors/contextual-colors.ts
+export const contextualColors = {
+  // Data visualization
+  dataViz: {
+    categorical: [
+      'primary-500',
+      'success-500',
+      'warning-500',
+      'error-500',
+      'info-500',
+      'purple-500'
+    ],
+    sequential: {
+      blue: ['primary-100', 'primary-300', 'primary-500', 'primary-700', 'primary-900'],
+      green: ['success-100', 'success-300', 'success-500', 'success-700', 'success-900']
+    },
+    diverging: {
+      redBlue: [
+        'error-700', 'error-500', 'error-300',
+        'neutral-100',
+        'primary-300', 'primary-500', 'primary-700'
+      ]
+    }
+  },
+  
+  // User interface states
+  uiStates: {
+    hover: {
+      lighten: 0.1,  // Lighten by 10%
+      darken: 0.1    // Darken by 10% for dark mode
+    },
+    active: {
+      lighten: 0.2,
+      darken: 0.2
+    },
+    disabled: {
+      opacity: 0.5,
+      saturation: 0.5
+    }
+  },
+  
+  // Component-specific colors
+  components: {
+    button: {
+      variants: {
+        primary: {
+          background: 'interactive.primary.default',
+          text: 'neutral-0',
+          border: 'transparent',
+          hover: 'interactive.primary.hover'
+        },
+        secondary: {
+          background: 'transparent',
+          text: 'text.primary',
+          border: 'border.default',
+          hover: 'background.tertiary'
+        }
+      }
+    },
+    card: {
+      background: 'background.secondary',
+      border: 'border.default',
+      hover: 'background.tertiary'
+    }
+  }
+};
+§ SPACING SYSTEM
+Base Unit
 
-```typescript
-// lib/focus.ts
-import { cn } from '@/lib/utils';
+Unità base 4px (0.25rem) per consistenza:
 
-export const focusRing = cn(
-  'focus-visible:outline-none',
-  'focus-visible:ring-2',
-  'focus-visible:ring-ring',
-  'focus-visible:ring-offset-2',
-  'focus-visible:ring-offset-background'
-);
+typescript
+// spacing/base-unit.ts
+export const BASE_UNIT = 4; // 4px
+export const BASE_REM = 0.25; // 0.25rem (assumendo 16px base font-size)
 
-export const focusRingInset = cn(
-  'focus-visible:outline-none',
-  'focus-visible:ring-2',
-  'focus-visible:ring-ring',
-  'focus-visible:ring-inset'
-);
-```
+export const spacingSystem = {
+  // Convertitore unità
+  px: (value: number) => `${value * BASE_UNIT}px`,
+  rem: (value: number) => `${value * BASE_REM}rem`,
+  em: (value: number) => `${value * BASE_REM}em`,
+  
+  // Valori comuni
+  common: {
+    none: 0,
+    auto: 'auto',
+    full: '100%',
+    screen: '100vw',
+    min: 'min-content',
+    max: 'max-content'
+  }
+};
+Spacing Scale
 
----
+Scala spaziale 8-point con progressione geometrica:
 
-## 18. DESIGN SYSTEM EXPANSION CHECKLIST
+typescript
+// spacing/spacing-scale.ts
+export const spacingScale = {
+  // Scale lineare per valori piccoli (0-8)
+  0: '0px',
+  0.5: '2px',   // 0.5 * 4px
+  1: '4px',     // 1 * 4px
+  1.5: '6px',   // 1.5 * 4px
+  2: '8px',     // 2 * 4px
+  2.5: '10px',  // 2.5 * 4px
+  3: '12px',    // 3 * 4px
+  3.5: '14px',  // 3.5 * 4px
+  4: '16px',    // 4 * 4px
+  
+  // Scala geometrica per valori maggiori
+  5: '20px',    // 5 * 4px
+  6: '24px',    // 6 * 4px
+  7: '28px',
+  8: '32px',
+  9: '36px',
+  10: '40px',
+  11: '44px',
+  12: '48px',
+  14: '56px',
+  16: '64px',
+  20: '80px',
+  24: '96px',
+  28: '112px',
+  32: '128px',
+  36: '144px',
+  40: '160px',
+  44: '176px',
+  48: '192px',
+  52: '208px',
+  56: '224px',
+  60: '240px',
+  64: '256px',
+  72: '288px',
+  80: '320px',
+  96: '384px',
+  
+  // Relative units
+  '1/2': '50%',
+  '1/3': '33.333%',
+  '2/3': '66.666%',
+  '1/4': '25%',
+  '2/4': '50%',
+  '3/4': '75%',
+  '1/5': '20%',
+  '2/5': '40%',
+  '3/5': '60%',
+  '4/5': '80%',
+  '1/6': '16.666%',
+  '2/6': '33.333%',
+  '3/6': '50%',
+  '4/6': '66.666%',
+  '5/6': '83.333%',
+  '1/12': '8.333%',
+  '2/12': '16.666%',
+  '3/12': '25%',
+  '4/12': '33.333%',
+  '5/12': '41.666%',
+  '6/12': '50%',
+  '7/12': '58.333%',
+  '8/12': '66.666%',
+  '9/12': '75%',
+  '10/12': '83.333%',
+  '11/12': '91.666%'
+};
+Component Spacing
 
-```
-ANIMATION & MOTION
-□ Duration tokens defined (instant → slowest)
-□ Easing functions documented
-□ Framer Motion variants created
-□ Tailwind keyframes configured
-□ Reduced motion support implemented
-□ Exit animations defined
+Spacing specifico per componenti:
 
-DARK MODE
-□ Color tokens for both themes
-□ CSS variables in :root and .dark
-□ Theme provider configured
-□ No flash on initial load
-□ System preference detection
-□ Persistent theme storage
+typescript
+// spacing/component-spacing.ts
+export const componentSpacing = {
+  // Button spacing
+  button: {
+    padding: {
+      sm: { x: 'spacing-3', y: 'spacing-1.5' },
+      md: { x: 'spacing-4', y: 'spacing-2' },
+      lg: { x: 'spacing-5', y: 'spacing
 
-RESPONSIVE
-□ Breakpoint tokens documented
-□ useMediaQuery hook available
-□ Container queries configured
-□ Mobile-first approach
-□ Touch targets ≥44px on mobile
+════════════════════════════════════════════════════════════
+FIGMA CATALOG: WEBBY-36-UI-UX-DESIGN-SYSTEM
+Prompt ID: 36 / 48
+Parte: 2
+Exported: 2026-02-06T13:29:05.758Z
+Characters: 1089
+════════════════════════════════════════════════════════════
 
-ICONS
-□ Icon library selected
-□ Icon wrapper component
-□ Consistent sizing scale
-□ Accessibility labels
+,
+      borderColor: 'var(--color-primary-500)',
+      color: 'var(--color-primary-700)'
+    },
+    indeterminate: {
+      background: 'var(--color-neutral-100)',
+      borderColor: 'var(--color-neutral-400)'
+    }
+  },
+  
+  // Stati di visibilità
+  visibility: {
+    hidden: {
+      opacity: 0,
+      visibility: 'hidden',
+      pointerEvents: 'none'
+    },
+    visible: {
+      opacity: 1,
+      visibility: 'visible',
+      pointerEvents: 'auto'
+    },
+    collapsed: {
+      height: 0,
+      overflow: 'hidden',
+      opacity: 0
+    },
+    expanded: {
+      height: 'auto',
+      opacity: 1
+    }
+  },
+  
+  // Utility per combinare stati
+  combineStates: (...states: string[]) => {
+    const combined: Record<string, any> = {};
+    
+    states.forEach(state => {
+      const stateConfig = (stateVariants as any)[state];
+      if (stateConfig) {
+        Object.assign(combined, stateConfig);
+      }
+    });
+    
+    return combined;
+  }
+};
 
-ACCESSIBILITY
-□ Focus ring tokens defined
-□ Focus styles applied globally
-□ Contrast ratios documented
-□ Touch targets verified
-□ Reduced motion respected
-```
+// CSS Animations per stati
+export const stateAnimations = {
+  '@keyframes spin': {
+    from: { transform: 'rotate(0deg)' },
+    to: { transform
