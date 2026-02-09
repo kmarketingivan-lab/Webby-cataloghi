@@ -1,8 +1,8 @@
 <!-- AUDIT: Catalogo privo di code block. Necessita espansione con snippet TypeScript/Next.js 14. -->
-# CATALOGO DETERMINISTICO: REQUISITI → ARCHITETTURA AWS
-# VERSIONE: 2.0-DETERMINISTIC
-# DATA: 2026-01-25
-# REGOLA: ZERO INTERPRETAZIONE - SOLO LOOKUP E DECISION TREES BINARI
+§ CATALOGO DETERMINISTICO: REQUISITI → ARCHITETTURA AWS
+§ VERSIONE: 2.0-DETERMINISTIC
+§ DATA: 2026-01-25
+§ REGOLA: ZERO INTERPRETAZIONE - SOLO LOOKUP E DECISION TREES BINARI
 
 ================================================================================
 SEZIONE 0: ISTRUZIONI DI UTILIZZO
@@ -1149,7 +1149,7 @@ SILO MODEL STACK (risorse per tenant):
 └──────────────────────────────────────────────────────────────────────────────┘
 
 TENANT CONTEXT LAMBDA LAYER (OBBLIGATORIO per Pool Model):
-```javascript
+javascript
 // /opt/nodejs/tenant-context.js
 exports.extractTenantId = (event) => {
   // UNICO modo per ottenere tenant_id: dal JWT validato
@@ -1169,7 +1169,6 @@ exports.validateTenantAccess = (tenantId, resourceTenantId) => {
     throw new Error('FORBIDDEN: Cross-tenant access denied');
   }
 };
-```
 
 COST ALLOCATION TAGS (OBBLIGATORI):
 | Tag Key        | Value             | Scopo                    |

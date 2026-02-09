@@ -1,6 +1,6 @@
 # CATALOGO CHARTS-DATA-VISUALIZATION v1
 
-## §1. CHART LIBRARY COMPARISON
+§ §1. CHART LIBRARY COMPARISON
 
 | Library | Bundle Size | Customization | Animation | SSR | Accessibility | Best For |
 |---------|-------------|---------------|-----------|-----|---------------|----------|
@@ -13,18 +13,17 @@
 
 **Raccomandazione:** Recharts per la maggior parte dei casi. Tremor per dashboard veloci. Visx per customizzazione estrema.
 
-## §2. RECHARTS SETUP & CONFIGURATION
+§ §2. RECHARTS SETUP & CONFIGURATION
 
-### 2.1 Installation & Base Setup
+§ 2.1 INSTALLATION & BASE SETUP
 
-```bash
+bash
 # Package installation
 npm install recharts
 npm install date-fns  # For date formatting
 npm install clsx tailwind-merge  # For conditional styling
-```
 
-```typescript
+typescript
 // lib/charts/config.ts
 export const CHART_CONFIG = {
   // Animation settings
@@ -78,11 +77,10 @@ export interface SeriesConfig {
   fillOpacity?: number;
   yAxisId?: string | number;
 }
-```
 
-### 2.2 Chart Theme System
+§ 2.2 CHART THEME SYSTEM
 
-```typescript
+typescript
 // lib/charts/theme.ts
 import { CHART_CONFIG } from './config';
 
@@ -306,11 +304,10 @@ export function useChartTheme(colorBlindSafe = false) {
   
   return chartTheme;
 }
-```
 
-### 2.3 Responsive Chart Container
+§ 2.3 RESPONSIVE CHART CONTAINER
 
-```typescript
+typescript
 // components/charts/ChartContainer.tsx
 'use client';
 
@@ -442,13 +439,12 @@ export function ChartContainer({
     </div>
   );
 }
-```
 
-## §3. LINE CHARTS
+§ §3. LINE CHARTS
 
-### 3.1 Basic Line Chart
+§ 3.1 BASIC LINE CHART
 
-```typescript
+typescript
 // components/charts/LineChart.tsx
 'use client';
 
@@ -707,11 +703,10 @@ export function MultiLineChart({
   
   return <LineChart series={series} {...props} />;
 }
-```
 
-### 3.2 Area Chart (Line with fill)
+§ 3.2 AREA CHART (LINE WITH FILL)
 
-```typescript
+typescript
 // components/charts/AreaChart.tsx
 'use client';
 
@@ -930,11 +925,10 @@ export function StackedAreaChart({
     />
   );
 }
-```
 
-### 3.3 Time Series Chart
+§ 3.3 TIME SERIES CHART
 
-```typescript
+typescript
 // components/charts/TimeSeriesChart.tsx
 'use client';
 
@@ -1237,11 +1231,10 @@ export function MonthlyTimeSeriesChart({
   
   return <TimeSeriesChart {...enhancedProps} />;
 }
-```
 
-### 3.4 Sparkline Chart
+§ 3.4 SPARKLINE CHART
 
-```typescript
+typescript
 // components/charts/Sparkline.tsx
 'use client';
 
@@ -1412,13 +1405,12 @@ export function SparklineWithValue({
     </div>
   );
 }
-```
 
-## §4. BAR CHARTS
+§ §4. BAR CHARTS
 
-### 4.1 Vertical Bar Chart
+§ 4.1 VERTICAL BAR CHART
 
-```typescript
+typescript
 // components/charts/BarChart.tsx
 'use client';
 
@@ -1727,11 +1719,10 @@ export function GroupedBarChart({
   
   return <BarChart series={series} stacked={false} {...props} />;
 }
-```
 
-### 4.2 Horizontal Bar Chart
+§ 4.2 HORIZONTAL BAR CHART
 
-```typescript
+typescript
 // components/charts/HorizontalBarChart.tsx
 'use client';
 
@@ -1835,11 +1826,10 @@ export function RankingChart({
     />
   );
 }
-```
 
-### 4.3 Stacked Bar Chart
+§ 4.3 STACKED BAR CHART
 
-```typescript
+typescript
 // components/charts/StackedBarChart.tsx
 'use client';
 
@@ -2065,13 +2055,12 @@ export function StackedBarChart({
     </ChartContainer>
   );
 }
-```
 
-## §5. PIE & DONUT CHARTS
+§ §5. PIE & DONUT CHARTS
 
-### 5.1 Pie Chart
+§ 5.1 PIE CHART
 
-```typescript
+typescript
 // components/charts/PieChart.tsx
 'use client';
 
@@ -2368,11 +2357,10 @@ export function DonutChart({
     />
   );
 }
-```
 
-### 5.2 Donut Chart
+§ 5.2 DONUT CHART
 
-```typescript
+typescript
 // components/charts/DonutChart.tsx
 'use client';
 
@@ -2457,11 +2445,10 @@ export function DonutChart({
     />
   );
 }
-```
 
-### 5.3 Semi-Circle / Gauge
+§ 5.3 SEMI-CIRCLE / GAUGE
 
-```typescript
+typescript
 // components/charts/GaugeChart.tsx
 'use client';
 
@@ -2760,57 +2747,56 @@ export function ProgressRing({
     </ChartContainer>
   );
 }
-```
 
 [Continua... Il catalogo completo includerebbe le sezioni rimanenti:
 
-## §6. SPECIALIZED CHARTS
+§ §6. SPECIALIZED CHARTS
 - Composed Chart (mix bar + line)
 - Scatter Plot & Bubble Chart
 - Radar/Spider Chart
 - Funnel Chart
 - Treemap
 
-## §7. DASHBOARD KPI COMPONENTS
+§ §7. DASHBOARD KPI COMPONENTS
 - Stat Card with Sparkline
 - KPI Grid layout
 - Comparison Cards
 - Metric cards con trend indicators
 
-## §8. DATA FETCHING PATTERNS
+§ §8. DATA FETCHING PATTERNS
 - Server Component patterns
 - useChartData hook con SWR/React Query
 - Date range filters
 - Data transformation utilities
 
-## §9. INTERACTIVITY
+§ §9. INTERACTIVITY
 - Custom tooltips completi
 - Click handlers per drill-down
 - Legend as filter
 - Brush/Zoom components
 
-## §10. REAL-TIME CHARTS
+§ §10. REAL-TIME CHARTS
 - Live updating charts
 - WebSocket integration
 - Polling patterns
 
-## §11. CHART EXPORT
+§ §11. CHART EXPORT
 - PNG export con html2canvas
 - CSV export utilities
 
-## §12. ACCESSIBILITY
+§ §12. ACCESSIBILITY
 - ARIA labels completi
 - Keyboard navigation
 - Screen reader support
 - Color-blind safe palettes
 
-## §13. COMMON CHART PATTERNS
+§ §13. COMMON CHART PATTERNS
 - Revenue/MRR charts
 - Conversion funnels
 - User activity heatmaps
 - Geographic distributions
 
-## §14-15. DECISION MATRIX & CHECKLIST
+§ §14-15. DECISION MATRIX & CHECKLIST
 
 Ogni sezione includerebbe:
 - Componenti React completi con TypeScript

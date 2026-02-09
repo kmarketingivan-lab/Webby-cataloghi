@@ -1,13 +1,12 @@
 # CATALOGO-BUSCHERES-LOGIC-ECOMMERCE-v1
-## Documentazione Tecnica Completa per Piattaforma E-commerce
+§ DOCUMENTAZIONE TECNICA COMPLETA PER PIATTAFORMA E-COMMERCE
 
 ---
 
-## §1. E-COMMERCE ARCHITECTURE OVERVIEW
+§ §1. E-COMMERCE ARCHITECTURE OVERVIEW
 
-### 1.1 Diagramma Architettura ASCII
+§ 1.1 DIAGRAMMA ARCHITETTURA ASCII
 
-```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           CLIENT (Next.js 14)                           │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────────┐   │
@@ -72,9 +71,8 @@
 │  │    Images   │  │    Search   │  │  Monitoring │                      │
 │  └─────────────┘  └─────────────┘  └─────────────┘                      │
 └─────────────────────────────────────────────────────────────────────────┘
-```
 
-### 1.2 Tabella Decisionale: Monolith vs Microservices
+§ 1.2 TABELLA DECISIONALE: MONOLITH VS MICROSERVICES
 
 | Scala | Architettura | Motivazione | Raccomandazione |
 |-------|-------------|-------------|-----------------|
@@ -83,7 +81,7 @@
 | 1000-10k ordini/giorno | **Service-Oriented Architecture** | Servizi separati per domini critici (payments, inventory, search) | ⚠️ **CONSIDERARE** quando team > 10 devs |
 | > 10k ordini/giorno | **Microservices** | Scaling indipendente, fault isolation, deploy frequenti | ❌ **SOVRAINGEGNERIZZATO** per la maggior parte |
 
-### 1.3 Tabella: Build vs Buy per Componenti
+§ 1.3 TABELLA: BUILD VS BUY PER COMPONENTI
 
 | Componente | Build | Buy | Raccomandazione |
 |------------|-------|-----|-----------------|
@@ -101,11 +99,11 @@
 
 ---
 
-## §2. PRODUCT CATALOG SYSTEM
+§ §2. PRODUCT CATALOG SYSTEM
 
-### 2.1 Database Schema Completo (Prisma)
+§ 2.1 DATABASE SCHEMA COMPLETO (PRISMA)
 
-```prisma
+prisma
 // schema.prisma
 generator client {
   provider = "prisma-client-js"
@@ -492,9 +490,8 @@ enum PriceChangeType {
   PROMOTION
   CLEARANCE
 }
-```
 
-### 2.2 Product Types Comparison Table
+§ 2.2 PRODUCT TYPES COMPARISON TABLE
 
 | Type | Use Case | Schema Approach | Example | Complexità |
 |------|----------|----------------|---------|------------|
@@ -506,9 +503,9 @@ enum PriceChangeType {
 | **Configurable** | Customizable (engraving, etc.) | `Product` + `CustomOption` + `CustomValue` | Tazza personalizzata, anello con incisione | Alta |
 | **Composite** | Build-your-own (PC, furniture) | `Product` + `Component` + `Configuration` | PC custom, mobile componibile | Molto Alta |
 
-### 2.3 Product Service (TypeScript Completo)
+§ 2.3 PRODUCT SERVICE (TYPESCRIPT COMPLETO)
 
-```typescript
+typescript
 // lib/services/product-service.ts
 import { PrismaClient, Product, ProductStatus, ProductType } from '@prisma/client';
 import { z } from 'zod';
@@ -1467,11 +1464,10 @@ export class ProductService {
     await pipeline.exec();
   }
 }
-```
 
-### 2.4 API Routes/tRPC Router per Products
+§ 2.4 API ROUTES/TRPC ROUTER PER PRODUCTS
 
-```typescript
+typescript
 // app/api/trpc/trpc-router.ts
 import { initTRPC, TRPCError } from '@trpc/server';
 import { z } from 'zod';
@@ -1752,11 +1748,10 @@ export const productRouter = t.router({
       }
     }),
 });
-```
 
-### 2.5 Variant Matrix Generator
+§ 2.5 VARIANT MATRIX GENERATOR
 
-```typescript
+typescript
 // lib/utils/variant-generator.ts
 import { z } from 'zod';
 
@@ -1976,7 +1971,6 @@ const filtered = VariantMatrixGenerator.filterCombinations(combinations, exclusi
 console.log(`Filtered combinations: ${filtered.length}`);
 // Output: 20 combinations (removes 4 XL+Polyester combos)
 */
-```
 
 ---
 

@@ -1,11 +1,11 @@
 # CATALOGO FEATURE-FLAGS v1
-## Documentazione Tecnica Completa per Feature Flags in React/Next.js
+§ DOCUMENTAZIONE TECNICA COMPLETA PER FEATURE FLAGS IN REACT/NEXT.JS
 
 ---
 
-## §1. FEATURE FLAG SOLUTIONS
+§ §1. FEATURE FLAG SOLUTIONS
 
-### **Tabella Comparativa Dettagliata**
+§ **TABELLA COMPARATIVA DETTAGLIATA**
 
 | Solution | Type | Cost | Complexity | Features | Scalability | Self-hosted | Best For |
 |----------|------|------|------------|----------|-------------|-------------|----------|
@@ -17,9 +17,8 @@
 | **Environment Variables** | Built-in | Free | Lowest | ⭐ | Poor | ✅ | Static flags, simple toggles |
 | **Vercel Edge Config** | SaaS | $ (included) | Low | ⭐⭐ | Good | No | Vercel users, simple flags |
 
-### **Decision Tree**
+§ **DECISION TREE**
 
-```
 ┌─ Budget? ──────────────────┐
 │                            │
 │ $$$ Enterprise budget      │ → LaunchDarkly
@@ -36,11 +35,10 @@
 │ Already on Vercel         │ → Vercel Edge Config
 │                            │
 └────────────────────────────┘
-```
 
-### **Raccomandazione per Next.js**
+§ **RACCOMANDAZIONE PER NEXT.JS**
 
-```typescript
+typescript
 const RECOMMENDED_APPROACH = {
   // Per progetti semplici:
   simple: {
@@ -74,15 +72,14 @@ const RECOMMENDED_APPROACH = {
     useWhen: 'Large team, mission-critical, need support'
   }
 };
-```
 
 ---
 
-## §2. CUSTOM FEATURE FLAGS SYSTEM
+§ §2. CUSTOM FEATURE FLAGS SYSTEM
 
-### 2.1 Feature Flag Data Model Completo
+§ 2.1 FEATURE FLAG DATA MODEL COMPLETO
 
-```prisma
+prisma
 // schema.prisma - Feature Flags System
 model FeatureFlag {
   id            String        @id @default(cuid())
@@ -219,11 +216,10 @@ enum AuditAction {
   OVERRIDE_REMOVE
   EVALUATION
 }
-```
 
-### 2.2 Targeting Rules Schema
+§ 2.2 TARGETING RULES SCHEMA
 
-```typescript
+typescript
 // lib/feature-flags/types.ts
 export interface TargetingRules {
   // Environment-based
@@ -338,11 +334,10 @@ export interface EvaluationResult {
     overrideApplied?: boolean;
   };
 }
-```
 
-### 2.3 Feature Flag Service Completo
+§ 2.3 FEATURE FLAG SERVICE COMPLETO
 
-```typescript
+typescript
 // lib/services/feature-flag-service.ts
 import { PrismaClient, FeatureFlag, FeatureFlagType } from '@prisma/client';
 import { z } from 'zod';
@@ -1267,7 +1262,6 @@ export class FeatureFlagService {
 
 // Export singleton instance
 export const featureFlagService = new FeatureFlagService();
-```
 
 ---
 

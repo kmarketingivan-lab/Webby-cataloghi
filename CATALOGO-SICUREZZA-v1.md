@@ -2,7 +2,7 @@
 # CATALOGO SICUREZZA v1.0
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# GUIDA COMPLETA ALLA SICUREZZA APPLICATIVA
+§ GUIDA COMPLETA ALLA SICUREZZA APPLICATIVA
 # Basato su OWASP Top 10:2025 e best practices aggiornate
 #
 # Data creazione: 2026-01-26
@@ -32,18 +32,17 @@ INDICE:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 1: SECURITY FUNDAMENTALS
+§ SEZIONE 1: SECURITY FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECURITY_FUNDAMENTALS = """
 
-## 1.1 Principi di Sicurezza
+§ 1.1 PRINCIPI DI SICUREZZA
 
-### Defense in Depth (Difesa in Profondità)
+§ DEFENSE IN DEPTH (DIFESA IN PROFONDITÀ)
 Non affidarti mai a un singolo controllo di sicurezza. Implementa multiple
 layer di protezione così che se uno fallisce, gli altri continuano a proteggere.
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         DEFENSE IN DEPTH                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -66,13 +65,12 @@ layer di protezione così che se uno fallisce, gli altri continuano a proteggere
 │   └─────────────────────────────────────────────────────────────────┘       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-### Principle of Least Privilege
+§ PRINCIPLE OF LEAST PRIVILEGE
 Ogni utente, processo o sistema deve avere solo i permessi minimi necessari
 per svolgere la propria funzione.
 
-```typescript
+typescript
 // ❌ SBAGLIATO: Permessi troppo ampi
 const adminUser = {
   role: 'admin',
@@ -90,13 +88,12 @@ const editorUser = {
     'comments:moderate'
   ]
 };
-```
 
-### Fail Secure
+§ FAIL SECURE
 In caso di errore o eccezione, il sistema deve fallire in uno stato sicuro,
 negando l'accesso piuttosto che permetterlo.
 
-```typescript
+typescript
 // ❌ SBAGLIATO: Fail open
 async function checkPermission(userId: string, resource: string): Promise<boolean> {
   try {
@@ -118,13 +115,11 @@ async function checkPermission(userId: string, resource: string): Promise<boolea
     return false; // ✅ Nega accesso in caso di errore
   }
 }
-```
 
-### Security by Design
+§ SECURITY BY DESIGN
 La sicurezza deve essere considerata fin dalle prime fasi di design,
 non aggiunta come afterthought.
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SECURITY BY DESIGN CHECKLIST                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -137,13 +132,11 @@ non aggiunta come afterthought.
 │ □ Compliance requirements identificati (GDPR, HIPAA, PCI-DSS)              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.2 Threat Modeling (STRIDE)
+§ 1.2 THREAT MODELING (STRIDE)
 
 STRIDE è un framework per identificare e classificare le minacce:
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ STRIDE THREAT MODEL                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -173,11 +166,9 @@ STRIDE è un framework per identificare e classificare le minacce:
 │     → Mitigazione: RBAC, least privilege, input validation                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.3 CIA Triad
+§ 1.3 CIA TRIAD
 
-```
                     CONFIDENTIALITY
                     (Riservatezza)
                          ▲
@@ -202,23 +193,21 @@ INTEGRITY: I dati non possono essere modificati senza autorizzazione
 
 AVAILABILITY: Il sistema deve essere accessibile quando necessario
 → Redundancy, DDoS Protection, Backups
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 2: OWASP TOP 10:2025
+§ SEZIONE 2: OWASP TOP 10:2025
 # ═══════════════════════════════════════════════════════════════════════════════
 
 OWASP_TOP_10_2025 = """
 
-## 2.1 Overview OWASP Top 10:2025
+§ 2.1 OVERVIEW OWASP TOP 10:2025
 
 L'OWASP Top 10 è lo standard di riferimento per i rischi di sicurezza
 delle applicazioni web. La versione 2025 include:
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ OWASP TOP 10:2025                                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -235,15 +224,14 @@ delle applicazioni web. La versione 2025 include:
 │ A10:2025 - Server-Side Request Forgery (SSRF)       ██████           #10   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 2.2 A01:2025 - Broken Access Control
+§ 2.2 A01:2025 - BROKEN ACCESS CONTROL
 
 Il rischio #1: controlli di accesso non implementati correttamente.
 
-### Vulnerabilità Comuni
+§ VULNERABILITÀ COMUNI
 
-```typescript
+typescript
 // ❌ VULNERABILE: IDOR (Insecure Direct Object Reference)
 app.get('/api/users/:id', async (req, res) => {
   const user = await db.users.findById(req.params.id);
@@ -262,9 +250,8 @@ app.get('/api/users/:id', authenticate, async (req, res) => {
   const user = await db.users.findById(userId);
   res.json(user);
 });
-```
 
-```typescript
+typescript
 // ❌ VULNERABILE: Path Traversal
 app.get('/api/files/:filename', async (req, res) => {
   const filepath = `/uploads/${req.params.filename}`;
@@ -291,11 +278,9 @@ app.get('/api/files/:filename', authenticate, async (req, res) => {
   
   res.sendFile(filepath);
 });
-```
 
-### Checklist Prevenzione
+§ CHECKLIST PREVENZIONE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ ACCESS CONTROL CHECKLIST                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -312,15 +297,14 @@ app.get('/api/files/:filename', authenticate, async (req, res) => {
 │ □ Testa regolarmente con tool automatici                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 2.3 A02:2025 - Security Misconfiguration
+§ 2.3 A02:2025 - SECURITY MISCONFIGURATION
 
 Configurazioni di sicurezza mancanti o errate.
 
-### Configurazioni Critiche
+§ CONFIGURAZIONI CRITICHE
 
-```typescript
+typescript
 // next.config.js - Security headers
 const securityHeaders = [
   {
@@ -359,9 +343,8 @@ module.exports = {
     ];
   },
 };
-```
 
-```yaml
+yaml
 # docker-compose.yml - Configurazione sicura
 version: '3.8'
 services:
@@ -382,11 +365,9 @@ services:
       - /tmp
     environment:
       - NODE_ENV=production
-```
 
-### Checklist Configurazione Sicura
+§ CHECKLIST CONFIGURAZIONE SICURA
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SECURITY CONFIGURATION CHECKLIST                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -417,15 +398,14 @@ services:
 │ □ CORS configurato correttamente                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 2.4 A03:2025 - Software Supply Chain Failures
+§ 2.4 A03:2025 - SOFTWARE SUPPLY CHAIN FAILURES
 
 Vulnerabilità introdotte tramite dipendenze o build pipeline.
 
-### Protezioni Supply Chain
+§ PROTEZIONI SUPPLY CHAIN
 
-```json
+json
 // package.json - Lock versions e audit
 {
   "name": "secure-app",
@@ -442,9 +422,8 @@ Vulnerabilità introdotte tramite dipendenze o build pipeline.
     "minimist": "^1.2.6"
   }
 }
-```
 
-```yaml
+yaml
 # .github/workflows/security.yml
 name: Security Checks
 
@@ -477,15 +456,14 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-```
 
-## 2.5 A06:2025 - Injection
+§ 2.5 A06:2025 - INJECTION
 
 SQL, NoSQL, OS, LDAP injection e simili.
 
-### SQL Injection Prevention
+§ SQL INJECTION PREVENTION
 
-```typescript
+typescript
 // ❌ VULNERABILE: Concatenazione stringhe
 async function getUser(email: string) {
   const query = `SELECT * FROM users WHERE email = '${email}'`;
@@ -506,11 +484,10 @@ async function getUser(email: string) {
     where: { email }  // Prisma usa parameterized queries internamente
   });
 }
-```
 
-### NoSQL Injection Prevention
+§ NOSQL INJECTION PREVENTION
 
-```typescript
+typescript
 // ❌ VULNERABILE: Query object from user input
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -544,11 +521,10 @@ app.post('/api/login', async (req, res) => {
     // Login success
   }
 });
-```
 
-### Command Injection Prevention
+§ COMMAND INJECTION PREVENTION
 
-```typescript
+typescript
 // ❌ VULNERABILE: exec con user input
 import { exec } from 'child_process';
 
@@ -578,33 +554,30 @@ app.get('/api/ping', (req, res) => {
     res.send(stdout);
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 3: SECURITY HEADERS
+§ SEZIONE 3: SECURITY HEADERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECURITY_HEADERS = """
 
-## 3.1 Header Essenziali
+§ 3.1 HEADER ESSENZIALI
 
-### Strict-Transport-Security (HSTS)
+§ STRICT-TRANSPORT-SECURITY (HSTS)
 
 Forza il browser a usare sempre HTTPS per il dominio.
 
-```
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
 Parametri:
 - max-age=63072000    → 2 anni (minimo raccomandato: 6 mesi / 15768000)
 - includeSubDomains   → Applica a tutti i sottodomini
 - preload             → Permette inclusione nella HSTS preload list dei browser
-```
 
-```typescript
+typescript
 // Next.js middleware
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -622,13 +595,11 @@ export function middleware(request: NextRequest) {
   
   return response;
 }
-```
 
-### Content-Security-Policy (CSP)
+§ CONTENT-SECURITY-POLICY (CSP)
 
 Controlla quali risorse possono essere caricate sulla pagina.
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CSP DIRECTIVES REFERENCE                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -656,9 +627,8 @@ Controlla quali risorse possono essere caricate sulla pagina.
 │ 'sha256-xxx'   → Script con hash specifico                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-```typescript
+typescript
 // CSP Progressivamente più restrittivo
 
 // LIVELLO 1: Base (sito statico semplice)
@@ -719,33 +689,27 @@ export function middleware(request: NextRequest) {
   
   return response;
 }
-```
 
-### X-Frame-Options (Legacy)
+§ X-FRAME-OPTIONS (LEGACY)
 
 Previene clickjacking. Usa `frame-ancestors` in CSP se possibile.
 
-```
 X-Frame-Options: DENY              → Non permettere framing
 X-Frame-Options: SAMEORIGIN        → Solo stesso origin può frammare
-```
 
-### X-Content-Type-Options
+§ X-CONTENT-TYPE-OPTIONS
 
 Previene MIME type sniffing.
 
-```
 X-Content-Type-Options: nosniff
 
 → Il browser rispetterà il Content-Type dichiarato
 → Previene attacchi dove file malevoli vengono interpretati come script
-```
 
-### Referrer-Policy
+§ REFERRER-POLICY
 
 Controlla quante informazioni referrer vengono inviate.
 
-```
 Referrer-Policy: strict-origin-when-cross-origin   → Raccomandato
 Referrer-Policy: no-referrer                        → Massima privacy
 
@@ -761,23 +725,20 @@ Referrer-Policy: no-referrer                        → Massima privacy
 │ strict-origin-when-cross-origin→ ✅ RACCOMANDATO                           │
 │ unsafe-url                     → Sempre full URL (⚠️ non usare)            │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-### Permissions-Policy (ex Feature-Policy)
+§ PERMISSIONS-POLICY (EX FEATURE-POLICY)
 
 Controlla quali API browser possono essere usate.
 
-```
 Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 
 → () = disabilitato per tutti
 → (self) = solo stesso origin
 → ("https://example.com") = solo domini specifici
-```
 
-## 3.2 Configurazione Completa Headers
+§ 3.2 CONFIGURAZIONE COMPLETA HEADERS
 
-```typescript
+typescript
 // lib/security-headers.ts
 
 export const securityHeaders = [
@@ -837,9 +798,8 @@ module.exports = {
     ];
   },
 };
-```
 
-```typescript
+typescript
 // Express.js con Helmet
 import helmet from 'helmet';
 
@@ -865,11 +825,10 @@ app.use(helmet({
     policy: 'strict-origin-when-cross-origin',
   },
 }));
-```
 
-## 3.3 Test Security Headers
+§ 3.3 TEST SECURITY HEADERS
 
-```bash
+bash
 # Test con curl
 curl -I https://your-site.com
 
@@ -896,22 +855,21 @@ check_header "X-Frame-Options"
 check_header "X-Content-Type-Options"
 check_header "Referrer-Policy"
 check_header "Permissions-Policy"
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 4: AUTHENTICATION & AUTHORIZATION
+§ SEZIONE 4: AUTHENTICATION & AUTHORIZATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 AUTHENTICATION = """
 
-## 4.1 Password Security
+§ 4.1 PASSWORD SECURITY
 
-### Hashing Password
+§ HASHING PASSWORD
 
-```typescript
+typescript
 // ✅ CORRETTO: bcrypt con cost factor appropriato
 import bcrypt from 'bcrypt';
 
@@ -940,11 +898,10 @@ async function hashPasswordArgon2(password: string): Promise<string> {
 async function verifyPasswordArgon2(password: string, hash: string): Promise<boolean> {
   return argon2.verify(hash, password);
 }
-```
 
-### Password Policy
+§ PASSWORD POLICY
 
-```typescript
+typescript
 // schemas/auth.ts
 import { z } from 'zod';
 
@@ -974,11 +931,10 @@ async function isPasswordCompromised(password: string): Promise<boolean> {
   
   return text.split('\n').some(line => line.startsWith(suffix));
 }
-```
 
-## 4.2 Multi-Factor Authentication (MFA)
+§ 4.2 MULTI-FACTOR AUTHENTICATION (MFA)
 
-```typescript
+typescript
 // TOTP (Time-based One-Time Password) con speakeasy
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
@@ -1038,11 +994,10 @@ app.post('/api/auth/verify-mfa', authenticate, async (req, res) => {
   req.session.mfaVerified = true;
   res.json({ success: true });
 });
-```
 
-## 4.3 Brute Force Protection
+§ 4.3 BRUTE FORCE PROTECTION
 
-```typescript
+typescript
 // Rate limiting per login
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
@@ -1094,11 +1049,10 @@ async function onSuccessfulLogin(email: string) {
 app.post('/api/auth/login', loginLimiter, accountLimiter, async (req, res) => {
   // ... login logic
 });
-```
 
-## 4.4 Role-Based Access Control (RBAC)
+§ 4.4 ROLE-BASED ACCESS CONTROL (RBAC)
 
-```typescript
+typescript
 // types/auth.ts
 export type Permission = 
   | 'users:read'
@@ -1181,22 +1135,20 @@ app.delete('/api/posts/:id',
     res.status(204).send();
   }
 );
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 5: JWT SECURITY
+§ SEZIONE 5: JWT SECURITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 JWT_SECURITY = """
 
-## 5.1 JWT Best Practices
+§ 5.1 JWT BEST PRACTICES
 
-### Storage Sicuro JWT
+§ STORAGE SICURO JWT
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ JWT STORAGE COMPARISON                                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1214,11 +1166,10 @@ JWT_SECURITY = """
 GOLD STANDARD:
 - Access Token: in memory (React state/context) - short-lived (15 min)
 - Refresh Token: HttpOnly cookie - long-lived (7 days)
-```
 
-### Implementazione JWT Sicura
+§ IMPLEMENTAZIONE JWT SICURA
 
-```typescript
+typescript
 // lib/jwt.ts
 import jwt from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
@@ -1279,11 +1230,10 @@ export function verifyRefreshToken(token: string): TokenPayload & { tokenType: s
   
   return payload;
 }
-```
 
-### Cookie Configuration per Refresh Token
+§ COOKIE CONFIGURATION PER REFRESH TOKEN
 
-```typescript
+typescript
 // utils/cookies.ts
 import { serialize, parse } from 'cookie';
 import { NextApiResponse } from 'next';
@@ -1317,11 +1267,10 @@ export function clearRefreshTokenCookie(res: NextApiResponse) {
 export function getRefreshTokenFromCookie(req: { cookies: Record<string, string> }): string | null {
   return req.cookies[REFRESH_TOKEN_COOKIE] || null;
 }
-```
 
-### Flow Completo Authentication
+§ FLOW COMPLETO AUTHENTICATION
 
-```typescript
+typescript
 // app/api/auth/login.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateAccessToken, generateRefreshToken } from '@/lib/jwt';
@@ -1385,9 +1334,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 }
-```
 
-```typescript
+typescript
 // app/api/auth/refresh.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateAccessToken, verifyRefreshToken } from '@/lib/jwt';
@@ -1435,11 +1383,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Invalid refresh token' });
   }
 }
-```
 
-## 5.2 JWT Vulnerabilità e Prevenzione
+§ 5.2 JWT VULNERABILITÀ E PREVENZIONE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ JWT VULNERABILITIES & MITIGATIONS                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1465,9 +1411,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 │                           │ Binding a fingerprint browser                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-```typescript
+typescript
 // ❌ VULNERABILE: Accetta qualsiasi algoritmo
 jwt.verify(token, secret); // Potrebbe accettare "none"
 
@@ -1494,11 +1439,10 @@ const token = jwt.sign({
   role: 'user',
   sessionId: 'uuid'
 }, secret);
-```
 
-## 5.3 Token Revocation
+§ 5.3 TOKEN REVOCATION
 
-```typescript
+typescript
 // Revocation strategies
 
 // 1. Session-based revocation (raccomandato)
@@ -1541,20 +1485,19 @@ async function isTokenBlacklisted(jti: string): Promise<boolean> {
 // 3. Global revocation (cambio secret - NUCLEAR OPTION)
 // Cambia JWT_SECRET per invalidare TUTTI i token
 // Usare solo in caso di compromissione
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 6: SESSION MANAGEMENT
+§ SEZIONE 6: SESSION MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SESSION_MANAGEMENT = """
 
-## 6.1 Session Security
+§ 6.1 SESSION SECURITY
 
-```typescript
+typescript
 // Express session con Redis (server-side sessions)
 import session from 'express-session';
 import RedisStore from 'connect-redis';
@@ -1577,11 +1520,10 @@ app.use(session({
     domain: process.env.COOKIE_DOMAIN // Specifica dominio in prod
   }
 }));
-```
 
-## 6.2 Session Fixation Prevention
+§ 6.2 SESSION FIXATION PREVENTION
 
-```typescript
+typescript
 // Rigenera session ID dopo login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
@@ -1624,11 +1566,10 @@ app.post('/api/elevate-privileges', authenticate, async (req, res) => {
     res.json({ success: true });
   });
 });
-```
 
-## 6.3 CSRF Protection
+§ 6.3 CSRF PROTECTION
 
-```typescript
+typescript
 // CSRF Token generation
 import { randomBytes } from 'crypto';
 
@@ -1659,9 +1600,8 @@ app.get('/api/csrf-token', (req, res) => {
   req.session.csrfToken = token;
   res.json({ csrfToken: token });
 });
-```
 
-```typescript
+typescript
 // Next.js: Double Submit Cookie pattern
 // middleware.ts
 import { NextResponse } from 'next/server';
@@ -1695,20 +1635,18 @@ export async function POST(request: NextRequest) {
   
   // Process request...
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 7: INPUT VALIDATION & OUTPUT ENCODING
+§ SEZIONE 7: INPUT VALIDATION & OUTPUT ENCODING
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INPUT_VALIDATION = """
 
-## 7.1 Validation Strategy
+§ 7.1 VALIDATION STRATEGY
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ VALIDATION LAYERS                                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1730,11 +1668,10 @@ INPUT_VALIDATION = """
 │ └── Purpose: Ultimo livello di protezione                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 7.2 Schema Validation con Zod
+§ 7.2 SCHEMA VALIDATION CON ZOD
 
-```typescript
+typescript
 // schemas/user.ts
 import { z } from 'zod';
 
@@ -1806,11 +1743,10 @@ export const userQuerySchema = z.object({
   search: z.string().max(100).optional(),
   role: z.enum(['user', 'editor', 'admin']).optional()
 });
-```
 
-## 7.3 Sanitization
+§ 7.3 SANITIZATION
 
-```typescript
+typescript
 // lib/sanitize.ts
 import DOMPurify from 'isomorphic-dompurify';
 import { JSDOM } from 'jsdom';
@@ -1885,11 +1821,10 @@ export function sanitizeUrl(url: string): string | null {
     return null;
   }
 }
-```
 
-## 7.4 Output Encoding
+§ 7.4 OUTPUT ENCODING
 
-```typescript
+typescript
 // Output encoding per diversi contesti
 
 // 1. HTML Context - usa escapeHtml
@@ -1943,20 +1878,19 @@ function BetterComponent({ html }: { html: string }) {
   const sanitized = sanitizeHtml(html);
   return <div>{parse(sanitized)}</div>;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 8: API SECURITY
+§ SEZIONE 8: API SECURITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 API_SECURITY = """
 
-## 8.1 API Authentication
+§ 8.1 API AUTHENTICATION
 
-```typescript
+typescript
 // Middleware di autenticazione
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyAccessToken } from '@/lib/jwt';
@@ -2004,11 +1938,10 @@ export default withAuth(async (req, res) => {
   const userId = req.user.id;
   // ...
 });
-```
 
-## 8.2 Rate Limiting
+§ 8.2 RATE LIMITING
 
-```typescript
+typescript
 // lib/rate-limit.ts
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import Redis from 'ioredis';
@@ -2112,11 +2045,10 @@ function getClientIp(req: NextApiRequest): string {
          req.socket.remoteAddress || 
          'unknown';
 }
-```
 
-## 8.3 CORS Configuration
+§ 8.3 CORS CONFIGURATION
 
-```typescript
+typescript
 // lib/cors.ts
 import Cors from 'cors';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -2168,11 +2100,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   // Handler logic...
 }
-```
 
-## 8.4 API Versioning & Security
+§ 8.4 API VERSIONING & SECURITY
 
-```typescript
+typescript
 // Versioning sicuro
 // /api/v1/users vs /api/v2/users
 
@@ -2199,11 +2130,10 @@ export function apiVersion(supportedVersions: string[]) {
     next();
   };
 }
-```
 
-## 8.5 Request/Response Security
+§ 8.5 REQUEST/RESPONSE SECURITY
 
-```typescript
+typescript
 // Middleware di sicurezza API
 export function apiSecurityMiddleware(
   req: NextApiRequest, 
@@ -2258,20 +2188,18 @@ export function sanitizeResponse<T extends Record<string, any>>(
   
   return sanitized;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 9: SECRETS MANAGEMENT
+§ SEZIONE 9: SECRETS MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECRETS_MANAGEMENT = """
 
-## 9.1 Environment Variables
+§ 9.1 ENVIRONMENT VARIABLES
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ ENVIRONMENT VARIABLES BEST PRACTICES                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2291,9 +2219,8 @@ SECRETS_MANAGEMENT = """
 │ └── Validare che tutti i secrets richiesti esistano all'avvio             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-```typescript
+typescript
 // lib/env.ts - Validazione environment variables
 import { z } from 'zod';
 
@@ -2339,9 +2266,8 @@ export const env = validateEnv();
 
 // Type-safe access
 // env.DATABASE_URL ✅ TypeScript conosce il tipo
-```
 
-```bash
+bash
 # .env.example (committare questo, NON .env)
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/myapp
@@ -2357,11 +2283,10 @@ SENDGRID_API_KEY=SG....
 # App
 NODE_ENV=development
 APP_URL=http://localhost:3000
-```
 
-## 9.2 AWS Secrets Manager
+§ 9.2 AWS SECRETS MANAGER
 
-```typescript
+typescript
 // lib/secrets.ts
 import { 
   SecretsManagerClient, 
@@ -2410,11 +2335,10 @@ export async function getSecretJson<T>(secretName: string): Promise<T> {
 const dbCredentials = await getSecretJson<{ username: string; password: string }>(
   'myapp/production/database'
 );
-```
 
-## 9.3 Secrets Rotation
+§ 9.3 SECRETS ROTATION
 
-```typescript
+typescript
 // Strategie per rotazione secrets
 
 // 1. Dual secrets durante rotazione
@@ -2461,20 +2385,19 @@ function verifyTokenWithRotation(token: string): TokenPayload {
   
   throw new Error('Invalid token');
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 10: DATABASE SECURITY
+§ SEZIONE 10: DATABASE SECURITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DATABASE_SECURITY = """
 
-## 10.1 Connection Security
+§ 10.1 CONNECTION SECURITY
 
-```typescript
+typescript
 // PostgreSQL con SSL
 import { Pool } from 'pg';
 
@@ -2499,11 +2422,10 @@ const pool = new Pool({
 // }
 
 // DATABASE_URL="postgresql://user:pass@host:5432/db?sslmode=require&sslcert=/path/to/cert"
-```
 
-## 10.2 Query Security
+§ 10.2 QUERY SECURITY
 
-```typescript
+typescript
 // ✅ SEMPRE usare parameterized queries
 
 // Con pg (node-postgres)
@@ -2536,11 +2458,10 @@ async function searchUsers(searchTerm: string) {
   // ❌ VULNERABILE: String concatenation
   // return prisma.$queryRawUnsafe(`SELECT * FROM users WHERE name LIKE '%${searchTerm}%'`);
 }
-```
 
-## 10.3 Principle of Least Privilege per Database
+§ 10.3 PRINCIPLE OF LEAST PRIVILEGE PER DATABASE
 
-```sql
+sql
 -- Crea utente applicazione con permessi minimi
 CREATE USER app_user WITH PASSWORD 'strong_password';
 
@@ -2564,11 +2485,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 -- Utente separato per migrations (usato solo in CI/CD)
 CREATE USER migration_user WITH PASSWORD 'another_strong_password';
 GRANT ALL PRIVILEGES ON SCHEMA app TO migration_user;
-```
 
-## 10.4 Data Encryption
+§ 10.4 DATA ENCRYPTION
 
-```typescript
+typescript
 // Encryption at rest: Configurato a livello database/cloud
 
 // Encryption in transit: SSL/TLS (vedi Connection Security)
@@ -2614,11 +2534,10 @@ const user = {
   email: 'user@example.com',
   ssn_encrypted: encrypt('123-45-6789'), // Solo se strettamente necessario
 };
-```
 
-## 10.5 Audit Logging
+§ 10.5 AUDIT LOGGING
 
-```typescript
+typescript
 // Tabella audit log
 /*
 CREATE TABLE audit_logs (
@@ -2694,20 +2613,19 @@ await auditLog({
   newValues: updatedUser,
   req
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 11: FILE UPLOAD SECURITY
+§ SEZIONE 11: FILE UPLOAD SECURITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 FILE_UPLOAD_SECURITY = """
 
-## 11.1 File Upload Validation
+§ 11.1 FILE UPLOAD VALIDATION
 
-```typescript
+typescript
 // lib/upload-security.ts
 import { fileTypeFromBuffer } from 'file-type';
 import path from 'path';
@@ -2832,11 +2750,10 @@ async function scanForMaliciousContent(buffer: Buffer, mimeType: string): Promis
     }
   }
 }
-```
 
-## 11.2 Secure File Storage
+§ 11.2 SECURE FILE STORAGE
 
-```typescript
+typescript
 // Upload a S3 con configurazione sicura
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -2912,11 +2829,10 @@ export async function uploadToS3(
   ]
 }
 */
-```
 
-## 11.3 Image Processing Security
+§ 11.3 IMAGE PROCESSING SECURITY
 
-```typescript
+typescript
 // Processa immagini in modo sicuro
 import sharp from 'sharp';
 
@@ -2965,20 +2881,18 @@ export async function generateThumbnail(buffer: Buffer): Promise<Buffer> {
     .webp({ quality: 70 })
     .toBuffer();
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 12: RATE LIMITING & DDOS PROTECTION
+§ SEZIONE 12: RATE LIMITING & DDOS PROTECTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RATE_LIMITING = """
 
-## 12.1 Multi-Layer Rate Limiting
+§ 12.1 MULTI-LAYER RATE LIMITING
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ RATE LIMITING LAYERS                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3000,11 +2914,10 @@ RATE_LIMITING = """
 │ └── Sliding window algorithms                                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 12.2 Sliding Window Rate Limiter
+§ 12.2 SLIDING WINDOW RATE LIMITER
 
-```typescript
+typescript
 // Sliding window più preciso del fixed window
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import Redis from 'ioredis';
@@ -3087,11 +3000,10 @@ const rateLimiters = {
     blockDuration: 7200
   })
 };
-```
 
-## 12.3 Cloudflare Configuration
+§ 12.3 CLOUDFLARE CONFIGURATION
 
-```javascript
+javascript
 // Cloudflare Workers rate limiting
 // wrangler.toml
 /*
@@ -3120,11 +3032,10 @@ matching_rule = { path = "/api/*" }
    - (http.request.uri.path eq "/api/auth/login") → 
      Rate Limit: 5 requests per 15 minutes per IP
 */
-```
 
-## 12.4 Request Validation & Abuse Prevention
+§ 12.4 REQUEST VALIDATION & ABUSE PREVENTION
 
-```typescript
+typescript
 // Middleware anti-abuse
 export function abusePreventionMiddleware(
   req: NextApiRequest,
@@ -3165,20 +3076,18 @@ export function abusePreventionMiddleware(
   
   next();
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 13: SECURITY AUDIT CHECKLIST
+§ SEZIONE 13: SECURITY AUDIT CHECKLIST
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECURITY_AUDIT_CHECKLIST = """
 
-## 13.1 Pre-Deploy Security Checklist
+§ 13.1 PRE-DEPLOY SECURITY CHECKLIST
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PRE-DEPLOY SECURITY CHECKLIST                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3239,11 +3148,10 @@ SECURITY_AUDIT_CHECKLIST = """
 │ □ PCI-DSS compliance (se pagamenti)                                        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 13.2 Automated Security Testing
+§ 13.2 AUTOMATED SECURITY TESTING
 
-```yaml
+yaml
 # .github/workflows/security.yml
 name: Security Audit
 
@@ -3335,11 +3243,10 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
-```
 
-## 13.3 Manual Security Review
+§ 13.3 MANUAL SECURITY REVIEW
 
-```typescript
+typescript
 // scripts/security-check.ts
 // Script per verifiche manuali pre-deploy
 
@@ -3460,20 +3367,18 @@ async function runSecurityChecks() {
 }
 
 runSecurityChecks();
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 14: INCIDENT RESPONSE
+§ SEZIONE 14: INCIDENT RESPONSE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INCIDENT_RESPONSE = """
 
-## 14.1 Incident Response Plan
+§ 14.1 INCIDENT RESPONSE PLAN
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ INCIDENT RESPONSE PHASES                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3509,11 +3414,10 @@ INCIDENT_RESPONSE = """
 │    └── Training team                                                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.2 Emergency Response Scripts
+§ 14.2 EMERGENCY RESPONSE SCRIPTS
 
-```typescript
+typescript
 // scripts/emergency-response.ts
 // Script per risposta rapida a incidenti
 
@@ -3665,11 +3569,10 @@ Usage:
   npx ts-node scripts/emergency-response.ts rotate-jwt
     `);
 }
-```
 
-## 14.3 Security Monitoring
+§ 14.3 SECURITY MONITORING
 
-```typescript
+typescript
 // lib/security-monitoring.ts
 // Monitoring per rilevare attività sospette
 
@@ -3773,11 +3676,10 @@ export function securityEventMiddleware(type: string) {
     next();
   };
 }
-```
 
-## 14.4 Post-Incident Template
+§ 14.4 POST-INCIDENT TEMPLATE
 
-```markdown
+markdown
 # Security Incident Report
 
 ## Summary
@@ -3825,20 +3727,18 @@ export function securityEventMiddleware(type: string) {
 - [ ] Users notified
 - [ ] Stakeholders notified
 - [ ] Regulatory bodies notified (if required)
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# APPENDICE: QUICK REFERENCE
+§ APPENDICE: QUICK REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 QUICK_REFERENCE = """
 
-## Quick Reference Card
+§ QUICK REFERENCE CARD
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SECURITY QUICK REFERENCE                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3889,12 +3789,11 @@ QUICK_REFERENCE = """
 │ A10: SSRF                      → URL validation, blocklist                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FINE CATALOGO SICUREZZA
+§ FINE CATALOGO SICUREZZA
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SUPPLEMENT: NEXT.JS 14 SECURITY PATTERNS

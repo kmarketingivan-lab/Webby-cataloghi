@@ -6,7 +6,7 @@
 
 ---
 
-## 1. SOLUTION COMPARISON
+§ 1. SOLUTION COMPARISON
 
 | Library             | Bundle Size | DevTools         | SSR | Atomic | Best For            | Learning |
 | ------------------- | ----------- | ---------------- | --- | ------ | ------------------- | -------- |
@@ -19,7 +19,7 @@
 | TanStack Query      | 13 KB       | ✅ Query DevTools | ✅  | ❌     | Server state        | ⭐⭐     |
 | Recoil              | 20 KB       | ✅               | ⚠️ | ✅     | Meta (legacy)       | ⭐⭐⭐   |
 
-### 1.1 Feature Deep Comparison
+§ 1.1 FEATURE DEEP COMPARISON
 
 | Feature       | Zustand      | Jotai             | Redux TK        | TanStack Query |
 | ------------- | ------------ | ----------------- | --------------- | -------------- |
@@ -35,9 +35,8 @@
 
 ---
 
-## 2. DECISION FLOWCHART
+§ 2. DECISION FLOWCHART
 
-```
 START: Che tipo di stato stai gestendo?
 │
 ├─► "Stato del SERVER (API data, cache)"
@@ -65,15 +64,14 @@ START: Che tipo di stato stai gestendo?
 │
 └─► "URL State (filters, pagination)"
     └─► nuqs o native URLSearchParams
-```
 
 ---
 
-## 3. ZUSTAND PATTERNS
+§ 3. ZUSTAND PATTERNS
 
-### 3.1 Basic Store
+§ 3.1 BASIC STORE
 
-```typescript
+typescript
 // src/stores/counter.ts
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
@@ -108,11 +106,10 @@ export const useCounterStore = create<CounterState>()(
 // Usage in component
 // const count = useCounterStore((state) => state.count);
 // const increment = useCounterStore((state) => state.increment);
-```
 
-### 3.2 Slices Pattern (Large Apps)
+§ 3.2 SLICES PATTERN (LARGE APPS)
 
-```typescript
+typescript
 // src/stores/slices/userSlice.ts
 import { StateCreator } from 'zustand';
 
@@ -179,11 +176,10 @@ export const useAppStore = create<AppStore>()(
     { name: 'AppStore' }
   )
 );
-```
 
-### 3.3 Async Actions
+§ 3.3 ASYNC ACTIONS
 
-```typescript
+typescript
 import { create } from 'zustand';
 
 interface UserState {
@@ -212,11 +208,10 @@ export const useUserStore = create<UserState>((set) => ({
     }
   },
 }));
-```
 
-### 3.4 Immer Middleware
+§ 3.4 IMMER MIDDLEWARE
 
-```typescript
+typescript
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -245,11 +240,10 @@ export const useTodoStore = create<TodoState>()(
       }),
   }))
 );
-```
 
-### 3.5 Selectors Optimization
+§ 3.5 SELECTORS OPTIMIZATION
 
-```typescript
+typescript
 import { useAppStore } from './index';
 import { useMemo } from 'react';
 
@@ -258,11 +252,10 @@ export function useActiveUsers() {
   const users = useAppStore((state) => state.users);
   return useMemo(() => users.filter((u) => u.isActive), [users]);
 }
-```
 
-### 3.6 Persist Middleware
+§ 3.6 PERSIST MIDDLEWARE
 
-```typescript
+typescript
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
@@ -285,15 +278,14 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-```
 
 ---
 
-## 4. JOTAI PATTERNS
+§ 4. JOTAI PATTERNS
 
-### 4.1 Primitive Atoms
+§ 4.1 PRIMITIVE ATOMS
 
-```typescript
+typescript
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 
 export const countAtom = atom(0);
@@ -302,11 +294,10 @@ export function Counter() {
   const [count, setCount] = useAtom(countAtom);
   return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
 }
-```
 
-### 4.2 Derived Atoms
+§ 4.2 DERIVED ATOMS
 
-```typescript
+typescript
 import { atom } from 'jotai';
 
 export const firstNameAtom = atom('John');
@@ -317,11 +308,10 @@ export const fullNameAtom = atom((get) => {
   const last = get(lastNameAtom);
   return `${first} ${last}`;
 });
-```
 
-### 4.3 Async Atoms
+§ 4.3 ASYNC ATOMS
 
-```typescript
+typescript
 import { atom } from 'jotai';
 
 export const userAtom = atom(async () => {
@@ -333,11 +323,10 @@ export function UserProfile() {
   const user = useAtomValue(userAtom); // Suspense
   return <div>{user.name}</div>;
 }
-```
 
-### 4.4 atomWithStorage
+§ 4.4 ATOMWITHSTORAGE
 
-```typescript
+typescript
 import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 
 export const themeAtom = atomWithStorage<'light' | 'dark'>('theme', 'light');
@@ -346,11 +335,10 @@ export const sessionAtom = atomWithStorage(
   null, 
   createJSONStorage(() => sessionStorage)
 );
-```
 
-### 4.5 atomWithQuery
+§ 4.5 ATOMWITHQUERY
 
-```typescript
+typescript
 import { atomWithQuery } from 'jotai-tanstack-query';
 
 export const usersQueryAtom = atomWithQuery(() => ({
@@ -360,15 +348,14 @@ export const usersQueryAtom = atomWithQuery(() => ({
     return res.json() as Promise<User[]>;
   },
 }));
-```
 
 ---
 
-## 5. TANSTACK QUERY PATTERNS
+§ 5. TANSTACK QUERY PATTERNS
 
-### 5.1 Basic Query
+§ 5.1 BASIC QUERY
 
-```typescript
+typescript
 import { useQuery } from '@tanstack/react-query';
 
 function UserList() {
@@ -385,11 +372,10 @@ function UserList() {
   if (error) return <div>Error: {error.message}</div>;
   return <ul>{data?.map((u) => <li key={u.id}>{u.name}</li>)}</ul>;
 }
-```
 
-### 5.2 Mutations & Optimistic Updates
+§ 5.2 MUTATIONS & OPTIMISTIC UPDATES
 
-```typescript
+typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 function CreateUser() {
@@ -417,11 +403,10 @@ function CreateUser() {
 
   return <button onClick={() => mutation.mutate({ name: 'New User' })}>Add</button>;
 }
-```
 
-### 5.3 Infinite Queries
+§ 5.3 INFINITE QUERIES
 
-```typescript
+typescript
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 function PostsList() {
@@ -449,11 +434,10 @@ function PostsList() {
     </>
   );
 }
-```
 
-### 5.4 Cache Invalidation
+§ 5.4 CACHE INVALIDATION
 
-```typescript
+typescript
 import { useQueryClient } from '@tanstack/react-query';
 
 function RefreshUsersButton() {
@@ -472,11 +456,10 @@ function RefreshUsersButton() {
 
   return <button onClick={handleRefresh}>Refresh</button>;
 }
-```
 
-### 5.5 Dependent Queries
+§ 5.5 DEPENDENT QUERIES
 
-```typescript
+typescript
 import { useQuery } from '@tanstack/react-query';
 
 function UserProfile({ userId }: { userId: string | null }) {
@@ -493,11 +476,10 @@ function UserProfile({ userId }: { userId: string | null }) {
   if (userQuery.isLoading) return <div>Loading...</div>;
   return <div>User: {userQuery.data?.name}</div>;
 }
-```
 
-### 5.6 Prefetching
+§ 5.6 PREFETCHING
 
-```typescript
+typescript
 import { useQueryClient } from '@tanstack/react-query';
 
 function PrefetchUser({ userId }: { userId: string }) {
@@ -516,11 +498,10 @@ function PrefetchUser({ userId }: { userId: string }) {
 
   return <button onMouseEnter={prefetch}>Hover to prefetch</button>;
 }
-```
 
-### 5.7 SSR + React Query (Next.js)
+§ 5.7 SSR + REACT QUERY (NEXT.JS)
 
-```typescript
+typescript
 // pages/users.tsx
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { GetServerSideProps } from 'next';
@@ -547,15 +528,14 @@ export default function UsersPage() {
   if (isLoading) return <div>Loading...</div>;
   return <ul>{data?.map((user) => <li key={user.id}>{user.name}</li>)}</ul>;
 }
-```
 
 ---
 
-## 6. INTEGRATION PATTERNS
+§ 6. INTEGRATION PATTERNS
 
-### 6.1 Zustand + React Query
+§ 6.1 ZUSTAND + REACT QUERY
 
-```typescript
+typescript
 import { create } from 'zustand';
 import { useQuery } from '@tanstack/react-query';
 
@@ -585,11 +565,10 @@ export function UsersFetcher() {
 
   return null;
 }
-```
 
-### 6.2 Jotai + React Query
+§ 6.2 JOTAI + REACT QUERY
 
-```typescript
+typescript
 import { atomWithQuery } from 'jotai-tanstack-query';
 import { useAtomValue } from 'jotai';
 
@@ -605,11 +584,10 @@ export function UsersList() {
   const users = useAtomValue(usersQueryAtom);
   return <ul>{users?.map((u) => <li key={u.id}>{u.name}</li>)}</ul>;
 }
-```
 
-### 6.3 DevTools + Logging
+§ 6.3 DEVTOOLS + LOGGING
 
-```typescript
+typescript
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 
@@ -628,13 +606,11 @@ useCounterStore.subscribe(
   (state) => state.count,
   (count) => console.log('[Zustand]', count)
 );
-```
 
 ---
 
-## 7. STATE MANAGEMENT CHECKLIST
+§ 7. STATE MANAGEMENT CHECKLIST
 
-```
 □ Identificato tipo di stato (server vs client)
 □ Scelta libreria appropriata per use case
 □ TypeScript strict mode abilitato
@@ -646,13 +622,12 @@ useCounterStore.subscribe(
 □ Cache invalidation strategy definita
 □ SSR compatibility verificata
 □ Bundle size verificato
-```
 
 ---
 
-## 8. QUICK REFERENCE
+§ 8. QUICK REFERENCE
 
-### When to Use What
+§ WHEN TO USE WHAT
 
 | Scenario                    | Solution          |
 | --------------------------- | ----------------- |

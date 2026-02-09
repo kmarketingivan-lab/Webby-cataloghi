@@ -11,7 +11,7 @@ markdown
 - **Flat**: Tags (non-hierarchical, equal weight)
 - **Mixed**: Combination for complex content organization
 
-### Categories vs Tags
+§ CATEGORIES VS TAGS
 | Aspect | Categories | Tags |
 |--------|------------|------|
 | Structure | Hierarchical | Flat |
@@ -20,15 +20,15 @@ markdown
 | URL | Nested paths | Flat lists |
 | SEO | High importance | Medium importance |
 
-### Taxonomy Design Principles
+§ TAXONOMY DESIGN PRINCIPLES
 1. **Consistency**: Uniform naming across content types
 2. **Specificity**: Avoid overly broad terms
 3. **Mutual Exclusivity**: Categories should not overlap
 4. **Completeness**: Cover all content aspects
 5. **Scalability**: Design for future growth
 
-### Naming Conventions
-```typescript
+§ NAMING CONVENTIONS
+typescript
 // Recommended naming patterns
 const conventions = {
   slug: 'lowercase-with-dashes',

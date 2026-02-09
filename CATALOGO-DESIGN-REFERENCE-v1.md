@@ -5,14 +5,14 @@
 # SCOPO: Fornire reference visivi e layout templates per guidare la 
 #        composizione di UI complete a partire dai pattern primitivi.
 #
-# CONTENUTO:
+§ CONTENUTO:
 # 1. Stili di Reference (ispirazioni da brand noti)
 # 2. Layout Templates per Tipo Pagina
 # 3. Wireframe Testuali Dettagliati
 # 4. Composizioni per Categoria Piattaforma
 # 5. Sezione Reference Utente (screenshot custom)
 #
-# UTILIZZO:
+§ UTILIZZO:
 # - Ralph legge questo catalogo DOPO i pattern primitivi
 # - Identifica lo stile/layout appropriato per il progetto
 # - Compone i primitivi seguendo il layout reference
@@ -20,7 +20,7 @@
 # ============================================================================
 
 # ============================================================================
-# SEZIONE 1: STILI DI REFERENCE
+§ SEZIONE 1: STILI DI REFERENCE
 # ============================================================================
 
 """
@@ -32,9 +32,9 @@ Ogni stile ha caratteristiche distintive che definiscono:
 - Mood/feeling
 """
 
-## 1.1 STILE "STRIPE" - Corporate Elegante
+§ 1.1 STILE "STRIPE" - CORPORATE ELEGANTE
 
-```yaml
+yaml
 nome: Stripe Style
 mood: Professionale, affidabile, elegante
 target: B2B, SaaS, FinTech, Enterprise
@@ -76,13 +76,12 @@ esempio_pagine:
   - Homepage: Hero gradient + features + pricing + testimonials + CTA
   - Pricing: Header + toggle annual/monthly + 3 piani + FAQ
   - Docs: Sidebar left + content + ToC right
-```
 
 ---
 
-## 1.2 STILE "LINEAR" - Minimal Dark
+§ 1.2 STILE "LINEAR" - MINIMAL DARK
 
-```yaml
+yaml
 nome: Linear Style
 mood: Moderno, developer-friendly, minimal
 target: Developer tools, SaaS tech, Productivity
@@ -125,13 +124,12 @@ esempio_pagine:
   - Homepage: Hero centrato + feature list + screenshots + integrations
   - Dashboard: Sidebar compatta + header + content area scura
   - Changelog: Timeline con date e tag versione
-```
 
 ---
 
-## 1.3 STILE "NOTION" - Clean Whitespace
+§ 1.3 STILE "NOTION" - CLEAN WHITESPACE
 
-```yaml
+yaml
 nome: Notion Style  
 mood: Pulito, focalizzato, content-first
 target: Productivity, Notes, Documentation, Wiki
@@ -175,13 +173,12 @@ esempio_pagine:
   - Homepage: Hero testuale + features minimaliste + social proof
   - Editor: Sidebar folders + content area larga
   - Settings: Lista semplice con toggle
-```
 
 ---
 
-## 1.4 STILE "VERCEL" - Developer Sleek
+§ 1.4 STILE "VERCEL" - DEVELOPER SLEEK
 
-```yaml
+yaml
 nome: Vercel Style
 mood: Tecnico, performante, cutting-edge
 target: Developer tools, DevOps, Infrastructure
@@ -224,13 +221,12 @@ esempio_pagine:
   - Homepage: Hero + live demo + features + enterprise CTA
   - Dashboard: Deployments list + analytics + logs
   - Docs: Three-column (nav + content + ToC)
-```
 
 ---
 
-## 1.5 STILE "AIRBNB" - Friendly Visual
+§ 1.5 STILE "AIRBNB" - FRIENDLY VISUAL
 
-```yaml
+yaml
 nome: Airbnb Style
 mood: Accogliente, visivo, user-friendly
 target: Marketplace, Travel, E-commerce, Consumer
@@ -273,13 +269,12 @@ esempio_pagine:
   - Homepage: Search + categories + featured listings + experiences
   - Search Results: Filters + grid/map split view
   - Listing Detail: Photo gallery + booking card sticky
-```
 
 ---
 
-## 1.6 STILE "SHOPIFY" - E-commerce Professional
+§ 1.6 STILE "SHOPIFY" - E-COMMERCE PROFESSIONAL
 
-```yaml
+yaml
 nome: Shopify Style
 mood: Professionale, commerce-focused, trustworthy
 target: E-commerce, Retail, SMB
@@ -322,13 +317,12 @@ esempio_pagine:
   - Admin Dashboard: Sidebar + stats + orders + products quick view
   - Products: Table con bulk actions
   - Storefront: Hero + featured + collections
-```
 
 ---
 
-## 1.7 STILE "SLACK" - Playful Productive
+§ 1.7 STILE "SLACK" - PLAYFUL PRODUCTIVE
 
-```yaml
+yaml
 nome: Slack Style
 mood: Amichevole, colorato, collaborativo
 target: Communication, Team tools, B2B friendly
@@ -369,13 +363,12 @@ caratteristiche:
 esempio_pagine:
   - App: Sidebar canali + message list + thread panel
   - Landing: Hero + logos + features + pricing + security
-```
 
 ---
 
-## 1.8 STILE "GITHUB" - Developer Utility
+§ 1.8 STILE "GITHUB" - DEVELOPER UTILITY
 
-```yaml
+yaml
 nome: GitHub Style
 mood: Funzionale, denso, developer-native
 target: Developer tools, Open source, Code platforms
@@ -417,11 +410,10 @@ esempio_pagine:
   - Repository: Header + tabs (Code, Issues, PR) + file tree + readme
   - Profile: Avatar + stats + repos grid + contributions
   - Issues: Filter bar + issue list + labels
-```
 
 
 # ============================================================================
-# SEZIONE 2: LAYOUT TEMPLATES PER TIPO PAGINA
+§ SEZIONE 2: LAYOUT TEMPLATES PER TIPO PAGINA
 # ============================================================================
 
 """
@@ -432,11 +424,10 @@ Ogni template definisce:
 - Varianti per diversi stili
 """
 
-## 2.1 HOMEPAGE / LANDING PAGE
+§ 2.1 HOMEPAGE / LANDING PAGE
 
-### VARIANTE A: Hero Centered (Notion/Linear style)
+§ VARIANTE A: HERO CENTERED (NOTION/LINEAR STYLE)
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                          [Nav] [CTA] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -490,11 +481,9 @@ Componenti UI-PATTERN:
 - Features: Content > Card (icon-top variant) in Grid 3-col
 - Testimonial: Content > Card (testimonial variant)
 - Footer: Navigation > Footer
-```
 
-### VARIANTE B: Hero Split (Stripe style)
+§ VARIANTE B: HERO SPLIT (STRIPE STYLE)
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                          [Nav] [CTA] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -541,15 +530,13 @@ Componenti:
 - Features: Grid 3x2 di Content > Card
 - Showcase: Content > Card (media variant) + Navigation > Tabs
 - Footer: Navigation > Footer
-```
 
 ---
 
-## 2.2 DASHBOARD / ADMIN
+§ 2.2 DASHBOARD / ADMIN
 
-### VARIANTE A: Sidebar Fixed (Shopify/Linear style)
+§ VARIANTE A: SIDEBAR FIXED (SHOPIFY/LINEAR STYLE)
 
-```
 ┌────────────────┬────────────────────────────────────────────────────────────┐
 │                │  HEADER BAR                    [Search] [Notif] [Avatar]   │
 │   SIDEBAR      ├────────────────────────────────────────────────────────────┤
@@ -584,11 +571,9 @@ Componenti:
 - Chart: Data Display > Chart Container
 - Activity: Content > List (with-icon variant)
 - Quick Actions: Content > Card with Action > Button list
-```
 
-### VARIANTE B: Header Top Only (GitHub style)
+§ VARIANTE B: HEADER TOP ONLY (GITHUB STYLE)
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER    [Logo]    [Tab] [Tab] [Tab] [Tab]          [Search] [+] [Avatar] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -623,13 +608,11 @@ Componenti:
 - Tabs: Navigation > Tabs
 - Table: Data Display > Table
 - Pagination: Navigation > Pagination
-```
 
 ---
 
-## 2.3 E-COMMERCE PRODUCT LISTING
+§ 2.3 E-COMMERCE PRODUCT LISTING
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER     [Logo]    [Categories ▼]    [Search............]    [Cart] [User]│
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -669,13 +652,11 @@ Componenti:
 - Filters: Category > E-Commerce > Product Filters
 - Products: Category > E-Commerce > Product Card (grid)
 - Pagination: Navigation > Pagination
-```
 
 ---
 
-## 2.4 E-COMMERCE PRODUCT DETAIL
+§ 2.4 E-COMMERCE PRODUCT DETAIL
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                         [Cart] [User]│
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -726,13 +707,11 @@ Componenti:
 - Add to Cart: Action > Button (primary, large)
 - Tabs: Navigation > Tabs
 - Related: Category > E-Commerce > Product Card (carousel)
-```
 
 ---
 
-## 2.5 PRICING PAGE
+§ 2.5 PRICING PAGE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                          [Nav] [CTA] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -784,13 +763,11 @@ Componenti:
 - Pricing Cards: Category > SaaS > Pricing Table
 - Comparison: Data Display > Table
 - FAQ: Overlay > Accordion
-```
 
 ---
 
-## 2.6 SETTINGS PAGE
+§ 2.6 SETTINGS PAGE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                                      │
 ├────────────────┬────────────────────────────────────────────────────────────┤
@@ -838,16 +815,14 @@ Componenti:
 - Form Fields: Input > Text Input, Select, Toggle
 - File Upload: Input > File Upload (avatar variant)
 - Actions: Action > Button (primary + ghost)
-```
 
 
 ---
 
-## 2.7 AUTH PAGES (Login/Signup)
+§ 2.7 AUTH PAGES (LOGIN/SIGNUP)
 
-### VARIANTE A: Centered Minimal
+§ VARIANTE A: CENTERED MINIMAL
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
 │                                                                             │
@@ -880,11 +855,9 @@ Componenti:
 │                                                                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-### VARIANTE B: Split Screen (immagine laterale)
+§ VARIANTE B: SPLIT SCREEN (IMMAGINE LATERALE)
 
-```
 ┌────────────────────────────────────┬────────────────────────────────────────┐
 │                                    │                                        │
 │                                    │                                        │
@@ -908,13 +881,11 @@ Componenti:
 │                                    │    Already have account? Sign in       │
 │                                    │                                        │
 └────────────────────────────────────┴────────────────────────────────────────┘
-```
 
 ---
 
-## 2.8 CHECKOUT PAGE
+§ 2.8 CHECKOUT PAGE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER    [Logo]                        Secure Checkout 🔒    [Back to Cart]│
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -954,13 +925,11 @@ Componenti:
 │  [← Back]                   [Continue to Payment →]                         │
 │                                                │                            │
 └────────────────────────────────────────────────┴────────────────────────────┘
-```
 
 ---
 
-## 2.9 BLOG / ARTICLE PAGE
+§ 2.9 BLOG / ARTICLE PAGE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                          [Nav] [CTA] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1024,13 +993,11 @@ Componenti:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ FOOTER                                                                      │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
-## 2.10 CHAT / MESSAGING INTERFACE
+§ 2.10 CHAT / MESSAGING INTERFACE
 
-```
 ┌────────────────┬────────────────────────────────────────────────────────────┐
 │                │  HEADER   [Channel Name]          [Search] [Info] [Call]   │
 │   CHANNELS     ├────────────────────────────────────────────────────────────┤
@@ -1066,13 +1033,11 @@ Componenti:
 - Messages: Category > Social > Chat Message
 - Input: Category > Social > Chat Input
 - Attachment: Input > File Upload (inline)
-```
 
 ---
 
-## 2.11 PROFILE PAGE (Social)
+§ 2.11 PROFILE PAGE (SOCIAL)
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER                                                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1114,13 +1079,11 @@ Componenti:
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
-## 2.12 404 / ERROR PAGE
+§ 2.12 404 / ERROR PAGE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HEADER (minimal)                                                [Logo only] │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1155,11 +1118,10 @@ Componenti:
 │                                                                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 
 # ============================================================================
-# SEZIONE 3: COMPOSIZIONI COMPLETE PER CATEGORIA
+§ SEZIONE 3: COMPOSIZIONI COMPLETE PER CATEGORIA
 # ============================================================================
 
 """
@@ -1167,9 +1129,9 @@ Ogni categoria ha un set di pagine tipiche con layout consigliato.
 Ralph usa questa sezione per capire quali pagine creare e come strutturarle.
 """
 
-## 3.1 E-COMMERCE - Pagine Tipiche
+§ 3.1 E-COMMERCE - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: E-Commerce
 stile_consigliato: Airbnb, Shopify
 pagine_core:
@@ -1239,13 +1201,12 @@ pagine_core:
       - Orders history
       - Wishlist
       - Payment methods
-```
 
 ---
 
-## 3.2 SAAS - Pagine Tipiche
+§ 3.2 SAAS - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: SaaS
 stile_consigliato: Stripe, Linear
 pagine_core:
@@ -1304,13 +1265,12 @@ pagine_core:
       - Step content
       - Skip/Back/Next buttons
       - Completion celebration
-```
 
 ---
 
-## 3.3 SOCIAL/COMMUNITY - Pagine Tipiche
+§ 3.3 SOCIAL/COMMUNITY - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: Social
 stile_consigliato: Slack (app), Notion (content)
 pagine_core:
@@ -1355,13 +1315,12 @@ pagine_core:
       - Notifications
       - Blocked users
       - Data export
-```
 
 ---
 
-## 3.4 DASHBOARD/ANALYTICS - Pagine Tipiche
+§ 3.4 DASHBOARD/ANALYTICS - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: Dashboard
 stile_consigliato: Linear, Vercel
 pagine_core:
@@ -1399,13 +1358,12 @@ pagine_core:
       - Results table
       - Visualization options
       - Save/Export
-```
 
 ---
 
-## 3.5 HEALTHCARE - Pagine Tipiche
+§ 3.5 HEALTHCARE - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: Healthcare
 stile_consigliato: Notion (clean), Shopify (dashboard)
 compliance: HIPAA required
@@ -1452,13 +1410,12 @@ pagine_core:
       - Add new reading
       - History table
       - Alerts/thresholds
-```
 
 ---
 
-## 3.6 FINTECH - Pagine Tipiche
+§ 3.6 FINTECH - PAGINE TIPICHE
 
-```yaml
+yaml
 categoria: FinTech
 stile_consigliato: Stripe, Vercel (dark)
 compliance: PCI-DSS, KYC/AML
@@ -1515,7 +1472,6 @@ pagine_core:
       - Selfie capture
       - Processing status
       - Approval/Rejection
-```
 
 # ============================================================================
 # SEZIONE 4: REFERENCE UTENTE (Screenshot Custom)
@@ -1536,9 +1492,9 @@ COME USARE:
 4. Ralph usa queste note per replicare lo stile
 """
 
-## 4.1 TEMPLATE PER AGGIUNGERE REFERENCE
+§ 4.1 TEMPLATE PER AGGIUNGERE REFERENCE
 
-```yaml
+yaml
 # REFERENCE: [Nome Descrittivo]
 # Fonte: [URL o descrizione]
 # Data aggiunta: [Data]
@@ -1577,15 +1533,13 @@ analisi:
   note_implementazione:
     - "[nota 1]"
     - "[nota 2]"
-```
 
 ---
 
-## 4.2 REFERENCE AGGIUNTI
+§ 4.2 REFERENCE AGGIUNTI
 
-### (Sezione vuota - da popolare con reference utente)
+§ (SEZIONE VUOTA - DA POPOLARE CON REFERENCE UTENTE)
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
 │   Nessun reference utente aggiunto.                                         │
@@ -1596,15 +1550,13 @@ analisi:
 │   3. Il reference verrà aggiunto a questa sezione                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 # ============================================================================
-# SEZIONE 5: GUIDA RAPIDA SELEZIONE STILE
+§ SEZIONE 5: GUIDA RAPIDA SELEZIONE STILE
 # ============================================================================
 
-## 5.1 DECISION TREE - Quale Stile Scegliere?
+§ 5.1 DECISION TREE - QUALE STILE SCEGLIERE?
 
-```
 START: Che tipo di prodotto stai costruendo?
 │
 ├─► B2B / Enterprise / SaaS
@@ -1634,9 +1586,8 @@ START: Che tipo di prodotto stai costruendo?
 │
 └─► Non so / Generico
     └─► Parti con STRIPE STYLE (versatile e professionale)
-```
 
-## 5.2 QUICK MATCH TABLE
+§ 5.2 QUICK MATCH TABLE
 
 | Se il tuo prodotto è... | Usa questo stile | Perché |
 |-------------------------|------------------|--------|
@@ -1651,9 +1602,9 @@ START: Che tipo di prodotto stai costruendo?
 | FinTech | Stripe/Vercel | Trust, professional |
 | Content/Blog | Notion | Typography-focused |
 
-## 5.3 COMBINAZIONI CONSIGLIATE
+§ 5.3 COMBINAZIONI CONSIGLIATE
 
-```yaml
+yaml
 ecommerce_mvp:
   stile_base: Shopify
   hero: Airbnb (visual)
@@ -1678,10 +1629,9 @@ fintech_app:
   stile_base: Stripe (trust)
   charts: Linear (modern)
   security: Vercel (serious)
-```
 
 # ============================================================================
-# FINE CATALOGO DESIGN REFERENCE
+§ FINE CATALOGO DESIGN REFERENCE
 # ============================================================================
 
 """

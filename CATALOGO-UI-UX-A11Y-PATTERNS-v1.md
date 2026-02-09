@@ -6,9 +6,9 @@
 
 ---
 
-## 1. MODAL/DIALOG
+§ 1. MODAL/DIALOG
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà        | Valore         | Obbligatorio |
 | ---------------- | -------------- | ------------ |
@@ -17,7 +17,7 @@
 | aria-labelledby  | id titolo      | ✅            |
 | aria-describedby | id descrizione | ⚠️           |
 
-### Keyboard Navigation
+§ KEYBOARD NAVIGATION
 
 | Tasto     | Azione         | Note        |
 | --------- | -------------- | ----------- |
@@ -26,7 +26,7 @@
 | Escape    | Close dialog   | Sempre      |
 | Enter     | Attiva         | Button/link |
 
-### Focus Management
+§ FOCUS MANAGEMENT
 
 | Evento | Comportamento        |
 | ------ | -------------------- |
@@ -34,9 +34,9 @@
 | Close  | Restore focus        |
 | Trap   | Focus limitato       |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useEffect, useRef } from 'react';
 
 interface ModalProps {
@@ -79,9 +79,8 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children }) 
     </div>
   );
 };
-```
 
-### Testing Checklist
+§ TESTING CHECKLIST
 
 | Test       | Metodo | Expected        |
 | ---------- | ------ | --------------- |
@@ -91,9 +90,9 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children }) 
 
 ---
 
-## 2. DROPDOWN MENU
+§ 2. DROPDOWN MENU
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà     | Valore  | Obbligatorio |
 | ------------- | ------- | ------------ |
@@ -101,7 +100,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children }) 
 | aria-haspopup | true    | ✅            |
 | aria-expanded | boolean | ✅            |
 
-### Keyboard Navigation
+§ KEYBOARD NAVIGATION
 
 | Tasto     | Azione    |
 | --------- | --------- |
@@ -110,9 +109,9 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children }) 
 | ArrowUp   | Prev item |
 | Escape    | Close     |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState, useRef } from 'react';
 
 export const Dropdown: React.FC = () => {
@@ -138,13 +137,12 @@ export const Dropdown: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## 3. TABS
+§ 3. TABS
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà     | Valore   | Obbligatorio |
 | ------------- | -------- | ------------ |
@@ -153,7 +151,7 @@ export const Dropdown: React.FC = () => {
 | role          | tabpanel | ✅            |
 | aria-selected | boolean  | ✅            |
 
-### Keyboard Navigation
+§ KEYBOARD NAVIGATION
 
 | Tasto      | Azione   |
 | ---------- | -------- |
@@ -161,9 +159,9 @@ export const Dropdown: React.FC = () => {
 | ArrowLeft  | Prev tab |
 | Enter      | Activate |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Tabs: React.FC = () => {
@@ -187,29 +185,28 @@ export const Tabs: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## 4. ACCORDION
+§ 4. ACCORDION
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà     | Valore   | Obbligatorio |
 | ------------- | -------- | ------------ |
 | aria-expanded | boolean  | ✅            |
 | aria-controls | id panel | ✅            |
 
-### Keyboard Navigation
+§ KEYBOARD NAVIGATION
 
 | Tasto | Azione |
 | ----- | ------ |
 | Enter | Toggle |
 | Space | Toggle |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Accordion: React.FC = () => {
@@ -228,22 +225,21 @@ export const Accordion: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## 5. TOOLTIP
+§ 5. TOOLTIP
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà        | Valore     | Obbligatorio |
 | ---------------- | ---------- | ------------ |
 | role             | tooltip    | ✅            |
 | aria-describedby | id tooltip | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Tooltip: React.FC<{ text: string }> = ({ text }) => {
@@ -264,22 +260,21 @@ export const Tooltip: React.FC<{ text: string }> = ({ text }) => {
     </span>
   );
 };
-```
 
 ---
 
-## 6. TOAST/NOTIFICATION
+§ 6. TOAST/NOTIFICATION
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà | Valore | Obbligatorio |
 | --------- | ------ | ------------ |
 | role      | status | ✅            |
 | aria-live | polite | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useEffect, useState } from 'react';
 
 export const Toast: React.FC<{ message: string }> = ({ message }) => {
@@ -296,13 +291,12 @@ export const Toast: React.FC<{ message: string }> = ({ message }) => {
     </div>
   ) : null;
 };
-```
 
 ---
 
-## 7. AUTOCOMPLETE/COMBOBOX
+§ 7. AUTOCOMPLETE/COMBOBOX
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà          | Valore  | Obbligatorio |
 | ------------------ | ------- | ------------ |
@@ -311,9 +305,9 @@ export const Toast: React.FC<{ message: string }> = ({ message }) => {
 | aria-autocomplete  | list    | ✅            |
 | aria-activedescendant | id   | ⚠️           |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Combobox: React.FC = () => {
@@ -337,22 +331,21 @@ export const Combobox: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## 8. DATE PICKER
+§ 8. DATE PICKER
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà  | Valore          | Obbligatorio |
 | ---------- | --------------- | ------------ |
 | aria-label | "Select date"   | ✅            |
 | role       | grid (calendar) | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const DatePicker: React.FC = () => {
@@ -370,13 +363,12 @@ export const DatePicker: React.FC = () => {
     </label>
   );
 };
-```
 
 ---
 
-## 9. SLIDER/RANGE
+§ 9. SLIDER/RANGE
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà      | Valore | Obbligatorio |
 | -------------- | ------ | ------------ |
@@ -386,9 +378,9 @@ export const DatePicker: React.FC = () => {
 | aria-valuenow  | number | ✅            |
 | aria-valuetext | string | ⚠️           |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Slider: React.FC = () => {
@@ -407,22 +399,21 @@ export const Slider: React.FC = () => {
     />
   );
 };
-```
 
 ---
 
-## 10. TOGGLE/SWITCH
+§ 10. TOGGLE/SWITCH
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà    | Valore  | Obbligatorio |
 | ------------ | ------- | ------------ |
 | role         | switch  | ✅            |
 | aria-checked | boolean | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Switch: React.FC = () => {
@@ -438,22 +429,21 @@ export const Switch: React.FC = () => {
     </button>
   );
 };
-```
 
 ---
 
-## 11. BREADCRUMB
+§ 11. BREADCRUMB
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà    | Valore      | Obbligatorio |
 | ------------ | ----------- | ------------ |
 | aria-label   | "Breadcrumb"| ✅            |
 | aria-current | "page"      | ✅ (last)    |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React from 'react';
 
 export const Breadcrumb: React.FC = () => (
@@ -465,22 +455,21 @@ export const Breadcrumb: React.FC = () => (
     </ol>
   </nav>
 );
-```
 
 ---
 
-## 12. PAGINATION
+§ 12. PAGINATION
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà  | Valore       | Obbligatorio |
 | ---------- | ------------ | ------------ |
 | aria-label | "Pagination" | ✅            |
 | aria-current | "page"     | ✅ (active)  |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Pagination: React.FC = () => {
@@ -494,13 +483,12 @@ export const Pagination: React.FC = () => {
     </nav>
   );
 };
-```
 
 ---
 
-## 13. DATA TABLE (SORTABLE)
+§ 13. DATA TABLE (SORTABLE)
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà   | Valore               | Obbligatorio |
 | ----------- | -------------------- | ------------ |
@@ -508,9 +496,9 @@ export const Pagination: React.FC = () => {
 | aria-sort   | ascending/descending | ✅ (sortable)|
 | scope       | col/row              | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 interface Row { name: string; }
@@ -544,13 +532,12 @@ export const Table: React.FC = () => {
     </table>
   );
 };
-```
 
 ---
 
-## 14. TREE VIEW
+§ 14. TREE VIEW
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà     | Valore  | Obbligatorio |
 | ------------- | ------- | ------------ |
@@ -559,9 +546,9 @@ export const Table: React.FC = () => {
 | role          | group   | ✅ (nested)  |
 | aria-expanded | boolean | ✅            |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Tree: React.FC = () => {
@@ -581,13 +568,12 @@ export const Tree: React.FC = () => {
     </ul>
   );
 };
-```
 
 ---
 
-## 15. CAROUSEL
+§ 15. CAROUSEL
 
-### ARIA Specification
+§ ARIA SPECIFICATION
 
 | Proprietà            | Valore     | Obbligatorio |
 | -------------------- | ---------- | ------------ |
@@ -595,9 +581,9 @@ export const Tree: React.FC = () => {
 | aria-label           | slide info | ✅            |
 | aria-live            | polite     | ⚠️           |
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const Carousel: React.FC = () => {
@@ -620,18 +606,17 @@ export const Carousel: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## SKIP NAVIGATION LINK
+§ SKIP NAVIGATION LINK
 
-### Obiettivo
+§ OBIETTIVO
 Saltare direttamente al contenuto principale.
 
-### Implementazione
+§ IMPLEMENTAZIONE
 
-```html
+html
 <a href="#main" class="skip-link">Skip to main content</a>
 <main id="main">...</main>
 
@@ -649,37 +634,34 @@ Saltare direttamente al contenuto principale.
   top: 0;
 }
 </style>
-```
 
 ---
 
-## LANDMARK REGIONS
+§ LANDMARK REGIONS
 
-### HTML5 Landmarks
+§ HTML5 LANDMARKS
 
-```html
+html
 <header>...</header>     <!-- banner -->
 <nav>...</nav>           <!-- navigation -->
 <main>...</main>         <!-- main -->
 <aside>...</aside>       <!-- complementary -->
 <footer>...</footer>     <!-- contentinfo -->
-```
 
-### ARIA Alternative
+§ ARIA ALTERNATIVE
 
-```html
+html
 <div role="banner">...</div>
 <div role="navigation">...</div>
 <div role="main">...</div>
 <div role="complementary">...</div>
 <div role="contentinfo">...</div>
-```
 
 ---
 
-## A11Y TOKEN SYSTEM
+§ A11Y TOKEN SYSTEM
 
-```typescript
+typescript
 export const a11yTokens = {
   focusRing: '2px solid #005fcc',
   focusOffset: '2px',
@@ -688,38 +670,37 @@ export const a11yTokens = {
   largeTextContrastRatio: 3,
   reducedMotionDuration: '0ms',
 };
-```
 
 ---
 
-## ACCESSIBILITY CHECKLIST
+§ ACCESSIBILITY CHECKLIST
 
-### UI
+§ UI
 - [ ] Contrast ratio ≥ 4.5:1 (normal text)
 - [ ] Contrast ratio ≥ 3:1 (large text)
 - [ ] Touch target ≥ 44px × 44px
 - [ ] Focus visible on all interactive elements
 - [ ] No keyboard traps
 
-### Semantica
+§ SEMANTICA
 - [ ] Heading hierarchy (h1 → h6)
 - [ ] Landmark roles defined
 - [ ] Labels associated with form controls
 - [ ] Alt text for images
 
-### ARIA
+§ ARIA
 - [ ] No ARIA when native HTML works
 - [ ] ARIA roles match behavior
 - [ ] State attributes synchronized (aria-expanded, aria-checked, etc.)
 - [ ] Live regions for dynamic content
 
-### Keyboard
+§ KEYBOARD
 - [ ] Tab order logical
 - [ ] All functionality accessible via keyboard
 - [ ] Escape closes modals/menus
 - [ ] Arrow keys for composite widgets
 
-### Screen Reader
+§ SCREEN READER
 - [ ] Tested with NVDA/VoiceOver
 - [ ] Meaningful announcements
 - [ ] No duplicate announcements
@@ -727,7 +708,7 @@ export const a11yTokens = {
 
 ---
 
-## WCAG 2.1 AA COMPLIANCE MATRIX
+§ WCAG 2.1 AA COMPLIANCE MATRIX
 
 | Criterio | Requisito | Verifica |
 |----------|-----------|----------|

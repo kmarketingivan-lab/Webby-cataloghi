@@ -1,4 +1,3 @@
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ DATABASE & DATA ARCHITECTURE CATALOG                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -128,5 +127,4 @@ SEZIONE 6: SOURCES & VALIDATION
 • Martin Fowler – CQRS / Event Sourcing
 • ClickHouse Documentation
 
-```
 

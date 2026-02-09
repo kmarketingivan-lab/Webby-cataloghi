@@ -2,7 +2,7 @@
 # CATALOGO TESTING & QA v1.0
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# GUIDA COMPLETA AL TESTING E QUALITY ASSURANCE
+§ GUIDA COMPLETA AL TESTING E QUALITY ASSURANCE
 # Unit Testing, Integration Testing, E2E Testing, Best Practices
 #
 # Data creazione: 2026-01-26
@@ -32,14 +32,13 @@ INDICE:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 1: TESTING FUNDAMENTALS
+§ SEZIONE 1: TESTING FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 TESTING_FUNDAMENTALS = """
 
-## 1.1 Testing Pyramid
+§ 1.1 TESTING PYRAMID
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TESTING PYRAMID                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -71,11 +70,9 @@ TESTING_FUNDAMENTALS = """
 │ CHEAP                                                                 CHEAP │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.2 Test Types
+§ 1.2 TEST TYPES
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TEST TYPES OVERVIEW                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -111,11 +108,10 @@ TESTING_FUNDAMENTALS = """
 │     └── Authentication flows                                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.3 AAA Pattern (Arrange-Act-Assert)
+§ 1.3 AAA PATTERN (ARRANGE-ACT-ASSERT)
 
-```typescript
+typescript
 // Struttura standard per tutti i test
 describe('calculateTotal', () => {
   it('should calculate total with tax', () => {
@@ -133,11 +129,10 @@ describe('calculateTotal', () => {
     expect(result).toBe(275); // (200 + 50) * 1.1
   });
 });
-```
 
-## 1.4 Test Naming Conventions
+§ 1.4 TEST NAMING CONVENTIONS
 
-```typescript
+typescript
 // Pattern: "should [expected behavior] when [condition]"
 
 // ✅ GOOD: Descriptive, behavior-focused names
@@ -156,11 +151,9 @@ describe('UserService', () => {
   it('works', () => {}); // Non descriptive
   it('should call bcrypt.hash', () => {}); // Implementation detail
 });
-```
 
-## 1.5 What to Test vs What Not to Test
+§ 1.5 WHAT TO TEST VS WHAT NOT TO TEST
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ WHAT TO TEST                              WHAT NOT TO TEST                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -175,20 +168,19 @@ describe('UserService', () => {
 │ ✅ Security-sensitive code                ❌ Generated code                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 2: TEST ENVIRONMENT SETUP (VITEST)
+§ SEZIONE 2: TEST ENVIRONMENT SETUP (VITEST)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 VITEST_SETUP = """
 
-## 2.1 Vitest Installation
+§ 2.1 VITEST INSTALLATION
 
-```bash
+bash
 # Install Vitest and related packages
 pnpm add -D vitest @vitest/ui @vitest/coverage-v8
 
@@ -200,11 +192,10 @@ pnpm add -D jsdom
 
 # Optional: For testing hooks
 pnpm add -D @testing-library/react-hooks
-```
 
-## 2.2 Vitest Configuration
+§ 2.2 VITEST CONFIGURATION
 
-```typescript
+typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
@@ -285,11 +276,10 @@ export default defineConfig({
     }
   }
 });
-```
 
-## 2.3 Test Setup File
+§ 2.3 TEST SETUP FILE
 
-```typescript
+typescript
 // src/test/setup.ts
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
@@ -350,11 +340,10 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 // Suppress console errors in tests (optional)
 // vi.spyOn(console, 'error').mockImplementation(() => {});
-```
 
-## 2.4 Package.json Scripts
+§ 2.4 PACKAGE.JSON SCRIPTS
 
-```json
+json
 {
   "scripts": {
     "test": "vitest",
@@ -365,20 +354,18 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     "test:ci": "vitest run --coverage --reporter=junit --outputFile=test-results.xml"
   }
 }
-```
 
-## 2.5 TypeScript Configuration for Tests
+§ 2.5 TYPESCRIPT CONFIGURATION FOR TESTS
 
-```json
+json
 // tsconfig.json - Aggiungi types per Vitest
 {
   "compilerOptions": {
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   }
 }
-```
 
-```typescript
+typescript
 // src/test/types.d.ts
 /// <reference types="vitest/globals" />
 /// <reference types="@testing-library/jest-dom" />
@@ -389,20 +376,19 @@ declare module 'vitest' {
   interface Assertion<T = any> extends TestingLibraryMatchers<T, void> {}
   interface AsymmetricMatchersContaining extends TestingLibraryMatchers<any, void> {}
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 3: UNIT TESTING - REACT COMPONENTS
+§ SEZIONE 3: UNIT TESTING - REACT COMPONENTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 UNIT_TESTING_COMPONENTS = """
 
-## 3.1 Component Testing Basics
+§ 3.1 COMPONENT TESTING BASICS
 
-```typescript
+typescript
 // components/Button/Button.tsx
 interface ButtonProps {
   children: React.ReactNode;
@@ -430,9 +416,8 @@ export function Button({
     </button>
   );
 }
-```
 
-```typescript
+typescript
 // components/Button/Button.test.tsx
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -494,11 +479,10 @@ describe('Button', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 });
-```
 
-## 3.2 Query Priority (React Testing Library)
+§ 3.2 QUERY PRIORITY (REACT TESTING LIBRARY)
 
-```typescript
+typescript
 // Priority order for queries (most to least preferred)
 // https://testing-library.com/docs/queries/about#priority
 
@@ -536,11 +520,10 @@ const helpIcon = screen.getByTitle('Help');
 
 // 🔶 ESCAPE HATCH: Last resort
 const complexWidget = screen.getByTestId('date-picker');
-```
 
-## 3.3 Query Variants (get/query/find)
+§ 3.3 QUERY VARIANTS (GET/QUERY/FIND)
 
-```typescript
+typescript
 /*
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ QUERY VARIANTS                                                              │
@@ -570,11 +553,10 @@ const userData = await screen.findByText('John Doe');
 // Multiple elements
 const listItems = screen.getAllByRole('listitem');
 expect(listItems).toHaveLength(5);
-```
 
-## 3.4 User Interactions with userEvent
+§ 3.4 USER INTERACTIONS WITH USEREVENT
 
-```typescript
+typescript
 import userEvent from '@testing-library/user-event';
 
 describe('Form Component', () => {
@@ -639,11 +621,10 @@ describe('Form Component', () => {
     expect(checkbox).toBeChecked();
   });
 });
-```
 
-## 3.5 Testing Async Components
+§ 3.5 TESTING ASYNC COMPONENTS
 
-```typescript
+typescript
 // components/UserProfile.tsx
 export function UserProfile({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
@@ -668,9 +649,8 @@ export function UserProfile({ userId }: { userId: string }) {
   if (error) return <div role="alert">{error}</div>;
   return <div>Hello, {user?.name}</div>;
 }
-```
 
-```typescript
+typescript
 // components/UserProfile.test.tsx
 import { render, screen, waitFor } from '@testing-library/react';
 import { UserProfile } from './UserProfile';
@@ -736,11 +716,10 @@ describe('UserProfile', () => {
     expect(api.getUser).toHaveBeenCalledTimes(2);
   });
 });
-```
 
-## 3.6 Testing Components with Context
+§ 3.6 TESTING COMPONENTS WITH CONTEXT
 
-```typescript
+typescript
 // test/test-utils.tsx
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -785,9 +764,8 @@ function customRender(
 // Re-export everything from testing-library
 export * from '@testing-library/react';
 export { customRender as render };
-```
 
-```typescript
+typescript
 // Usage in tests
 import { render, screen } from '@/test/test-utils';
 import { Dashboard } from './Dashboard';
@@ -800,20 +778,19 @@ describe('Dashboard', () => {
     expect(screen.getByRole('main')).toBeInTheDocument();
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 4: UNIT TESTING - FUNCTIONS & UTILITIES
+§ SEZIONE 4: UNIT TESTING - FUNCTIONS & UTILITIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 UNIT_TESTING_FUNCTIONS = """
 
-## 4.1 Testing Pure Functions
+§ 4.1 TESTING PURE FUNCTIONS
 
-```typescript
+typescript
 // lib/utils/formatters.ts
 export function formatCurrency(
   amount: number, 
@@ -857,9 +834,8 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 }
-```
 
-```typescript
+typescript
 // lib/utils/formatters.test.ts
 import { describe, it, expect } from 'vitest';
 import { formatCurrency, formatDate, slugify } from './formatters';
@@ -937,11 +913,10 @@ describe('slugify', () => {
     expect(slugify('')).toBe('');
   });
 });
-```
 
-## 4.2 Testing Functions with Dependencies
+§ 4.2 TESTING FUNCTIONS WITH DEPENDENCIES
 
-```typescript
+typescript
 // lib/services/priceCalculator.ts
 interface PriceConfig {
   taxRate: number;
@@ -992,9 +967,8 @@ export function calculateTotal(
 
   return { subtotal, discount, tax, total };
 }
-```
 
-```typescript
+typescript
 // lib/services/priceCalculator.test.ts
 import { describe, it, expect } from 'vitest';
 import {
@@ -1089,11 +1063,10 @@ describe('PriceCalculator', () => {
     });
   });
 });
-```
 
-## 4.3 Testing Error Handling
+§ 4.3 TESTING ERROR HANDLING
 
-```typescript
+typescript
 // lib/validators.ts
 export class ValidationError extends Error {
   constructor(
@@ -1143,9 +1116,8 @@ export function validatePassword(password: string): void {
     );
   }
 }
-```
 
-```typescript
+typescript
 // lib/validators.test.ts
 import { describe, it, expect } from 'vitest';
 import { validateEmail, validatePassword, ValidationError } from './validators';
@@ -1215,11 +1187,10 @@ describe('validatePassword', () => {
     );
   });
 });
-```
 
-## 4.4 Testing Async Functions
+§ 4.4 TESTING ASYNC FUNCTIONS
 
-```typescript
+typescript
 // lib/api/userService.ts
 interface User {
   id: string;
@@ -1254,9 +1225,8 @@ export async function createUser(data: Omit<User, 'id'>): Promise<User> {
   
   return response.json();
 }
-```
 
-```typescript
+typescript
 // lib/api/userService.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchUser, createUser } from './userService';
@@ -1341,20 +1311,19 @@ describe('userService', () => {
     });
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 5: UNIT TESTING - CUSTOM HOOKS
+§ SEZIONE 5: UNIT TESTING - CUSTOM HOOKS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 UNIT_TESTING_HOOKS = """
 
-## 5.1 Testing Custom Hooks with renderHook
+§ 5.1 TESTING CUSTOM HOOKS WITH RENDERHOOK
 
-```typescript
+typescript
 // hooks/useCounter.ts
 import { useState, useCallback } from 'react';
 
@@ -1368,9 +1337,8 @@ export function useCounter(initialValue: number = 0) {
 
   return { count, increment, decrement, reset, setValue };
 }
-```
 
-```typescript
+typescript
 // hooks/useCounter.test.ts
 import { renderHook, act } from '@testing-library/react';
 import { useCounter } from './useCounter';
@@ -1453,11 +1421,10 @@ describe('useCounter', () => {
     expect(result.current.count).toBe(50);
   });
 });
-```
 
-## 5.2 Testing Hooks with Side Effects
+§ 5.2 TESTING HOOKS WITH SIDE EFFECTS
 
-```typescript
+typescript
 // hooks/useLocalStorage.ts
 import { useState, useEffect, useCallback } from 'react';
 
@@ -1492,9 +1459,8 @@ export function useLocalStorage<T>(
 
   return [storedValue, setStoredValue, remove];
 }
-```
 
-```typescript
+typescript
 // hooks/useLocalStorage.test.ts
 import { renderHook, act } from '@testing-library/react';
 import { useLocalStorage } from './useLocalStorage';
@@ -1585,11 +1551,10 @@ describe('useLocalStorage', () => {
     });
   });
 });
-```
 
-## 5.3 Testing Async Hooks
+§ 5.3 TESTING ASYNC HOOKS
 
-```typescript
+typescript
 // hooks/useFetch.ts
 import { useState, useEffect, useCallback } from 'react';
 
@@ -1635,9 +1600,8 @@ export function useFetch<T>(url: string): UseFetchReturn<T> {
 
   return { ...state, refetch: fetchData };
 }
-```
 
-```typescript
+typescript
 // hooks/useFetch.test.ts
 import { renderHook, waitFor } from '@testing-library/react';
 import { useFetch } from './useFetch';
@@ -1752,11 +1716,10 @@ describe('useFetch', () => {
     });
   });
 });
-```
 
-## 5.4 Testing Hooks with Context
+§ 5.4 TESTING HOOKS WITH CONTEXT
 
-```typescript
+typescript
 // hooks/useAuth.ts
 import { useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
@@ -1770,9 +1733,8 @@ export function useAuth() {
   
   return context;
 }
-```
 
-```typescript
+typescript
 // hooks/useAuth.test.tsx
 import { renderHook } from '@testing-library/react';
 import { AuthContext, AuthProvider } from '@/contexts/AuthContext';
@@ -1812,20 +1774,19 @@ describe('useAuth', () => {
     expect(result.current.logout).toBeDefined();
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 6: INTEGRATION TESTING - API ROUTES
+§ SEZIONE 6: INTEGRATION TESTING - API ROUTES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INTEGRATION_TESTING_API = """
 
-## 6.1 Testing Next.js API Routes
+§ 6.1 TESTING NEXT.JS API ROUTES
 
-```typescript
+typescript
 // app/api/users/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -1896,9 +1857,8 @@ export async function GET(request: NextRequest) {
     }
   });
 }
-```
 
-```typescript
+typescript
 // app/api/users/route.test.ts
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { POST, GET } from './route';
@@ -2043,11 +2003,10 @@ describe('Users API', () => {
     });
   });
 });
-```
 
-## 6.2 Testing with Supertest (Express)
+§ 6.2 TESTING WITH SUPERTEST (EXPRESS)
 
-```typescript
+typescript
 // server/app.ts
 import express from 'express';
 import { userRouter } from './routes/users';
@@ -2055,9 +2014,8 @@ import { userRouter } from './routes/users';
 export const app = express();
 app.use(express.json());
 app.use('/api/users', userRouter);
-```
 
-```typescript
+typescript
 // server/routes/users.test.ts
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
@@ -2158,11 +2116,10 @@ describe('Users API (Express)', () => {
     });
   });
 });
-```
 
-## 6.3 Mocking External Services with MSW
+§ 6.3 MOCKING EXTERNAL SERVICES WITH MSW
 
-```typescript
+typescript
 // test/mocks/handlers.ts
 import { http, HttpResponse } from 'msw';
 
@@ -2206,17 +2163,15 @@ export const handlers = [
     return HttpResponse.json({ id: 'ch_123', status: 'succeeded' });
   })
 ];
-```
 
-```typescript
+typescript
 // test/mocks/server.ts
 import { setupServer } from 'msw/node';
 import { handlers } from './handlers';
 
 export const server = setupServer(...handlers);
-```
 
-```typescript
+typescript
 // test/setup.ts
 import { beforeAll, afterEach, afterAll } from 'vitest';
 import { server } from './mocks/server';
@@ -2224,9 +2179,8 @@ import { server } from './mocks/server';
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
-```
 
-```typescript
+typescript
 // services/payment.test.ts
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
@@ -2273,20 +2227,19 @@ describe('PaymentService', () => {
     ).rejects.toThrow('Network error');
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 7: INTEGRATION TESTING - DATABASE
+§ SEZIONE 7: INTEGRATION TESTING - DATABASE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INTEGRATION_TESTING_DATABASE = """
 
-## 7.1 Database Testing Setup
+§ 7.1 DATABASE TESTING SETUP
 
-```typescript
+typescript
 // test/db-setup.ts
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
@@ -2345,11 +2298,10 @@ export async function withCleanDatabase<T>(
     throw e;
   });
 }
-```
 
-## 7.2 Testing Repository Layer
+§ 7.2 TESTING REPOSITORY LAYER
 
-```typescript
+typescript
 // repositories/userRepository.ts
 import { PrismaClient, User } from '@prisma/client';
 
@@ -2390,9 +2342,8 @@ export class UserRepository {
     });
   }
 }
-```
 
-```typescript
+typescript
 // repositories/userRepository.test.ts
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { testPrisma, setupTestDatabase, teardownTestDatabase, cleanDatabase } from '@/test/db-setup';
@@ -2540,11 +2491,10 @@ describe('UserRepository', () => {
     });
   });
 });
-```
 
-## 7.3 Testing Complex Queries
+§ 7.3 TESTING COMPLEX QUERIES
 
-```typescript
+typescript
 // repositories/orderRepository.test.ts
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { testPrisma, setupTestDatabase, teardownTestDatabase, cleanDatabase } from '@/test/db-setup';
@@ -2643,11 +2593,10 @@ describe('OrderRepository - Complex Queries', () => {
     });
   });
 });
-```
 
-## 7.4 Testing Transactions
+§ 7.4 TESTING TRANSACTIONS
 
-```typescript
+typescript
 // services/orderService.test.ts
 import { describe, it, expect, beforeEach } from 'vitest';
 import { testPrisma, cleanDatabase } from '@/test/db-setup';
@@ -2750,20 +2699,19 @@ describe('OrderService - Transactions', () => {
     expect(product?.inventory).toBe(1);
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 8: E2E TESTING - PLAYWRIGHT SETUP
+§ SEZIONE 8: E2E TESTING - PLAYWRIGHT SETUP
 # ═══════════════════════════════════════════════════════════════════════════════
 
 E2E_PLAYWRIGHT_SETUP = """
 
-## 8.1 Playwright Installation
+§ 8.1 PLAYWRIGHT INSTALLATION
 
-```bash
+bash
 # Install Playwright
 pnpm add -D @playwright/test
 
@@ -2773,11 +2721,10 @@ npx playwright install
 # Install only specific browsers
 npx playwright install chromium
 npx playwright install --with-deps chromium firefox webkit
-```
 
-## 8.2 Playwright Configuration
+§ 8.2 PLAYWRIGHT CONFIGURATION
 
-```typescript
+typescript
 // playwright.config.ts
 import { defineConfig, devices } from '@playwright/test';
 
@@ -2907,11 +2854,10 @@ export default defineConfig({
     timeout: 120 * 1000,
   },
 });
-```
 
-## 8.3 Authentication Setup
+§ 8.3 AUTHENTICATION SETUP
 
-```typescript
+typescript
 // e2e/auth.setup.ts
 import { test as setup, expect } from '@playwright/test';
 
@@ -2949,11 +2895,10 @@ setup('authenticate as admin', async ({ page }) => {
   await page.waitForURL('/admin');
   await page.context().storageState({ path: adminAuthFile });
 });
-```
 
-## 8.4 Page Object Model
+§ 8.4 PAGE OBJECT MODEL
 
-```typescript
+typescript
 // e2e/app/BasePage.ts
 import { Page, Locator, expect } from '@playwright/test';
 
@@ -2997,9 +2942,8 @@ export abstract class BasePage {
     await this.page.waitForSelector('[data-testid="loading"]', { state: 'hidden' });
   }
 }
-```
 
-```typescript
+typescript
 // e2e/app/LoginPage.ts
 import { Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -3035,9 +2979,8 @@ export class LoginPage extends BasePage {
     await this.page.waitForURL('/dashboard');
   }
 }
-```
 
-```typescript
+typescript
 // e2e/app/DashboardPage.ts
 import { Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -3074,9 +3017,8 @@ export class DashboardPage extends BasePage {
     return await value.innerText();
   }
 }
-```
 
-```typescript
+typescript
 // e2e/app/ProductsPage.ts
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
@@ -3127,11 +3069,10 @@ export class ProductsPage extends BasePage {
     await this.expectToast(/added to cart/i);
   }
 }
-```
 
-## 8.5 Package.json Scripts
+§ 8.5 PACKAGE.JSON SCRIPTS
 
-```json
+json
 {
   "scripts": {
     "e2e": "playwright test",
@@ -3144,20 +3085,19 @@ export class ProductsPage extends BasePage {
     "e2e:report": "playwright show-report"
   }
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 9: E2E TESTING - USER FLOWS
+§ SEZIONE 9: E2E TESTING - USER FLOWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 E2E_USER_FLOWS = """
 
-## 9.1 Authentication Flow Tests
+§ 9.1 AUTHENTICATION FLOW TESTS
 
-```typescript
+typescript
 // e2e/auth/login.e2e.ts
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../app/LoginPage';
@@ -3210,9 +3150,8 @@ test.describe('Login Flow', () => {
     await expect(loginPage.passwordInput).toHaveAttribute('type', 'text');
   });
 });
-```
 
-```typescript
+typescript
 // e2e/auth/registration.e2e.ts
 import { test, expect } from '@playwright/test';
 
@@ -3265,11 +3204,10 @@ test.describe('Registration Flow', () => {
     await expect(page.getByText(/email already registered/i)).toBeVisible();
   });
 });
-```
 
-## 9.2 E-Commerce Flow Tests
+§ 9.2 E-COMMERCE FLOW TESTS
 
-```typescript
+typescript
 // e2e/checkout/purchase-flow.e2e.ts
 import { test, expect } from '@playwright/test';
 import { ProductsPage } from '../app/ProductsPage';
@@ -3376,11 +3314,10 @@ test.describe('Purchase Flow', () => {
     await expect(page).toHaveURL(/\/checkout/); // Stay on checkout
   });
 });
-```
 
-## 9.3 Form Submission Tests
+§ 9.3 FORM SUBMISSION TESTS
 
-```typescript
+typescript
 // e2e/forms/contact-form.e2e.ts
 import { test, expect } from '@playwright/test';
 
@@ -3432,11 +3369,10 @@ test.describe('Contact Form', () => {
     await expect(page.getByRole('alert')).toContainText(/message sent/i);
   });
 });
-```
 
-## 9.4 Accessibility Tests
+§ 9.4 ACCESSIBILITY TESTS
 
-```typescript
+typescript
 // e2e/a11y/accessibility.e2e.ts
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -3505,11 +3441,10 @@ test.describe('Accessibility', () => {
     await expect(modal).not.toBeVisible();
   });
 });
-```
 
-## 9.5 Visual Regression Tests
+§ 9.5 VISUAL REGRESSION TESTS
 
-```typescript
+typescript
 // e2e/visual/visual-regression.e2e.ts
 import { test, expect } from '@playwright/test';
 
@@ -3566,20 +3501,18 @@ test.describe('Visual Regression', () => {
     await expect(page).toHaveScreenshot('homepage-dark.png');
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 10: MOCKING STRATEGIES
+§ SEZIONE 10: MOCKING STRATEGIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MOCKING_STRATEGIES = """
 
-## 10.1 Mocking Overview
+§ 10.1 MOCKING OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ MOCKING TYPES                                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3605,11 +3538,10 @@ MOCKING_STRATEGIES = """
 │ └── MSW, test containers                                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 10.2 Vitest Mocking Basics
+§ 10.2 VITEST MOCKING BASICS
 
-```typescript
+typescript
 // Basic function mock
 import { vi, describe, it, expect } from 'vitest';
 
@@ -3658,11 +3590,10 @@ describe('Mocking Basics', () => {
     expect(mockFn(5)).toBe(15);
   });
 });
-```
 
-## 10.3 Module Mocking
+§ 10.3 MODULE MOCKING
 
-```typescript
+typescript
 // lib/api.ts (module to mock)
 export async function fetchUsers() {
   const response = await fetch('/api/users');
@@ -3676,9 +3607,8 @@ export async function createUser(data: UserData) {
   });
   return response.json();
 }
-```
 
-```typescript
+typescript
 // __tests__/userList.test.ts
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -3726,9 +3656,8 @@ describe('UserList', () => {
     });
   });
 });
-```
 
-```typescript
+typescript
 // Partial module mock - keep some real implementations
 vi.mock('@/lib/api', async () => {
   const actual = await vi.importActual('@/lib/api');
@@ -3738,11 +3667,10 @@ vi.mock('@/lib/api', async () => {
     // createUser uses real implementation
   };
 });
-```
 
-## 10.4 Spying on Methods
+§ 10.4 SPYING ON METHODS
 
-```typescript
+typescript
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('Spy Examples', () => {
@@ -3786,11 +3714,10 @@ describe('Spy Examples', () => {
     vi.useRealTimers();
   });
 });
-```
 
-## 10.5 Timer Mocking
+§ 10.5 TIMER MOCKING
 
-```typescript
+typescript
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('Timer Mocking', () => {
@@ -3852,11 +3779,10 @@ describe('Timer Mocking', () => {
     expect(mockFn).toHaveBeenCalledTimes(1);
   });
 });
-```
 
-## 10.6 Environment Variables Mocking
+§ 10.6 ENVIRONMENT VARIABLES MOCKING
 
-```typescript
+typescript
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('Environment Variables', () => {
@@ -3889,11 +3815,10 @@ describe('Environment Variables', () => {
     expect(isProduction()).toBe(true);
   });
 });
-```
 
-## 10.7 React Context Mocking
+§ 10.7 REACT CONTEXT MOCKING
 
-```typescript
+typescript
 // Mocking context for tests
 import { vi, describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -3943,20 +3868,19 @@ describe('Context Mocking', () => {
     expect(loginMock).toHaveBeenCalled();
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 11: TEST DATA MANAGEMENT
+§ SEZIONE 11: TEST DATA MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 TEST_DATA_MANAGEMENT = """
 
-## 11.1 Factory Functions
+§ 11.1 FACTORY FUNCTIONS
 
-```typescript
+typescript
 // test/factories/userFactory.ts
 import { faker } from '@faker-js/faker';
 
@@ -3997,9 +3921,8 @@ export function createAdmin(overrides: UserOverrides = {}): User {
 export function createEditor(overrides: UserOverrides = {}): User {
   return createUser({ ...overrides, role: 'editor' });
 }
-```
 
-```typescript
+typescript
 // test/factories/productFactory.ts
 import { faker } from '@faker-js/faker';
 
@@ -4040,9 +3963,8 @@ export function createInactiveProduct(): Product {
 export function createExpensiveProduct(): Product {
   return createProduct({ price: 9999.99 });
 }
-```
 
-```typescript
+typescript
 // test/factories/orderFactory.ts
 import { faker } from '@faker-js/faker';
 import { createProduct } from './productFactory';
@@ -4101,11 +4023,10 @@ export function createCompletedOrder(): Order {
 export function createCancelledOrder(): Order {
   return createOrder({ status: 'cancelled' });
 }
-```
 
-## 11.2 Fixtures
+§ 11.2 FIXTURES
 
-```typescript
+typescript
 // test/fixtures/users.ts
 export const testUsers = {
   regularUser: {
@@ -4152,11 +4073,10 @@ export const testProducts = {
     category: 'Misc'
   }
 };
-```
 
-## 11.3 Test Builders
+§ 11.3 TEST BUILDERS
 
-```typescript
+typescript
 // test/builders/UserBuilder.ts
 import { faker } from '@faker-js/faker';
 
@@ -4245,11 +4165,10 @@ const unverifiedUser = new UserBuilder()
   .unverified()
   .withoutNotifications()
   .build();
-```
 
-## 11.4 Database Seeding
+§ 11.4 DATABASE SEEDING
 
-```typescript
+typescript
 // test/seed.ts
 import { PrismaClient } from '@prisma/client';
 import { createUser, createUsers } from './factories/userFactory';
@@ -4322,11 +4241,10 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-```
 
-## 11.5 Test Data Isolation
+§ 11.5 TEST DATA ISOLATION
 
-```typescript
+typescript
 // test/helpers/isolation.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -4386,20 +4304,19 @@ describe('OrderService', () => {
     });
   });
 });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 12: CODE COVERAGE
+§ SEZIONE 12: CODE COVERAGE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CODE_COVERAGE = """
 
-## 12.1 Coverage Configuration
+§ 12.1 COVERAGE CONFIGURATION
 
-```typescript
+typescript
 // vitest.config.ts - Coverage section
 export default defineConfig({
   test: {
@@ -4466,11 +4383,9 @@ export default defineConfig({
     }
   }
 });
-```
 
-## 12.2 Understanding Coverage Metrics
+§ 12.2 UNDERSTANDING COVERAGE METRICS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ COVERAGE METRICS                                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4499,11 +4414,10 @@ export default defineConfig({
 │ └── Target: 80%+                                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 12.3 Coverage-Driven Testing
+§ 12.3 COVERAGE-DRIVEN TESTING
 
-```typescript
+typescript
 // Example: Identifying untested branches
 
 // Function with multiple branches
@@ -4575,11 +4489,10 @@ describe('calculateShipping', () => {
     });
   });
 });
-```
 
-## 12.4 Coverage Reports
+§ 12.4 COVERAGE REPORTS
 
-```bash
+bash
 # Generate coverage report
 pnpm test:coverage
 
@@ -4596,11 +4509,10 @@ open coverage/index.html
 #   api.ts    |   75.00 |    60.00 |   80.00 |   75.00 | 45-52,78
 #   auth.ts   |   82.35 |    75.00 |   90.00 |   82.35 | 23-25,89
 # ------------|---------|----------|---------|---------|-------------------
-```
 
-## 12.5 Istanbul Ignore Comments
+§ 12.5 ISTANBUL IGNORE COMMENTS
 
-```typescript
+typescript
 // Ignoring specific lines/blocks from coverage
 
 // Ignore next line
@@ -4634,11 +4546,10 @@ if (/* istanbul ignore next */ typeof window === 'undefined') {
 // - Defensive programming (unreachable branches)
 // - Platform-specific code
 // - Error boundaries
-```
 
-## 12.6 Coverage in CI
+§ 12.6 COVERAGE IN CI
 
-```yaml
+yaml
 # .github/workflows/test.yml
 name: Test with Coverage
 
@@ -4683,20 +4594,19 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 13: CI/CD INTEGRATION
+§ SEZIONE 13: CI/CD INTEGRATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CI_CD_INTEGRATION = """
 
-## 13.1 Complete CI/CD Testing Pipeline
+§ 13.1 COMPLETE CI/CD TESTING PIPELINE
 
-```yaml
+yaml
 # .github/workflows/ci.yml
 name: CI Pipeline
 
@@ -4933,11 +4843,10 @@ jobs:
             echo "One or more jobs failed"
             exit 1
           fi
-```
 
-## 13.2 Package.json CI Scripts
+§ 13.2 PACKAGE.JSON CI SCRIPTS
 
-```json
+json
 {
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
@@ -4961,25 +4870,22 @@ jobs:
     "ci": "pnpm lint && pnpm type-check && pnpm test:ci"
   }
 }
-```
 
-## 13.3 Pre-commit Hooks
+§ 13.3 PRE-COMMIT HOOKS
 
-```bash
+bash
 # Install husky
 pnpm add -D husky lint-staged
 pnpm exec husky init
-```
 
-```javascript
+javascript
 // .husky/pre-commit
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
 pnpm lint-staged
-```
 
-```json
+json
 // package.json
 {
   "lint-staged": {
@@ -4992,28 +4898,25 @@ pnpm lint-staged
     ]
   }
 }
-```
 
-```javascript
+javascript
 // .husky/pre-push
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
 pnpm test:ci
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 14: QA CHECKLIST PRE-RELEASE
+§ SEZIONE 14: QA CHECKLIST PRE-RELEASE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 QA_CHECKLIST = """
 
-## 14.1 Pre-Release QA Checklist
+§ 14.1 PRE-RELEASE QA CHECKLIST
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PRE-RELEASE QA CHECKLIST                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -5084,11 +4987,9 @@ QA_CHECKLIST = """
 │ □ Monitoring alerts configured                                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.2 Bug Severity Classification
+§ 14.2 BUG SEVERITY CLASSIFICATION
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ BUG SEVERITY LEVELS                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -5119,11 +5020,10 @@ QA_CHECKLIST = """
 │ └── Response: Add to backlog                                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.3 Test Case Template
+§ 14.3 TEST CASE TEMPLATE
 
-```markdown
+markdown
 # Test Case: TC-001 - User Login
 
 ## Overview
@@ -5161,11 +5061,10 @@ QA_CHECKLIST = """
 - Test with remember me checked/unchecked
 - Test with invalid credentials
 - Test rate limiting after failed attempts
-```
 
-## 14.4 Release Sign-off
+§ 14.4 RELEASE SIGN-OFF
 
-```typescript
+typescript
 // scripts/release-checklist.ts
 interface ReleaseChecklist {
   version: string;
@@ -5235,20 +5134,18 @@ function canRelease(checklist: ReleaseChecklist): boolean {
 }
 
 console.log('Release approved:', canRelease(releaseChecklist));
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# APPENDICE: QUICK REFERENCE
+§ APPENDICE: QUICK REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 QUICK_REFERENCE = """
 
-## Testing Quick Reference Card
+§ TESTING QUICK REFERENCE CARD
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TESTING QUICK REFERENCE                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -5315,12 +5212,11 @@ QUICK_REFERENCE = """
 │ Statements: 80%+                                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FINE CATALOGO TESTING & QA
+§ FINE CATALOGO TESTING & QA
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SUPPLEMENT: NEXT.JS 14 APP ROUTER TESTING

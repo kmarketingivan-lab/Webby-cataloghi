@@ -2,7 +2,7 @@
 # CATALOGO PERFORMANCE v1.0
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# GUIDA COMPLETA ALL'OTTIMIZZAZIONE DELLE PERFORMANCE WEB
+§ GUIDA COMPLETA ALL'OTTIMIZZAZIONE DELLE PERFORMANCE WEB
 # Core Web Vitals, Image Optimization, Caching, Bundle Optimization
 #
 # Data creazione: 2026-01-26
@@ -33,14 +33,13 @@ INDICE:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 1: CORE WEB VITALS OVERVIEW
+§ SEZIONE 1: CORE WEB VITALS OVERVIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CORE_WEB_VITALS_OVERVIEW = """
 
-## 1.1 Core Web Vitals 2025
+§ 1.1 CORE WEB VITALS 2025
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CORE WEB VITALS - METRICHE 2025                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -61,11 +60,9 @@ CORE_WEB_VITALS_OVERVIEW = """
 │ Misurazione: 75° percentile dei dati utente reali (CrUX)                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.2 Metriche Supplementari
+§ 1.2 METRICHE SUPPLEMENTARI
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ METRICHE SUPPLEMENTARI                                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -96,11 +93,9 @@ CORE_WEB_VITALS_OVERVIEW = """
 │ └── Misura progressione visuale                                            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.3 Impatto Business delle Performance
+§ 1.3 IMPATTO BUSINESS DELLE PERFORMANCE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PERFORMANCE → BUSINESS IMPACT                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -126,11 +121,10 @@ CORE_WEB_VITALS_OVERVIEW = """
 │ └── Good CWV → +30% engagement                                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.4 Strumenti di Misurazione
+§ 1.4 STRUMENTI DI MISURAZIONE
 
-```typescript
+typescript
 // Field Data (Real User Monitoring)
 // - Chrome User Experience Report (CrUX)
 // - Google Search Console
@@ -202,9 +196,8 @@ export function logWebVitals() {
   onFCP(logMetric);
   onTTFB(logMetric);
 }
-```
 
-```typescript
+typescript
 // app/layout.tsx - Next.js App Router
 'use client';
 
@@ -222,20 +215,18 @@ export function WebVitalsReporter() {
 
   return null;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 2: LCP - LARGEST CONTENTFUL PAINT
+§ SEZIONE 2: LCP - LARGEST CONTENTFUL PAINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 LCP_OPTIMIZATION = """
 
-## 2.1 Cos'è LCP
+§ 2.1 COS'È LCP
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ LCP - LARGEST CONTENTFUL PAINT                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -264,11 +255,10 @@ LCP_OPTIMIZATION = """
 │ └── Client-side rendering delay                                            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 2.2 Ottimizzazione Server Response Time
+§ 2.2 OTTIMIZZAZIONE SERVER RESPONSE TIME
 
-```typescript
+typescript
 // Ridurre TTFB
 
 // 1. Utilizzare CDN
@@ -329,11 +319,10 @@ async function ProductsList() {
   const products = await fetchProducts();
   return <ProductGrid products={products} />;
 }
-```
 
-## 2.3 Eliminare Render-Blocking Resources
+§ 2.3 ELIMINARE RENDER-BLOCKING RESOURCES
 
-```typescript
+typescript
 // next.config.js - Ottimizzazioni automatiche Next.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -348,9 +337,8 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-```
 
-```html
+html
 <!-- Critical CSS inline -->
 <head>
   <!-- Critical CSS inline per above-the-fold -->
@@ -364,9 +352,8 @@ module.exports = nextConfig;
   <link rel="preload" href="/styles/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/main.css"></noscript>
 </head>
-```
 
-```typescript
+typescript
 // Script loading strategies - Next.js
 import Script from 'next/script';
 
@@ -395,11 +382,10 @@ export default function Layout({ children }) {
     </>
   );
 }
-```
 
-## 2.4 Ottimizzazione LCP Element
+§ 2.4 OTTIMIZZAZIONE LCP ELEMENT
 
-```typescript
+typescript
 // components/HeroImage.tsx
 import Image from 'next/image';
 
@@ -427,9 +413,8 @@ export function HeroImage() {
 // - Usare priority={true}
 // - Mai usare loading="lazy"
 // - Preload manuale se necessario
-```
 
-```html
+html
 <!-- Preload LCP image -->
 <head>
   <link 
@@ -444,11 +429,10 @@ export function HeroImage() {
   <link rel="preconnect" href="https://images.example.com" />
   <link rel="dns-prefetch" href="https://images.example.com" />
 </head>
-```
 
-## 2.5 Resource Hints
+§ 2.5 RESOURCE HINTS
 
-```typescript
+typescript
 // app/layout.tsx
 export default function RootLayout({ children }) {
   return (
@@ -480,11 +464,10 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-## 2.6 Fetch Priority API
+§ 2.6 FETCH PRIORITY API
 
-```typescript
+typescript
 // Priorità di fetch per risorse critiche
 
 // HTML attribute
@@ -505,20 +488,18 @@ export default function RootLayout({ children }) {
 // Fetch API
 fetch('/api/critical-data', { priority: 'high' });
 fetch('/api/analytics', { priority: 'low' });
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 3: INP - INTERACTION TO NEXT PAINT
+§ SEZIONE 3: INP - INTERACTION TO NEXT PAINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INP_OPTIMIZATION = """
 
-## 3.1 Cos'è INP
+§ 3.1 COS'È INP
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ INP - INTERACTION TO NEXT PAINT                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -548,11 +529,10 @@ INP_OPTIMIZATION = """
 │ └── INP: tutte le interazioni, riporta la peggiore                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 3.2 Ottimizzare Input Delay
+§ 3.2 OTTIMIZZARE INPUT DELAY
 
-```typescript
+typescript
 // Il main thread deve essere libero per rispondere agli input
 // Problema: Long Tasks (>50ms) bloccano gli input
 
@@ -589,11 +569,10 @@ async function handleExport() {
   const workbook = XLSX.utils.book_new();
   // ...
 }
-```
 
-## 3.3 Ottimizzare Processing Time
+§ 3.3 OTTIMIZZARE PROCESSING TIME
 
-```typescript
+typescript
 // 1. Debounce e Throttle per eventi frequenti
 import { useCallback, useMemo } from 'react';
 import debounce from 'lodash/debounce';
@@ -634,9 +613,8 @@ function useScrollPosition() {
   
   return scrollY;
 }
-```
 
-```typescript
+typescript
 // 2. Yield to Main Thread - Permetti al browser di rispondere
 // Usa scheduler.yield() o setTimeout per spezzare long tasks
 
@@ -698,11 +676,10 @@ function DataProcessor() {
     workerRef.current?.postMessage(data);
   };
 }
-```
 
-## 3.4 Ottimizzare React Rendering
+§ 3.4 OTTIMIZZARE REACT RENDERING
 
-```typescript
+typescript
 // 1. useMemo per calcoli costosi
 function ProductList({ products, filters }) {
   // Memoizza calcoli pesanti
@@ -772,11 +749,10 @@ function VirtualList({ items }: { items: Item[] }) {
     </div>
   );
 }
-```
 
-## 3.5 Ottimizzare Event Handlers
+§ 3.5 OTTIMIZZARE EVENT HANDLERS
 
-```typescript
+typescript
 // 1. Passive event listeners per scroll/touch
 useEffect(() => {
   const handleScroll = () => {
@@ -825,20 +801,18 @@ function updateElements(elements: HTMLElement[]) {
     el.style.height = heights[i] * 2 + 'px'; // All writes
   });
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 4: CLS - CUMULATIVE LAYOUT SHIFT
+§ SEZIONE 4: CLS - CUMULATIVE LAYOUT SHIFT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CLS_OPTIMIZATION = """
 
-## 4.1 Cos'è CLS
+§ 4.1 COS'È CLS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CLS - CUMULATIVE LAYOUT SHIFT                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -869,11 +843,10 @@ CLS_OPTIMIZATION = """
 │       dal calcolo (entro 500ms dall'input)                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 4.2 Dimensioni Esplicite per Media
+§ 4.2 DIMENSIONI ESPLICITE PER MEDIA
 
-```typescript
+typescript
 // ✅ ALWAYS: Specificare width e height per immagini
 
 // Next.js Image - dimensioni automatiche per local imports
@@ -918,9 +891,8 @@ function ResponsiveImage() {
     </div>
   );
 }
-```
 
-```css
+css
 /* CSS per mantenere aspect ratio */
 
 /* Modern approach con aspect-ratio */
@@ -950,11 +922,10 @@ function ResponsiveImage() {
   height: 100%;
   object-fit: cover;
 }
-```
 
-## 4.3 Riservare Spazio per Contenuto Dinamico
+§ 4.3 RISERVARE SPAZIO PER CONTENUTO DINAMICO
 
-```typescript
+typescript
 // Skeleton loaders per contenuto in caricamento
 function ProductCardSkeleton() {
   return (
@@ -988,9 +959,8 @@ function DynamicContent() {
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // Ads e embeds - sempre riservare spazio
 function AdSlot({ width, height }) {
   return (
@@ -1022,11 +992,10 @@ function YouTubeEmbed({ videoId }) {
     </div>
   );
 }
-```
 
-## 4.4 Font Loading Optimization
+§ 4.4 FONT LOADING OPTIMIZATION
 
-```typescript
+typescript
 // next.config.js - Font optimization automatica
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -1055,9 +1024,8 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-```css
+css
 /* Font fallback system per ridurre layout shift */
 
 /* Definire font-family con fallback che matcha le metriche */
@@ -1085,11 +1053,10 @@ export default function RootLayout({ children }) {
    - fallback: come optional ma con timeout più breve
    - block: nasconde testo brevemente (FOIT), poi mostra
 */
-```
 
-## 4.5 Evitare Contenuto Iniettato Above the Fold
+§ 4.5 EVITARE CONTENUTO INIETTATO ABOVE THE FOLD
 
-```typescript
+typescript
 // ❌ BAD: Banner iniettato che spinge giù il contenuto
 function Page() {
   const [showBanner, setShowBanner] = useState(false);
@@ -1140,11 +1107,10 @@ function Page() {
     </>
   );
 }
-```
 
-## 4.6 CSS Containment
+§ 4.6 CSS CONTAINMENT
 
-```css
+css
 /* CSS Containment per isolare layout shifts */
 
 /* contain: layout - isola calcoli layout */
@@ -1176,11 +1142,10 @@ function Page() {
   content-visibility: auto;
   contain-intrinsic-size: 0 120px;
 }
-```
 
-## 4.7 Animazioni Performanti
+§ 4.7 ANIMAZIONI PERFORMANTI
 
-```css
+css
 /* ❌ Animazioni che triggherano layout */
 .bad-animation {
   animation: expand 0.3s ease;
@@ -1229,20 +1194,18 @@ function Page() {
 .animated-element.animation-done {
   will-change: auto;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 5: IMAGE OPTIMIZATION
+§ SEZIONE 5: IMAGE OPTIMIZATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 IMAGE_OPTIMIZATION = """
 
-## 5.1 Formati Immagine Moderni
+§ 5.1 FORMATI IMMAGINE MODERNI
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ FORMATI IMMAGINE - CONFRONTO                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1267,11 +1230,10 @@ IMAGE_OPTIMIZATION = """
 │ └── AVIF: 50% più piccolo                                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 5.2 Next.js Image Component
+§ 5.2 NEXT.JS IMAGE COMPONENT
 
-```typescript
+typescript
 // next.config.js - Configurazione immagini
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -1303,9 +1265,8 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-```
 
-```typescript
+typescript
 // components/OptimizedImage.tsx
 import Image from 'next/image';
 
@@ -1389,11 +1350,10 @@ export function ResponsiveHero() {
     </picture>
   );
 }
-```
 
-## 5.3 Sizes Attribute Best Practices
+§ 5.3 SIZES ATTRIBUTE BEST PRACTICES
 
-```typescript
+typescript
 // sizes indica al browser quale larghezza avrà l'immagine
 // prima che CSS sia caricato
 
@@ -1428,11 +1388,10 @@ function ProductGrid({ products }) {
     </div>
   );
 }
-```
 
-## 5.4 Lazy Loading e Placeholder
+§ 5.4 LAZY LOADING E PLACEHOLDER
 
-```typescript
+typescript
 // Blur placeholder con blurDataURL
 import Image from 'next/image';
 
@@ -1481,11 +1440,10 @@ async function ProductPage({ params }) {
     />
   );
 }
-```
 
-## 5.5 Image CDN e Optimization Services
+§ 5.5 IMAGE CDN E OPTIMIZATION SERVICES
 
-```typescript
+typescript
 // Custom loader per Cloudinary
 // lib/cloudinary-loader.ts
 export default function cloudinaryLoader({ src, width, quality }) {
@@ -1543,11 +1501,10 @@ export async function GET(request: NextRequest) {
     },
   });
 }
-```
 
-## 5.6 Responsive Images Pattern
+§ 5.6 RESPONSIVE IMAGES PATTERN
 
-```typescript
+typescript
 // components/ResponsiveImage.tsx
 import Image from 'next/image';
 
@@ -1621,20 +1578,19 @@ export function ResponsiveImage({
     { src: "/product-mobile.webp", media: "(max-width: 1023px)", type: "image/webp" },
   ]}
 />
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 6: JAVASCRIPT OPTIMIZATION
+§ SEZIONE 6: JAVASCRIPT OPTIMIZATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 JAVASCRIPT_OPTIMIZATION = """
 
-## 6.1 Code Splitting
+§ 6.1 CODE SPLITTING
 
-```typescript
+typescript
 // Next.js automatic code splitting per route
 // Ogni page è un chunk separato automaticamente
 
@@ -1684,11 +1640,10 @@ function App() {
     </Suspense>
   );
 }
-```
 
-## 6.2 Tree Shaking
+§ 6.2 TREE SHAKING
 
-```typescript
+typescript
 // ✅ GOOD: Named imports permettono tree shaking
 import { debounce } from 'lodash-es';
 import { format } from 'date-fns';
@@ -1730,11 +1685,10 @@ const nextConfig = {
     },
   },
 };
-```
 
-## 6.3 Bundle Analysis
+§ 6.3 BUNDLE ANALYSIS
 
-```bash
+bash
 # Installare bundle analyzer
 pnpm add -D @next/bundle-analyzer
 
@@ -1749,9 +1703,8 @@ module.exports = withBundleAnalyzer({
 
 # Eseguire analisi
 ANALYZE=true pnpm build
-```
 
-```typescript
+typescript
 // Visualizzare cosa è nel bundle
 // Cercare:
 // 1. Librerie duplicate
@@ -1770,11 +1723,10 @@ ANALYZE=true pnpm build
 // 1. Sostituire lodash con lodash-es + named imports
 // 2. Sostituire moment con date-fns
 // 3. Dynamic import per componenti pesanti
-```
 
-## 6.4 Minification e Compression
+§ 6.4 MINIFICATION E COMPRESSION
 
-```typescript
+typescript
 // next.config.js - SWC minifier (default in Next.js 12+)
 const nextConfig = {
   swcMinify: true, // Default true
@@ -1812,11 +1764,10 @@ app.use(compression({
     return compression.filter(req, res);
   },
 }));
-```
 
-## 6.5 Script Loading Strategies
+§ 6.5 SCRIPT LOADING STRATEGIES
 
-```typescript
+typescript
 // Next.js Script component
 import Script from 'next/script';
 
@@ -1864,11 +1815,10 @@ export default function Layout({ children }) {
   onReady={() => console.log('Script ready, can use globals')}
   onError={(e) => console.error('Script failed', e)}
 />
-```
 
-## 6.6 Third-Party Script Optimization
+§ 6.6 THIRD-PARTY SCRIPT OPTIMIZATION
 
-```typescript
+typescript
 // Facade pattern per third-party pesanti
 // components/YouTubeFacade.tsx
 import { useState } from 'react';
@@ -1950,20 +1900,19 @@ export default function Document() {
   src="https://www.googletagmanager.com/gtag/js?id=GA_ID"
   strategy="worker"
 />
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 7: CSS OPTIMIZATION
+§ SEZIONE 7: CSS OPTIMIZATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CSS_OPTIMIZATION = """
 
-## 7.1 Critical CSS
+§ 7.1 CRITICAL CSS
 
-```typescript
+typescript
 // Next.js App Router gestisce CSS automaticamente
 // - CSS Modules sono automaticamente code-split
 // - CSS viene estratto in file separati in production
@@ -1994,11 +1943,10 @@ const nextConfig = {
     optimizeCss: true, // Usa critters
   },
 };
-```
 
-## 7.2 CSS Modules
+§ 7.2 CSS MODULES
 
-```typescript
+typescript
 // Automatic code splitting per page/component
 
 // components/Button/Button.module.css
@@ -2035,11 +1983,10 @@ export function Button({ variant = 'primary', children }: ButtonProps) {
     </button>
   );
 }
-```
 
-## 7.3 Tailwind CSS Optimization
+§ 7.3 TAILWIND CSS OPTIMIZATION
 
-```javascript
+javascript
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -2064,11 +2011,10 @@ module.exports = {
     ...(process.env.NODE_ENV === 'production' ? { cssnano: {} } : {}),
   },
 };
-```
 
-## 7.4 Eliminare CSS Non Utilizzato
+§ 7.4 ELIMINARE CSS NON UTILIZZATO
 
-```bash
+bash
 # PurgeCSS per rimuovere CSS non usato
 pnpm add -D @fullhuman/postcss-purgecss
 
@@ -2098,11 +2044,10 @@ module.exports = {
       : []),
   ],
 };
-```
 
-## 7.5 CSS Performance Patterns
+§ 7.5 CSS PERFORMANCE PATTERNS
 
-```css
+css
 /* Evitare selettori costosi */
 
 /* ❌ BAD: Selettori universali e discendenti profondi */
@@ -2143,11 +2088,10 @@ module.exports = {
   content-visibility: auto;
   contain-intrinsic-size: 0 500px;
 }
-```
 
-## 7.6 Font Display e Loading
+§ 7.6 FONT DISPLAY E LOADING
 
-```css
+css
 /* Font display strategies */
 @font-face {
   font-family: 'CustomFont';
@@ -2178,20 +2122,19 @@ module.exports = {
   font-style: normal;
   font-display: swap;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 8: FONT OPTIMIZATION
+§ SEZIONE 8: FONT OPTIMIZATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 FONT_OPTIMIZATION = """
 
-## 8.1 Next.js Font Optimization
+§ 8.1 NEXT.JS FONT OPTIMIZATION
 
-```typescript
+typescript
 // app/layout.tsx - next/font (Recommended)
 import { Inter, Roboto_Mono } from 'next/font/google';
 
@@ -2240,11 +2183,9 @@ const customFont = localFont({
   display: 'swap',
   variable: '--font-custom',
 });
-```
 
-## 8.2 Font Loading Strategies
+§ 8.2 FONT LOADING STRATEGIES
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ FONT-DISPLAY VALUES                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2265,9 +2206,8 @@ const customFont = localFont({
 │ └── Non-critical: 'optional' (massima performance)                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-```typescript
+typescript
 // Preload critical fonts
 // app/layout.tsx
 export default function RootLayout({ children }) {
@@ -2291,11 +2231,10 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-## 8.3 Font Subsetting
+§ 8.3 FONT SUBSETTING
 
-```typescript
+typescript
 // Usare subset per ridurre dimensione font
 const inter = Inter({
   subsets: ['latin'], // Solo caratteri latini
@@ -2322,11 +2261,10 @@ const fontStyles = `
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF;
   }
 `;
-```
 
-## 8.4 Variable Fonts
+§ 8.4 VARIABLE FONTS
 
-```typescript
+typescript
 // Variable fonts = 1 file per tutti i weights/styles
 
 // Local variable font
@@ -2365,11 +2303,10 @@ const variableFontCSS = `
 // - 1 file invece di multiple (es. 400, 500, 600, 700)
 // - Dimensione totale spesso minore
 // - Flessibilità per qualsiasi weight
-```
 
-## 8.5 System Font Stack
+§ 8.5 SYSTEM FONT STACK
 
-```css
+css
 /* System font stack per massima performance */
 .system-font {
   font-family: 
@@ -2414,20 +2351,18 @@ const variableFontCSS = `
 .text {
   font-family: 'Inter', 'Inter Fallback', sans-serif;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 9: CACHING STRATEGIES
+§ SEZIONE 9: CACHING STRATEGIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CACHING_STRATEGIES = """
 
-## 9.1 HTTP Caching Overview
+§ 9.1 HTTP CACHING OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HTTP CACHE HEADERS                                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2462,11 +2397,10 @@ CACHING_STRATEGIES = """
 │     Non cambia mai, non rivalidare                                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 9.2 Next.js Caching
+§ 9.2 NEXT.JS CACHING
 
-```typescript
+typescript
 // app/api/products/route.ts
 import { NextResponse } from 'next/server';
 
@@ -2529,11 +2463,10 @@ export async function POST(request: Request) {
   
   return Response.json({ revalidated: true });
 }
-```
 
-## 9.3 Static Assets Caching
+§ 9.3 STATIC ASSETS CACHING
 
-```typescript
+typescript
 // next.config.js - Headers per static assets
 const nextConfig = {
   async headers() {
@@ -2581,11 +2514,10 @@ const nextConfig = {
     ];
   },
 };
-```
 
-## 9.4 Service Worker Caching
+§ 9.4 SERVICE WORKER CACHING
 
-```typescript
+typescript
 // Service Worker per caching avanzato
 // public/sw.js
 const CACHE_NAME = 'app-cache-v1';
@@ -2664,11 +2596,10 @@ const withPWA = require('next-pwa')({
 module.exports = withPWA({
   // next config
 });
-```
 
-## 9.5 React Query / SWR Caching
+§ 9.5 REACT QUERY / SWR CACHING
 
-```typescript
+typescript
 // SWR - Stale-While-Revalidate per client-side
 import useSWR from 'swr';
 
@@ -2748,11 +2679,10 @@ function Products() {
   
   return <ProductList products={data} onAdd={addMutation.mutate} />;
 }
-```
 
-## 9.6 Redis Caching
+§ 9.6 REDIS CACHING
 
-```typescript
+typescript
 // lib/redis.ts
 import { Redis } from '@upstash/redis';
 
@@ -2813,20 +2743,18 @@ const keys = await redis.keys('products:*');
 if (keys.length > 0) {
   await redis.del(...keys);
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 10: CDN & EDGE COMPUTING
+§ SEZIONE 10: CDN & EDGE COMPUTING
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CDN_AND_EDGE = """
 
-## 10.1 CDN Overview
+§ 10.1 CDN OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CDN - CONTENT DELIVERY NETWORK                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2863,11 +2791,10 @@ CDN_AND_EDGE = """
 │ └── Akamai                                                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 10.2 Edge Functions
+§ 10.2 EDGE FUNCTIONS
 
-```typescript
+typescript
 // Vercel Edge Functions
 // middleware.ts (runs at edge)
 import { NextResponse } from 'next/server';
@@ -2912,11 +2839,10 @@ export async function GET(request: NextRequest) {
     ip,
   });
 }
-```
 
-## 10.3 Edge Caching Configuration
+§ 10.3 EDGE CACHING CONFIGURATION
 
-```typescript
+typescript
 // Vercel configuration
 // vercel.json
 {
@@ -2963,11 +2889,10 @@ export default {
     return response;
   },
 };
-```
 
-## 10.4 Edge Database
+§ 10.4 EDGE DATABASE
 
-```typescript
+typescript
 // Vercel KV (Redis at edge)
 import { kv } from '@vercel/kv';
 
@@ -3011,11 +2936,10 @@ const client = createClient({
 });
 
 const result = await client.execute('SELECT * FROM products');
-```
 
-## 10.5 Image CDN
+§ 10.5 IMAGE CDN
 
-```typescript
+typescript
 // Cloudinary configuration
 // lib/cloudinary-loader.ts
 export default function cloudinaryLoader({
@@ -3058,20 +2982,18 @@ export function imgixLoader({ src, width, quality }) {
   
   return url.toString();
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 11: SERVER-SIDE RENDERING & STATIC GENERATION
+§ SEZIONE 11: SERVER-SIDE RENDERING & STATIC GENERATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SSR_AND_SSG = """
 
-## 11.1 Rendering Strategies Overview
+§ 11.1 RENDERING STRATEGIES OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ RENDERING STRATEGIES - Next.js App Router                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3107,11 +3029,10 @@ SSR_AND_SSG = """
 │ └── Ideale per: pagine con sezioni a velocità diversa                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 11.2 Static Generation
+§ 11.2 STATIC GENERATION
 
-```typescript
+typescript
 // app/blog/page.tsx - Static by default
 export default async function BlogPage() {
   // Questa fetch è cached a build time
@@ -3147,11 +3068,10 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
 // Opt-out di dynamic params
 export const dynamicParams = false; // 404 per slug non generati
-```
 
-## 11.3 Incremental Static Regeneration
+§ 11.3 INCREMENTAL STATIC REGENERATION
 
-```typescript
+typescript
 // app/products/page.tsx - ISR
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -3202,11 +3122,10 @@ export async function POST(request: NextRequest) {
   
   return Response.json({ ok: true });
 }
-```
 
-## 11.4 Dynamic Rendering (SSR)
+§ 11.4 DYNAMIC RENDERING (SSR)
 
-```typescript
+typescript
 // Force dynamic rendering
 // app/dashboard/page.tsx
 export const dynamic = 'force-dynamic';
@@ -3245,11 +3164,10 @@ export default async function SearchPage({
   
   return <SearchResults results={results} />;
 }
-```
 
-## 11.5 Streaming SSR
+§ 11.5 STREAMING SSR
 
-```typescript
+typescript
 // app/page.tsx - Streaming with Suspense
 import { Suspense } from 'react';
 
@@ -3307,11 +3225,10 @@ export default function DashboardLayout({ children }) {
     </div>
   );
 }
-```
 
-## 11.6 React Server Components
+§ 11.6 REACT SERVER COMPONENTS
 
-```typescript
+typescript
 // Server Components (default in app router)
 // app/products/page.tsx
 async function ProductsPage() {
@@ -3377,20 +3294,19 @@ async function ProductPage({ params }) {
     </div>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 12: DATABASE & API PERFORMANCE
+§ SEZIONE 12: DATABASE & API PERFORMANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DATABASE_AND_API_PERFORMANCE = """
 
-## 12.1 Database Query Optimization
+§ 12.1 DATABASE QUERY OPTIMIZATION
 
-```typescript
+typescript
 // Prisma query optimization
 
 // ❌ BAD: N+1 queries
@@ -3457,11 +3373,10 @@ async function getPaginatedPosts(cursor?: string, limit = 20) {
     orderBy: { createdAt: 'desc' },
   });
 }
-```
 
-## 12.2 Database Indexing
+§ 12.2 DATABASE INDEXING
 
-```sql
+sql
 -- PostgreSQL indexes per query comuni
 
 -- Index semplice
@@ -3481,9 +3396,8 @@ CREATE INDEX idx_products_metadata ON products USING GIN (metadata);
 
 -- Full-text search index
 CREATE INDEX idx_posts_search ON posts USING GIN (to_tsvector('english', title || ' ' || content));
-```
 
-```typescript
+typescript
 // Prisma schema con indexes
 // prisma/schema.prisma
 model Post {
@@ -3513,11 +3427,10 @@ model Product {
   @@index([categoryId, active])
   @@index([price])
 }
-```
 
-## 12.3 Connection Pooling
+§ 12.3 CONNECTION POOLING
 
-```typescript
+typescript
 // Prisma connection pooling
 // lib/db.ts
 import { PrismaClient } from '@prisma/client';
@@ -3557,11 +3470,10 @@ const posts = await prisma.post.findMany({
     swr: 300, // stale-while-revalidate for 5 minutes
   },
 });
-```
 
-## 12.4 API Response Optimization
+§ 12.4 API RESPONSE OPTIMIZATION
 
-```typescript
+typescript
 // Pagination
 // app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -3639,11 +3551,10 @@ export async function GET() {
     },
   });
 }
-```
 
-## 12.5 GraphQL Performance
+§ 12.5 GRAPHQL PERFORMANCE
 
-```typescript
+typescript
 // GraphQL con DataLoader per evitare N+1
 import DataLoader from 'dataloader';
 import { prisma } from '@/lib/db';
@@ -3706,11 +3617,10 @@ const complexityRule = createComplexityRule({
     console.log('Query complexity:', complexity);
   },
 });
-```
 
-## 12.6 API Rate Limiting
+§ 12.6 API RATE LIMITING
 
-```typescript
+typescript
 // Rate limiting con Upstash Redis
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
@@ -3774,20 +3684,19 @@ async function getRateLimiter(userId: string) {
     prefix: `ratelimit:${user.tier}`,
   });
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 13: PERFORMANCE MONITORING
+§ SEZIONE 13: PERFORMANCE MONITORING
 # ═══════════════════════════════════════════════════════════════════════════════
 
 PERFORMANCE_MONITORING = """
 
-## 13.1 Real User Monitoring (RUM)
+§ 13.1 REAL USER MONITORING (RUM)
 
-```typescript
+typescript
 // Web Vitals monitoring
 // lib/analytics/web-vitals.ts
 import { onCLS, onINP, onLCP, onFCP, onTTFB, Metric } from 'web-vitals';
@@ -3864,11 +3773,10 @@ export async function POST(request: NextRequest) {
   
   return NextResponse.json({ ok: true });
 }
-```
 
-## 13.2 Lighthouse CI
+§ 13.2 LIGHTHOUSE CI
 
-```yaml
+yaml
 # .github/workflows/lighthouse.yml
 name: Lighthouse CI
 
@@ -3911,9 +3819,8 @@ jobs:
           budgetPath: ./lighthouse-budget.json
           uploadArtifacts: true
           temporaryPublicStorage: true
-```
 
-```json
+json
 // lighthouse-budget.json
 [
   {
@@ -3954,11 +3861,10 @@ jobs:
     ]
   }
 ]
-```
 
-## 13.3 Performance Alerting
+§ 13.3 PERFORMANCE ALERTING
 
-```typescript
+typescript
 // lib/monitoring/alerts.ts
 interface PerformanceThresholds {
   lcp: { warning: number; critical: number };
@@ -4020,11 +3926,10 @@ async function sendAlert(alert: Alert) {
     await triggerPagerDuty(alert);
   }
 }
-```
 
-## 13.4 Vercel Analytics
+§ 13.4 VERCEL ANALYTICS
 
-```typescript
+typescript
 // app/layout.tsx
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -4055,11 +3960,10 @@ track('purchase', {
   value: order.total,
   items: order.items.length,
 });
-```
 
-## 13.5 Custom Performance Dashboard
+§ 13.5 CUSTOM PERFORMANCE DASHBOARD
 
-```typescript
+typescript
 // app/api/analytics/dashboard/route.ts
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
@@ -4173,20 +4077,18 @@ export function PerformanceDashboard() {
     </div>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 14: PERFORMANCE BUDGETS
+§ SEZIONE 14: PERFORMANCE BUDGETS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 PERFORMANCE_BUDGETS = """
 
-## 14.1 Definire Performance Budgets
+§ 14.1 DEFINIRE PERFORMANCE BUDGETS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PERFORMANCE BUDGETS                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4216,11 +4118,10 @@ PERFORMANCE_BUDGETS = """
 │ └── Fonts:                    < 5 files                                    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.2 Implementare Budget Checks
+§ 14.2 IMPLEMENTARE BUDGET CHECKS
 
-```typescript
+typescript
 // scripts/check-bundle-size.ts
 import { execSync } from 'child_process';
 import fs from 'fs';
@@ -4273,9 +4174,8 @@ function checkBundleSizes() {
 }
 
 checkBundleSizes();
-```
 
-```json
+json
 // package.json
 {
   "scripts": {
@@ -4285,11 +4185,10 @@ checkBundleSizes();
     "check:lighthouse": "lhci autorun"
   }
 }
-```
 
-## 14.3 Bundle Analyzer Integration
+§ 14.3 BUNDLE ANALYZER INTEGRATION
 
-```typescript
+typescript
 // next.config.js
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -4316,9 +4215,8 @@ const nextConfig = {
 };
 
 module.exports = withBundleAnalyzer(nextConfig);
-```
 
-```yaml
+yaml
 # .github/workflows/bundle-check.yml
 name: Bundle Size Check
 
@@ -4353,11 +4251,10 @@ jobs:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           pattern: ".next/static/**/*.js"
           compression: "gzip"
-```
 
-## 14.4 Automated Performance Testing in CI
+§ 14.4 AUTOMATED PERFORMANCE TESTING IN CI
 
-```yaml
+yaml
 # .github/workflows/performance.yml
 name: Performance Tests
 
@@ -4414,9 +4311,8 @@ jobs:
               issue_number: context.issue.number,
               body: comment
             });
-```
 
-```json
+json
 // lighthouserc.json
 {
   "ci": {
@@ -4444,20 +4340,18 @@ jobs:
     }
   }
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 15: CHECKLIST PERFORMANCE PRE-DEPLOYMENT
+§ SEZIONE 15: CHECKLIST PERFORMANCE PRE-DEPLOYMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 PERFORMANCE_CHECKLIST = """
 
-## 15.1 Checklist Completa
+§ 15.1 CHECKLIST COMPLETA
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PERFORMANCE CHECKLIST PRE-DEPLOYMENT                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4523,11 +4417,10 @@ PERFORMANCE_CHECKLIST = """
 │   ▢ Lighthouse CI in pipeline                                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 15.2 Quick Fixes Comuni
+§ 15.2 QUICK FIXES COMUNI
 
-```typescript
+typescript
 // Problemi comuni e soluzioni rapide
 
 // ❌ PROBLEMA: LCP lento per hero image
@@ -4591,11 +4484,10 @@ const font = Inter({
   src="https://example.com/widget.js"
   strategy="lazyOnload" // O afterInteractive
 />
-```
 
-## 15.3 Performance Audit Template
+§ 15.3 PERFORMANCE AUDIT TEMPLATE
 
-```typescript
+typescript
 // scripts/performance-audit.ts
 interface AuditResult {
   category: string;
@@ -4685,20 +4577,19 @@ async function generateAuditReport() {
 }
 
 generateAuditReport();
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# APPENDICE: QUICK REFERENCE
+§ APPENDICE: QUICK REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 APPENDIX_QUICK_REFERENCE = """
 
-## A.1 Comandi Utili
+§ A.1 COMANDI UTILI
 
-```bash
+bash
 # Build & Analyze
 pnpm build                      # Production build
 ANALYZE=true pnpm build         # Bundle analyzer
@@ -4715,11 +4606,9 @@ npx clinic doctor -- node server.js          # Node.js profiling
 # Bundle check
 npx source-map-explorer .next/static/chunks/*.js
 npx bundlephobia <package-name>             # Check package size
-```
 
-## A.2 Core Web Vitals Thresholds
+§ A.2 CORE WEB VITALS THRESHOLDS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ METRIC         │ GOOD          │ NEEDS IMPROVEMENT │ POOR                   │
 ├────────────────┼───────────────┼───────────────────┼────────────────────────┤
@@ -4730,11 +4619,10 @@ npx bundlephobia <package-name>             # Check package size
 │ FCP            │ ≤ 1.8s        │ 1.8s - 3s         │ > 3s                   │
 │ TBT            │ ≤ 200ms       │ 200ms - 600ms     │ > 600ms                │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## A.3 Resource Budgets Template
+§ A.3 RESOURCE BUDGETS TEMPLATE
 
-```json
+json
 {
   "budgets": {
     "javascript": {
@@ -4760,11 +4648,10 @@ npx bundlephobia <package-name>             # Check package size
     }
   }
 }
-```
 
-## A.4 Image Optimization Cheatsheet
+§ A.4 IMAGE OPTIMIZATION CHEATSHEET
 
-```typescript
+typescript
 // LCP Image (hero/above-fold)
 <Image
   src="/hero.jpg"
@@ -4794,11 +4681,9 @@ npx bundlephobia <package-name>             # Check package size
     className="object-cover"
   />
 </div>
-```
 
-## A.5 Cache-Control Cheatsheet
+§ A.5 CACHE-CONTROL CHEATSHEET
 
-```
 # Static assets (hashed filenames)
 Cache-Control: public, max-age=31536000, immutable
 
@@ -4813,11 +4698,10 @@ Cache-Control: private, no-cache
 
 # Sensitive data (no storage)
 Cache-Control: no-store
-```
 
-## A.6 Performance Monitoring Setup
+§ A.6 PERFORMANCE MONITORING SETUP
 
-```typescript
+typescript
 // Minimal web-vitals setup
 import { onCLS, onINP, onLCP } from 'web-vitals';
 
@@ -4839,13 +4723,12 @@ function sendToAnalytics(metric) {
 onCLS(sendToAnalytics);
 onINP(sendToAnalytics);
 onLCP(sendToAnalytics);
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FINE CATALOGO
+§ FINE CATALOGO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """

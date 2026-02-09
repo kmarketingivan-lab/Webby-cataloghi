@@ -6,9 +6,9 @@
 
 ---
 
-## 1. AUTHENTICATION STRATEGY COMPARISON
+§ 1. AUTHENTICATION STRATEGY COMPARISON
 
-### 1.1 Strategy Decision Matrix
+§ 1.1 STRATEGY DECISION MATRIX
 
 | Strategy | Security | UX | Complexity | Scalability | Offline | Best For |
 |----------|----------|----|------------|-------------|---------|----------|
@@ -20,7 +20,7 @@
 | Magic Links | 🟡 Medium | 🟢 Excellent | 🟢 Low | 🟢 Excellent | ❌ No | Consumer apps, quick sign-up |
 | SMS/Email OTP | 🟡 Medium | 🟢 Excellent | 🟡 Medium | 🟢 Excellent | ❌ No | Mobile apps, verification flows |
 
-### 1.2 When to Use What
+§ 1.2 WHEN TO USE WHAT
 
 | Scenario | Recommended Strategy | Why |
 |----------|---------------------|-----|
@@ -35,11 +35,11 @@
 
 ---
 
-## 2. AUTH.JS (NEXTAUTH) IMPLEMENTATION
+§ 2. AUTH.JS (NEXTAUTH) IMPLEMENTATION
 
-### 2.1 Setup Completo
+§ 2.1 SETUP COMPLETO
 
-```typescript
+typescript
 // auth.ts
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -234,11 +234,10 @@ export const {
   // Debug
   debug: process.env.NODE_ENV === "development",
 });
-```
 
-### 2.2 Prisma Schema per Auth.js
+§ 2.2 PRISMA SCHEMA PER AUTH.JS
 
-```prisma
+prisma
 // prisma/schema.prisma
 model Account {
   id                String  @id @default(cuid())
@@ -298,11 +297,10 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-```
 
-### 2.3 Middleware Protection
+§ 2.3 MIDDLEWARE PROTECTION
 
-```typescript
+typescript
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -391,11 +389,10 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };
-```
 
-### 2.4 Server-side Auth Helpers
+§ 2.4 SERVER-SIDE AUTH HELPERS
 
-```typescript
+typescript
 // lib/auth-helpers.ts
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -482,11 +479,10 @@ export async function hasPermission(
   
   return user.permissions.some(p => p.name === permission);
 }
-```
 
-### 2.5 Client-side Hooks
+§ 2.5 CLIENT-SIDE HOOKS
 
-```typescript
+typescript
 // hooks/use-auth.ts
 'use client';
 
@@ -566,15 +562,13 @@ export function usePermission(permission: string) {
     isLoading,
   };
 }
-```
 
 ---
 
-## 3. PASSKEYS / WEBAUTHN
+§ 3. PASSKEYS / WEBAUTHN
 
-### 3.1 WebAuthn Flow Diagram
+§ 3.1 WEBAUTHN FLOW DIAGRAM
 
-```
 Registration Flow:
 1. Client → Server: Start registration
 2. Server → Client: Public key creation options
@@ -590,11 +584,10 @@ Authentication Flow:
 4. Authenticator → Client: Signed assertion
 5. Client → Server: Send assertion response
 6. Server: Verify assertion
-```
 
-### 3.2 Registration Implementation
+§ 3.2 REGISTRATION IMPLEMENTATION
 
-```typescript
+typescript
 // app/api/auth/passkeys/register/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { 
@@ -727,11 +720,10 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
 
-### 3.3 Authentication Implementation
+§ 3.3 AUTHENTICATION IMPLEMENTATION
 
-```typescript
+typescript
 // app/api/auth/passkeys/authenticate/route.ts
 import { 
   generateAuthenticationOptions,
@@ -870,11 +862,10 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
 
-### 3.4 Database Schema per Passkeys
+§ 3.4 DATABASE SCHEMA PER PASSKEYS
 
-```prisma
+prisma
 // Add to your Prisma schema
 model Authenticator {
   id                   String  @id @default(cuid())
@@ -907,22 +898,20 @@ model WebAuthnChallenge {
   @@index([userId])
   @@map("web_authn_challenges")
 }
-```
 
-### 3.5 WebAuthn Configuration
+§ 3.5 WEBAUTHN CONFIGURATION
 
-```typescript
+typescript
 // lib/webauthn-config.ts
 export const rpID = process.env.NEXT_PUBLIC_WEBAUTHN_RP_ID || "localhost";
 export const rpName = process.env.NEXT_PUBLIC_WEBAUTHN_RP_NAME || "My App";
 export const origin = process.env.NEXT_PUBLIC_WEBAUTHN_ORIGIN || "http://localhost:3000";
-```
 
 ---
 
-## 4. MULTI-FACTOR AUTHENTICATION (MFA)
+§ 4. MULTI-FACTOR AUTHENTICATION (MFA)
 
-### 4.1 MFA Methods Comparison Table
+§ 4.1 MFA METHODS COMPARISON TABLE
 
 | Method | Security | UX | Cost | Phishing Resistant | Setup Complexity |
 |--------|----------|----|------|-------------------|------------------|
@@ -933,9 +922,9 @@ export const origin = process.env.NEXT_PUBLIC_WEBAUTHN_ORIGIN || "http://localho
 | Hardware Keys (FIDO2) | 🟢 Highest | 🟢 Good | 🔴 High | ✅ Yes | 🔴 High |
 | Push Notification | 🟢 High | 🟢 Excellent | 🟡 Medium | 🟢 High | 🔴 High |
 
-### 4.2 TOTP Implementation
+§ 4.2 TOTP IMPLEMENTATION
 
-```typescript
+typescript
 // lib/mfa/totp.ts
 import { authenticator } from "otplib";
 import * as QRCode from "qrcode";
@@ -1055,11 +1044,10 @@ async function getUserEmail(userId: string): Promise<string> {
   
   return user?.email || userId;
 }
-```
 
-### 4.3 Backup Codes Implementation
+§ 4.3 BACKUP CODES IMPLEMENTATION
 
-```typescript
+typescript
 // lib/mfa/backup-codes.ts
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -1149,11 +1137,10 @@ async function hashBackupCode(code: string): Promise<string> {
   const saltRounds = 10;
   return await bcrypt.hash(code, saltRounds);
 }
-```
 
-### 4.4 MFA Enrollment Flow
+§ 4.4 MFA ENROLLMENT FLOW
 
-```typescript
+typescript
 // components/mfa/mfa-enrollment.tsx
 'use client';
 
@@ -1396,11 +1383,10 @@ export function MFAEnrollment({ userId, onComplete }: MFAEnrollmentProps) {
     </Card>
   );
 }
-```
 
-### 4.5 MFA Database Schema
+§ 4.5 MFA DATABASE SCHEMA
 
-```prisma
+prisma
 // Add to Prisma schema
 model MFASettings {
   id          String   @id @default(cuid())
@@ -1420,13 +1406,12 @@ model MFASettings {
   
   @@map("mfa_settings")
 }
-```
 
 ---
 
-## 5. ROLE-BASED ACCESS CONTROL (RBAC)
+§ 5. ROLE-BASED ACCESS CONTROL (RBAC)
 
-### 5.1 Permission Matrix Table
+§ 5.1 PERMISSION MATRIX TABLE
 
 | Role | users:read | users:write | admin:access | billing:manage | content:edit | content:delete |
 |------|------------|-------------|--------------|----------------|--------------|----------------|
@@ -1436,9 +1421,9 @@ model MFASettings {
 | Admin | ✅ All | ✅ All | ✅ | ❌ | ✅ All | ✅ All |
 | Owner | ✅ All | ✅ All | ✅ | ✅ | ✅ All | ✅ All |
 
-### 5.2 RBAC Implementation
+§ 5.2 RBAC IMPLEMENTATION
 
-```typescript
+typescript
 // lib/rbac.ts
 import { prisma } from "@/lib/prisma";
 
@@ -1695,11 +1680,10 @@ export function usePermission(permission: Permission, resourceId?: string) {
   
   return { hasPermission, isLoading };
 }
-```
 
-### 5.3 Database Schema per RBAC
+§ 5.3 DATABASE SCHEMA PER RBAC
 
-```prisma
+prisma
 // Add to Prisma schema
 model Role {
   id          String       @id @default(cuid())
@@ -1772,13 +1756,12 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@map("role_permissions")
 }
-```
 
 ---
 
-## 6. ATTRIBUTE-BASED ACCESS CONTROL (ABAC)
+§ 6. ATTRIBUTE-BASED ACCESS CONTROL (ABAC)
 
-### 6.1 ABAC vs RBAC Comparison Table
+§ 6.1 ABAC VS RBAC COMPARISON TABLE
 
 | Aspect | RBAC | ABAC |
 |--------|------|------|
@@ -1789,9 +1772,9 @@ model RolePermission {
 | Maintenance | Role changes | Policy updates |
 | Example | "Admins can edit all posts" | "Users can edit posts they created within last 7 days" |
 
-### 6.2 Policy Definition Engine
+§ 6.2 POLICY DEFINITION ENGINE
 
-```typescript
+typescript
 // lib/abac.ts
 import { z } from 'zod';
 
@@ -2028,11 +2011,10 @@ export class PolicyEngine {
     }
   }
 }
-```
 
-### 6.3 Example Policies
+§ 6.3 EXAMPLE POLICIES
 
-```typescript
+typescript
 // lib/policies.ts
 import { Policy } from './abac';
 
@@ -2171,13 +2153,12 @@ function evaluateExpression(expression: string, context: any): any {
   // Return expression as-is for now (full implementation would need an expression parser)
   return expression;
 }
-```
 
 ---
 
-## 7. SESSION MANAGEMENT
+§ 7. SESSION MANAGEMENT
 
-### 7.1 Session Security Checklist Table
+§ 7.1 SESSION SECURITY CHECKLIST TABLE
 
 | Aspect | Implementation | Risk if Missing |
 |--------|----------------|-----------------|
@@ -2190,9 +2171,9 @@ function evaluateExpression(expression: string, context: any): any {
 | Concurrent session limit | Track active sessions | Account sharing, credential stuffing |
 | Token binding | Bind to user agent/IP | Token reuse across devices |
 
-### 7.2 Secure Session Configuration
+§ 7.2 SECURE SESSION CONFIGURATION
 
-```typescript
+typescript
 // auth.ts - Session configuration
 import NextAuth from "next-auth";
 
@@ -2276,11 +2257,10 @@ export const { auth } = NextAuth({
     },
   },
 });
-```
 
-### 7.3 Session Invalidation
+§ 7.3 SESSION INVALIDATION
 
-```typescript
+typescript
 // lib/session-management.ts
 import { prisma } from "@/lib/prisma";
 import { signOut } from "next-auth/react";
@@ -2404,13 +2384,12 @@ model InvalidatedToken {
   @@index([tokenId])
   @@map("invalidated_tokens")
 }
-```
 
 ---
 
-## 8. PASSWORD SECURITY
+§ 8. PASSWORD SECURITY
 
-### 8.1 Password Policy Table
+§ 8.1 PASSWORD POLICY TABLE
 
 | Rule | Minimum | Recommended | Implementation |
 |------|---------|-------------|----------------|
@@ -2421,9 +2400,9 @@ model InvalidatedToken {
 | Age limit | Never expires | 90 days | Password rotation policy |
 | Lockout | 5 attempts | 10 attempts with 15 min lock | Track failed attempts |
 
-### 8.2 Password Hashing
+§ 8.2 PASSWORD HASHING
 
-```typescript
+typescript
 // lib/password.ts
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -2659,11 +2638,10 @@ model PasswordHistory {
   @@index([userId])
   @@map("password_history")
 }
-```
 
-### 8.3 Password Reset Flow
+§ 8.3 PASSWORD RESET FLOW
 
-```typescript
+typescript
 // lib/password-reset.ts
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -2810,13 +2788,12 @@ model PasswordResetToken {
   @@index([userId])
   @@map("password_reset_tokens")
 }
-```
 
 ---
 
-## 9. OAUTH 2.0 / OIDC DEEP DIVE
+§ 9. OAUTH 2.0 / OIDC DEEP DIVE
 
-### 9.1 OAuth Flows Comparison
+§ 9.1 OAUTH FLOWS COMPARISON
 
 | Flow | Use Case | Security | Tokens | Refresh |
 |------|----------|----------|--------|---------|
@@ -2827,9 +2804,9 @@ model PasswordResetToken {
 | Device Code | Limited-input devices | 🟢 High | Access + Refresh | ✅ Yes |
 | Refresh Token | Token renewal | 🟢 High | New Access | ✅ Yes |
 
-### 9.2 PKCE Implementation
+§ 9.2 PKCE IMPLEMENTATION
 
-```typescript
+typescript
 // lib/oauth/pkce.ts
 import crypto from "crypto";
 
@@ -2936,11 +2913,10 @@ async function storePKCEVerifier(verifier: string): Promise<void> {
   // Store in httpOnly cookie or server session
   // This depends on your implementation
 }
-```
 
-### 9.3 Token Refresh Strategy
+§ 9.3 TOKEN REFRESH STRATEGY
 
-```typescript
+typescript
 // lib/oauth/token-refresh.ts
 interface TokenSet {
   accessToken: string;
@@ -3070,13 +3046,11 @@ async function invalidateRefreshToken(
   // Also remove from local storage
   localStorage.removeItem("oauth_tokens");
 }
-```
 
 ---
 
-## 10. AUTHENTICATION CHECKLIST
+§ 10. AUTHENTICATION CHECKLIST
 
-```
 STRATEGY
 □ Authentication method chosen (Session/JWT/OAuth)
 □ Session vs JWT decision documented
@@ -3157,7 +3131,6 @@ DEPLOYMENT
 □ Backup/restore procedures for auth data
 □ Disaster recovery plan for auth system
 □ Regular dependency updates (auth libraries)
-```
 
 ---
 
@@ -3180,20 +3153,19 @@ Questo setup include:
 
 ---
 
-### Setup Iniziale (Assunzioni)
+§ SETUP INIZIALE (ASSUNZIONI)
 
 Prima di incollare i file, assicurati di avere le seguenti dipendenze installate:
 
-```bash
+bash
 npm install next-auth@5.0.0-beta.10 @auth/prisma-adapter prisma bcryptjs zod react-hook-form @hookform/resolvers @tanstack/react-query @trpc/client @trpc/react-query @trpc/server @prisma/client
 npm install -D vitest @types/bcryptjs
-```
 
 **Configurazione Prisma:**
 Assicurati di avere un file `prisma/schema.prisma` e di aver eseguito `npx prisma db push` o `npx prisma migrate dev`.
 Il file `src/lib/prisma.ts` dovrebbe essere configurato come segue:
 
-```typescript
+typescript
 // src/lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -3206,12 +3178,11 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-```
 
 **Configurazione tRPC:**
 Assicurati di avere un setup tRPC di base, ad esempio:
 
-```typescript
+typescript
 // src/server/trpc/trpc.ts
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
@@ -3243,12 +3214,10 @@ const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
 export const router = t.router;
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthenticated);
-```
 
 **Variabili d'ambiente:**
 Crea un file `.env.local` con:
 
-```
 AUTH_SECRET="your_super_secret_key_here"
 AUTH_URL="http://localhost:3000" # O il tuo dominio di produzione
 
@@ -3259,13 +3228,12 @@ GITHUB_CLIENT_ID="YOUR_GITHUB_CLIENT_ID"
 GITHUB_CLIENT_SECRET="YOUR_GITHUB_CLIENT_SECRET"
 
 DATABASE_URL="postgresql://user:password@host:port/database" # La tua stringa di connessione al DB
-```
 
 ---
 
-### FILE 21: prisma/schema-auth.prisma (80 righe)
+§ FILE 21: PRISMA/SCHEMA-AUTH.PRISMA (80 RIGHE)
 
-```prisma
+prisma
 // prisma/schema.prisma
 // Aggiungi o estendi questo schema nel tuo file prisma/schema.prisma
 
@@ -3344,13 +3312,12 @@ model PasswordResetToken {
 
   @@unique([email, token])
 }
-```
 
 ---
 
-### FILE 7: src/lib/validations/auth.ts (80 righe)
+§ FILE 7: SRC/LIB/VALIDATIONS/AUTH.TS (80 RIGHE)
 
-```typescript
+typescript
 // src/lib/validations/auth.ts
 import { z } from 'zod';
 
@@ -3412,13 +3379,12 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
-```
 
 ---
 
-### FILE 3: src/lib/auth/password.ts (50 righe)
+§ FILE 3: SRC/LIB/AUTH/PASSWORD.TS (50 RIGHE)
 
-```typescript
+typescript
 // src/lib/auth/password.ts
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -3455,13 +3421,12 @@ export function validatePasswordStrength(password: string): { valid: boolean; er
     return { valid: false, errors: result.error.errors.map(err => err.message) };
   }
 }
-```
 
 ---
 
-### FILE 4: src/lib/auth/tokens.ts (80 righe)
+§ FILE 4: SRC/LIB/AUTH/TOKENS.TS (80 RIGHE)
 
-```typescript
+typescript
 // src/lib/auth/tokens.ts
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
@@ -3553,13 +3518,12 @@ export async function verifyPasswordResetToken(token: string): Promise<{ email: 
 
   return { email: existingToken.email };
 }
-```
 
 ---
 
-### FILE 0: src/lib/email.ts (Placeholder per invio email)
+§ FILE 0: SRC/LIB/EMAIL.TS (PLACEHOLDER PER INVIO EMAIL)
 
-```typescript
+typescript
 // src/lib/email.ts
 // Questo è un placeholder. In un'applicazione reale, useresti un servizio come Nodemailer, SendGrid, Resend, ecc.
 
@@ -3596,13 +3560,12 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   }
   */
 }
-```
 
 ---
 
-### FILE 1: src/auth.ts (200 righe)
+§ FILE 1: SRC/AUTH.TS (200 RIGHE)
 
-```typescript
+typescript
 // src/auth.ts
 import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -3773,13 +3736,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
-```
 
 ---
 
-### FILE 2: src/middleware.ts (50 righe)
+§ FILE 2: SRC/MIDDLEWARE.TS (50 RIGHE)
 
-```typescript
+typescript
 // src/middleware.ts
 import { auth } from "./auth";
 
@@ -3807,13 +3769,12 @@ export const config = {
     "/admin/:path*",
   ],
 };
-```
 
 ---
 
-### FILE 5: src/server/services/auth-service.ts (200 righe)
+§ FILE 5: SRC/SERVER/SERVICES/AUTH-SERVICE.TS (200 RIGHE)
 
-```typescript
+typescript
 // src/server/services/auth-service.ts
 import { prisma } from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
@@ -4021,13 +3982,12 @@ export class AuthService {
     });
   }
 }
-```
 
 ---
 
-### FILE 6: src/server/trpc/routers/auth.ts (150 righe)
+§ FILE 6: SRC/SERVER/TRPC/ROUTERS/AUTH.TS (150 RIGHE)
 
-```typescript
+typescript
 // src/server/trpc/routers/auth.ts
 import { publicProcedure, protectedProcedure, router } from '@/server/trpc/trpc';
 import { AuthService } from '@/server/services/auth-service';
@@ -4128,13 +4088,12 @@ export const authRouter = router({
       return user;
     }),
 });
-```
 
 ---
 
-### FILE 8: src/hooks/use-auth.ts (60 righe)
+§ FILE 8: SRC/HOOKS/USE-AUTH.TS (60 RIGHE)
 
-```typescript
+typescript
 // src/hooks/use-auth.ts
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -4211,13 +4170,12 @@ export function useAuth() {
     updateSession: update, // Espone la funzione update per aggiornare la sessione
   };
 }
-```
 
 ---
 
-### FILE 13: src/components/auth/oauth-buttons.tsx (60 righe)
+§ FILE 13: SRC/COMPONENTS/AUTH/OAUTH-BUTTONS.TSX (60 RIGHE)
 
-```typescript
+typescript
 // src/components/auth/oauth-buttons.tsx
 'use client';
 
@@ -4269,13 +4227,12 @@ export function OAuthButtons({ isLoading = false }: OAuthButtonsProps) {
     </div>
   );
 }
-```
 
 ---
 
-### FILE 9: src/components/auth/login-form.tsx (150 righe)
+§ FILE 9: SRC/COMPONENTS/AUTH/LOGIN-FORM.TSX (150 RIGHE)
 
-```typescript
+typescript
 // src/components/auth/login-form.tsx
 'use client';
 
@@ -4382,13 +4339,12 @@ export function LoginForm() {
     </div>
   );
 }
-```
 
 ---
 
-### FILE 10: src/components/auth/register-form.tsx (180 righe)
+§ FILE 10: SRC/COMPONENTS/AUTH/REGISTER-FORM.TSX (180 RIGHE)
 
-```typescript
+typescript
 // src/components/auth/register-form.tsx
 'use client';
 
@@ -4550,13 +4506,12 @@ export function RegisterForm() {
     </div>
   );
 }
-```
 
 ---
 
-### FILE 11: src/components/auth/forgot-password-form.tsx (80 righe)
+§ FILE 11: SRC/COMPONENTS/AUTH/FORGOT-PASSWORD-FORM.TSX (80 RIGHE)
 
-```typescript
+typescript
 // src/components/auth/forgot-password-form.tsx
 'use client';
 
@@ -4637,13 +4592,12 @@ export function ForgotPasswordForm() {
     </Form>
   );
 }
-```
 
 ---
 
-### FILE 12: src/components/auth/reset-password-form.tsx (100 righe)
+§ FILE 12: SRC/COMPONENTS/AUTH/RESET-PASSWORD-FORM.TSX (100 RIGHE)
 
-```typescript
+typescript
 // src/components/auth/reset-password-form.tsx
 'use client';
 

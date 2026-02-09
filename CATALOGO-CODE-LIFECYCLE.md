@@ -513,17 +513,17 @@ typescript
 ## Status
 Accepted | Pending | Deprecated
 
-## Context
+§ CONTEXT
 Il checkout legacy utilizza jQuery e callback annidati
 - Difficile da mantenere
 - Nessuna validazione TypeScript
 - Performance issues su mobile
 
-## Decision
+§ DECISION
 Accettiamo debito tecnico fino a Q3 2024
 Piano di refactoring in 3 fasi...
 
-## Consequences
+§ CONSEQUENCES
 **Positive:**
 - Tempo per progettare nuova architettura
 
@@ -531,7 +531,7 @@ Piano di refactoring in 3 fasi...
 - Aumento costo manutenzione
 - Rischio bug in produzione
 
-## Mitigation
+§ MITIGATION
 - Test aggiuntivi per area critica
 - Monitoraggio errori aumentato
 - Documentazione aggiornata
@@ -647,15 +647,15 @@ npm run test:changed
 // ✅ Template PR con checklist debito tecnico
 // .github/pull_request_template.md
 """
-## Technical Debt Assessment
+§ TECHNICAL DEBT ASSESSMENT
 
-### New Debt Introduced
+§ NEW DEBT INTRODUCED
 - [ ] Usa `any` o `unknown` senza validazione
 - [ ] Logica complessa senza commenti
 - [ ] Duplicazione di codice
 - [ ] Test mancanti per logica business
 
-### Existing Debt Reduced
+§ EXISTING DEBT REDUCED
 - [ ] Refactoring di codice legacy
 - [ ] Miglioramento tipi TypeScript
 - [ ] Aumento test coverage

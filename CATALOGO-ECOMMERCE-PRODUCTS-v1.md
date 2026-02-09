@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -27,9 +27,9 @@
 
 ---
 
-## 1. `prisma/schema-ecommerce-products.prisma`
+§ 1. `PRISMA/SCHEMA-ECOMMERCE-PRODUCTS.PRISMA`
 
-```prisma
+prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -324,13 +324,12 @@ model WishlistItem {
   @@index([userId])
   @@index([productId])
 }
-```
 
 ---
 
-## 2. `src/server/services/product-service.ts`
+§ 2. `SRC/SERVER/SERVICES/PRODUCT-SERVICE.TS`
 
-```typescript
+typescript
 import { PrismaClient, Product, ProductStatus, ProductVariant, Visibility } from '@prisma/client';
 import slugify from 'slugify';
 import { z } from 'zod';
@@ -844,13 +843,12 @@ export class ProductService {
     return `${productSkuPart}${variantSkuPart ? `-${variantSkuPart}` : ''}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
   }
 }
-```
 
 ---
 
-## 3. `src/server/services/category-service.ts`
+§ 3. `SRC/SERVER/SERVICES/CATEGORY-SERVICE.TS`
 
-```typescript
+typescript
 import { PrismaClient, Category } from '@prisma/client';
 import slugify from 'slugify';
 import { z } from 'zod';
@@ -1042,13 +1040,12 @@ export class CategoryService {
     return slug;
   }
 }
-```
 
 ---
 
-## 4. `src/server/trpc/routers/products.ts`
+§ 4. `SRC/SERVER/TRPC/ROUTERS/PRODUCTS.TS`
 
-```typescript
+typescript
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure, adminProcedure } from '../trpc'; // Assuming these are defined
 import { ProductService, CreateProductInput, UpdateProductInput, ProductListParams, SearchParams, CreateVariantInput, UpdateVariantInput } from '../../services/product-service';
@@ -1207,13 +1204,12 @@ export const productsRouter = createTRPCRouter({
       return { count, success: true };
     }),
 });
-```
 
 ---
 
-## 5. `src/lib/validations/product.ts`
+§ 5. `SRC/LIB/VALIDATIONS/PRODUCT.TS`
 
-```typescript
+typescript
 import { z } from 'zod';
 import { ProductStatus, Visibility, AttributeType } from '@prisma/client';
 
@@ -1340,13 +1336,12 @@ export const categoryListSchema = paginationSchema.extend({
   parentId: z.string().cuid('Invalid parent category ID').optional().nullable(),
   search: z.string().optional(),
 });
-```
 
 ---
 
-## 6. `src/hooks/use-products.ts`
+§ 6. `SRC/HOOKS/USE-PRODUCTS.TS`
 
-```typescript
+typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Product, ProductStatus } from '@prisma/client';
 import { CreateProductInput, UpdateProductInput, ProductListParams, PaginatedResult, CreateVariantInput, UpdateVariantInput } from '../server/services/product-service';
@@ -1514,13 +1509,12 @@ export function useBulkUpdateProductPrices() {
     },
   });
 }
-```
 
 ---
 
-## 7. `src/components/products/product-card.tsx`
+§ 7. `SRC/COMPONENTS/PRODUCTS/PRODUCT-CARD.TSX`
 
-```tsx
+tsx
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -1633,13 +1627,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onAddTo
 };
 
 export default ProductCard;
-```
 
 ---
 
-## 8. `src/components/products/product-grid.tsx`
+§ 8. `SRC/COMPONENTS/PRODUCTS/PRODUCT-GRID.TSX`
 
-```tsx
+tsx
 import React from 'react';
 import { Product } from '@prisma/client';
 import ProductCard from './product-card';
@@ -1715,13 +1708,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 };
 
 export default ProductGrid;
-```
 
 ---
 
-## 9. `src/components/products/product-filters.tsx`
+§ 9. `SRC/COMPONENTS/PRODUCTS/PRODUCT-FILTERS.TSX`
 
-```tsx
+tsx
 import React, { useState, useEffect, Fragment } from 'react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { ChevronDownIcon, FunnelIcon } from '@heroicons/react/20/solid';
@@ -1948,13 +1940,12 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
 };
 
 export default ProductFilters;
-```
 
 ---
 
-## 10. `src/components/products/product-detail.tsx`
+§ 10. `SRC/COMPONENTS/PRODUCTS/PRODUCT-DETAIL.TSX`
 
-```tsx
+tsx
 'use client';
 
 import React, { useState, Fragment } from 'react';
@@ -2290,13 +2281,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCart }) =
 };
 
 export default ProductDetail;
-```
 
 ---
 
-## 11. `src/app/(shop)/products/page.tsx`
+§ 11. `SRC/APP/(SHOP)/PRODUCTS/PAGE.TSX`
 
-```tsx
+tsx
 import { Suspense } from 'react';
 import ProductGrid from '@/components/products/product-grid';
 import ProductFilters from '@/components/products/product-filters';
@@ -2415,13 +2405,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     </div>
   );
 }
-```
 
 ---
 
-## 12. `src/app/(shop)/products/[slug]/page.tsx`
+§ 12. `SRC/APP/(SHOP)/PRODUCTS/[SLUG]/PAGE.TSX`
 
-```tsx
+tsx
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import ProductDetail from '@/components/products/product-detail';
@@ -2494,13 +2483,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     />
   );
 }
-```
 
 ---
 
-## 13. `tests/products.test.ts`
+§ 13. `TESTS/PRODUCTS.TEST.TS`
 
-```typescript
+typescript
 import { ProductService } from '../src/server/services/product-service';
 import { PrismaClient, Product, ProductStatus, Visibility } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
@@ -2737,7 +2725,6 @@ describe('ProductService', () => {
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
   });
 });
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 31978_

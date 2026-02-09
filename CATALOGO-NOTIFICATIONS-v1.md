@@ -6,7 +6,7 @@
 
 ---
 
-## 1. NOTIFICATION CHANNELS COMPARISON
+§ 1. NOTIFICATION CHANNELS COMPARISON
 
 | Channel | Delivery Speed | Reliability | Cost | User Reach | Best For |
 |---------|----------------|-------------|------|------------|----------|
@@ -18,7 +18,7 @@
 | Slack/Discord | 🟢 Instant (<2s) | 🟢 High (95%+) | 🟢 Free | 🟡 40-60% | Team collaboration, monitoring |
 | Webhook | 🟢 Instant (<100ms) | 🟢 High (99%+) | 🟢 Free | 🟡 50-70% | System integrations, automation |
 
-### Multi-Channel Strategy Table
+§ MULTI-CHANNEL STRATEGY TABLE
 
 | Notification Type | Primary | Fallback | Urgency | Optimal Delivery |
 |-------------------|---------|----------|---------|------------------|
@@ -35,7 +35,7 @@
 
 ---
 
-## 2. EMAIL PROVIDERS COMPARISON
+§ 2. EMAIL PROVIDERS COMPARISON
 
 | Provider | Free Tier | Deliverability | API Quality | Templates | Best For |
 |----------|-----------|----------------|-------------|-----------|----------|
@@ -48,11 +48,11 @@
 
 ---
 
-## 3. TRANSACTIONAL EMAIL IMPLEMENTATION
+§ 3. TRANSACTIONAL EMAIL IMPLEMENTATION
 
-### 3.1 Resend Setup (Recommended)
+§ 3.1 RESEND SETUP (RECOMMENDED)
 
-```typescript
+typescript
 // lib/email/resend.ts
 import { Resend } from 'resend';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
@@ -152,11 +152,10 @@ export function sendEmailAsync(
     sendEmail(options, reactComponent, userId).catch(console.error);
   }
 }
-```
 
-### 3.2 Email Templates System
+§ 3.2 EMAIL TEMPLATES SYSTEM
 
-```typescript
+typescript
 // lib/email/templates/base.tsx
 import {
   Body,
@@ -243,11 +242,10 @@ export function BaseEmail({
     </Html>
   );
 }
-```
 
-### 3.3 Email Template Implementations
+§ 3.3 EMAIL TEMPLATE IMPLEMENTATIONS
 
-```typescript
+typescript
 // lib/email/templates/welcome.tsx
 import { Button, Section, Text } from '@react-email/components';
 import { BaseEmail } from './base';
@@ -421,11 +419,10 @@ export function InvoiceEmail({
     </BaseEmail>
   );
 }
-```
 
-### 3.4 Email Queue (Background Jobs)
+§ 3.4 EMAIL QUEUE (BACKGROUND JOBS)
 
-```typescript
+typescript
 // lib/email/queue.ts
 import Queue from 'bull';
 import Redis from 'ioredis';
@@ -504,13 +501,12 @@ export async function initializeEmailQueue() {
   await cleanupEmailQueue();
   console.log('Email queue initialized');
 }
-```
 
 ---
 
-## 4. WEB PUSH NOTIFICATIONS
+§ 4. WEB PUSH NOTIFICATIONS
 
-### 4.1 Browser Support Table
+§ 4.1 BROWSER SUPPORT TABLE
 
 | Browser | Push API | Service Worker | Permissions |
 |---------|----------|----------------|-------------|
@@ -520,9 +516,9 @@ export async function initializeEmailQueue() {
 | Edge | ✅ 17+ | ✅ 17+ | 🟢 Default allow |
 | iOS Safari | ✅ 16.4+ | ⚠️ Limited | 🔴 Requires user gesture |
 
-### 4.2 Web Push Setup
+§ 4.2 WEB PUSH SETUP
 
-```typescript
+typescript
 // public/sw.js - Service Worker
 self.addEventListener('push', (event) => {
   if (!event.data) return;
@@ -618,9 +614,8 @@ async function syncNotifications() {
     }
   }
 }
-```
 
-```typescript
+typescript
 // lib/push/web-push.ts
 import webPush from 'web-push';
 import { prisma } from '@/lib/prisma';
@@ -817,11 +812,10 @@ export async function sendBulkPushNotification(
 
   return { totalSent, totalFailed };
 }
-```
 
-### 4.3 Permission Request Flow
+§ 4.3 PERMISSION REQUEST FLOW
 
-```typescript
+typescript
 // hooks/usePushNotifications.ts
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -1145,13 +1139,12 @@ export function PushPermissionPrompt({
     </Dialog>
   );
 }
-```
 
 ---
 
-## 5. IN-APP NOTIFICATIONS
+§ 5. IN-APP NOTIFICATIONS
 
-### 5.1 Notification Types Table
+§ 5.1 NOTIFICATION TYPES TABLE
 
 | Type | Persistence | UI Location | Auto-dismiss | Interactive | Best For |
 |------|-------------|-------------|--------------|-------------|----------|
@@ -1161,9 +1154,9 @@ export function PushPermissionPrompt({
 | Modal | No | Center | No | Yes | Critical actions |
 | Inline | Context | In content | No | Yes | Form feedback |
 
-### 5.2 Toast System (Sonner)
+§ 5.2 TOAST SYSTEM (SONNER)
 
-```typescript
+typescript
 // lib/toast.ts
 import { toast, ToastOptions } from 'sonner';
 
@@ -1282,11 +1275,10 @@ export function useToast() {
     showToast,
   };
 }
-```
 
-### 5.3 Notification Center
+§ 5.3 NOTIFICATION CENTER
 
-```typescript
+typescript
 // components/NotificationCenter.tsx
 'use client';
 
@@ -1585,11 +1577,10 @@ export function useNotifications() {
     refetch: () => fetchNotifications(1),
   };
 }
-```
 
-### 5.4 Database Schema for Notifications
+§ 5.4 DATABASE SCHEMA FOR NOTIFICATIONS
 
-```prisma
+prisma
 // Prisma schema
 model Notification {
   id        String   @id @default(cuid())
@@ -1636,11 +1627,10 @@ model PushSubscription {
   @@index([userId])
   @@map("push_subscriptions")
 }
-```
 
-### 5.5 Real-time Updates with WebSocket
+§ 5.5 REAL-TIME UPDATES WITH WEBSOCKET
 
-```typescript
+typescript
 // lib/socket.ts
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -1759,13 +1749,12 @@ const SocketHandler = (req: NextRequest) => {
 };
 
 export { SocketHandler as GET, SocketHandler as POST };
-```
 
 ---
 
-## 6. SMS NOTIFICATIONS
+§ 6. SMS NOTIFICATIONS
 
-### 6.1 SMS Providers Comparison
+§ 6.1 SMS PROVIDERS COMPARISON
 
 | Provider | Free Tier | Coverage | Price/SMS | Two-way | Best For |
 |----------|-----------|----------|-----------|---------|----------|
@@ -1775,9 +1764,9 @@ export { SocketHandler as GET, SocketHandler as POST };
 | Plivo | ❌ None | 🟢 Global | $0.005 | ✅ | High volume, API-first |
 | Textbelt | 1/day | 🟢 Global | Free | ❌ | Testing, low volume |
 
-### 6.2 Twilio Implementation
+§ 6.2 TWILIO IMPLEMENTATION
 
-```typescript
+typescript
 // lib/sms/twilio.ts
 import twilio from 'twilio';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
@@ -1976,13 +1965,12 @@ export async function handleSMSStatusCallback(
   // Update database with delivery status
   // This would typically update a notification record
 }
-```
 
 ---
 
-## 7. NOTIFICATION PREFERENCES
+§ 7. NOTIFICATION PREFERENCES
 
-### 7.1 Preference Matrix
+§ 7.1 PREFERENCE MATRIX
 
 | Notification Type | Email | Push | In-App | SMS | Default |
 |-------------------|-------|------|--------|-----|---------|
@@ -1995,9 +1983,9 @@ export async function handleSMSStatusCallback(
 | System maintenance | ✅ Required | ✅ Required | ✅ Required | ✅ Required | All ON |
 | Newsletters | Default OFF | OFF | OFF | OFF | All OFF |
 
-### 7.2 Preferences Schema
+§ 7.2 PREFERENCES SCHEMA
 
-```prisma
+prisma
 model NotificationPreference {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -2032,11 +2020,10 @@ model NotificationPreference {
   
   @@map("notification_preferences")
 }
-```
 
-### 7.3 Preferences UI Component
+§ 7.3 PREFERENCES UI COMPONENT
 
-```typescript
+typescript
 // components/NotificationPreferences.tsx
 'use client';
 
@@ -2503,15 +2490,13 @@ export function NotificationPreferences() {
     </div>
   );
 }
-```
 
 ---
 
-## 8. NOTIFICATION SERVICE ARCHITECTURE
+§ 8. NOTIFICATION SERVICE ARCHITECTURE
 
-### 8.1 Architecture Diagram
+§ 8.1 ARCHITECTURE DIAGRAM
 
-```
 User Action → Event Emitter → Notification Service
                                     ↓
                             [Middleware Layer]
@@ -2534,11 +2519,10 @@ User Action → Event Emitter → Notification Service
               │   Analytics │     │           │
               │   Logging   │     │           │
               └─────────────┘     └───────────┘
-```
 
-### 8.2 Unified Notification Service
+§ 8.2 UNIFIED NOTIFICATION SERVICE
 
-```typescript
+typescript
 // lib/notifications/service.ts
 import { sendEmail } from '@/lib/email/resend';
 import { sendPushNotification } from '@/lib/push/web-push';
@@ -2958,15 +2942,14 @@ export class NotificationService {
 
 // Export singleton instance
 export const notificationService = NotificationService.getInstance();
-```
 
 ---
 
-## 9. DELIVERY TRACKING & ANALYTICS
+§ 9. DELIVERY TRACKING & ANALYTICS
 
-### 9.1 Tracking Implementation
+§ 9.1 TRACKING IMPLEMENTATION
 
-```typescript
+typescript
 // lib/notifications/tracking.ts
 import { prisma } from '@/lib/prisma';
 
@@ -3091,11 +3074,10 @@ export async function GET(
     );
   }
 }
-```
 
-### 9.2 Delivery Status Schema
+§ 9.2 DELIVERY STATUS SCHEMA
 
-```prisma
+prisma
 model NotificationDelivery {
   id             String   @id @default(cuid())
   notificationId String
@@ -3115,15 +3097,14 @@ model NotificationDelivery {
   @@index([createdAt])
   @@map("notification_deliveries")
 }
-```
 
 ---
 
-## 10. RATE LIMITING & THROTTLING
+§ 10. RATE LIMITING & THROTTLING
 
-### 10.1 Rate Limits Implementation
+§ 10.1 RATE LIMITS IMPLEMENTATION
 
-```typescript
+typescript
 // lib/notifications/throttle.ts
 import { RateLimiterMemory, RateLimiterQueue } from 'rate-limiter-flexible';
 import { prisma } from '@/lib/prisma';
@@ -3250,13 +3231,11 @@ export async function trackBurst(
     // Send alert to admin
   }
 }
-```
 
 ---
 
-## 11. NOTIFICATIONS CHECKLIST
+§ 11. NOTIFICATIONS CHECKLIST
 
-```
 EMAIL
 ✅ Provider configured (Resend recommended)
 ✅ Domain verified (SPF, DKIM, DMARC)
@@ -3363,4 +3342,3 @@ MAINTENANCE
 ✅ Backup of notification data
 ✅ Documentation for troubleshooting
 ✅ Regular review of spam reports
-```

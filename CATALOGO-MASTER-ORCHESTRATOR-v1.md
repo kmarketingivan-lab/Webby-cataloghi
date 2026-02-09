@@ -6,7 +6,7 @@
 
 # MASTER-ORCHESTRATOR.md
 
-## 1. INTRODUZIONE
+§ 1. INTRODUZIONE
 
 Il sistema **MASTER ORCHESTRATOR** è una piattaforma AI avanzata progettata per generare autonomamente piattaforme web complete, robuste e pronte per la produzione. Il suo scopo primario è automatizzare il processo di sviluppo, garantendo al contempo una qualità del codice impeccabile, l'aderenza a standard industriali elevati e la conformità a un'architettura predefinita e ottimizzata. MASTER ORCHESTRATOR elimina la necessità di boilerplate manuale e riduce drasticamente i tempi di sviluppo, permettendo ai team di concentrarsi sulla logica di business complessa piuttosto che sull'infrastruttura ripetitiva.
 
@@ -28,11 +28,10 @@ I principi guida fondamentali che governano ogni output di MASTER ORCHESTRATOR s
 
 MASTER ORCHESTRATOR agisce come un architetto software virtuale, garantendo che ogni progetto rispetti una visione unificata di eccellenza tecnica, efficienza e manutenibilità.
 
-## 2. ARCHITETTURA STANDARD
+§ 2. ARCHITETTURA STANDARD
 
 Ogni progetto generato da MASTER ORCHESTRATOR aderirà rigorosamente alla seguente struttura di cartelle, progettata per massimizzare la chiarezza, la manutenibilità e la scalabilità.
 
-```
 project-root/
 ├── src/
 │   ├── app/                 # Next.js App Router
@@ -45,9 +44,8 @@ project-root/
 ├── prisma/                  # Database schema
 ├── public/                  # Static assets
 └── tests/                   # Test files
-```
 
-### Dettaglio delle Cartelle:
+§ DETTAGLIO DELLE CARTELLE:
 
 #### `project-root/src/app/`
 *   **Scopo Esatto**: Contiene tutte le route dell'applicazione Next.js, inclusi pagine, layout, loading states, error pages e API routes. Utilizza il paradigma App Router.
@@ -138,11 +136,11 @@ project-root/
     *   Le sottocartelle possono riflettere la struttura di `src/` per facilitare la navigazione.
 *   **File Obbligatori**: Nessuno a livello root.
 
-## 3. CONVENZIONI CODICE
+§ 3. CONVENZIONI CODICE
 
 Le seguenti convenzioni di codice sono **OBBLIGATORIE** e devono essere applicate rigorosamente a ogni riga di codice generata.
 
-### 3.1 Naming Conventions
+§ 3.1 NAMING CONVENTIONS
 
 *   **PascalCase**:
     *   Componenti React (es. `Button`, `UserProfileCard`).
@@ -159,16 +157,16 @@ Le seguenti convenzioni di codice sono **OBBLIGATORIE** e devono essere applicat
     *   Costanti globali o di modulo (es. `API_BASE_URL`, `MAX_FILE_SIZE`).
     *   Valori di Enum (se non si usa PascalCase per i valori).
 
-### 3.2 Convenzioni sui File
+§ 3.2 CONVENZIONI SUI FILE
 
 *   **kebab-case per i nomi dei file**: Tutti i nomi dei file devono essere in kebab-case (es. `my-component.tsx`, `user-service.ts`, `use-auth.ts`). Fanno eccezione i file `page.tsx`, `layout.tsx`, `route.ts`, `index.tsx` e i file di configurazione come `db.ts`, `trpc.ts`, `root.ts`.
 *   **Un componente per file**: Ogni file `.tsx` nella cartella `src/components/` deve contenere un singolo componente React principale. Sottocomponenti strettamente correlati e di piccole dimensioni possono essere definiti nello stesso file, ma la pratica preferita è la separazione.
 *   **File `index.tsx` per cartelle di componenti**: Se un componente è complesso e richiede una propria cartella (es. per stili specifici, sottocomponenti), il componente principale deve risiedere in `index.tsx` all'interno di quella cartella (es. `components/Button/index.tsx`).
 
-### 3.3 Convenzioni sugli Export
+§ 3.3 CONVENZIONI SUGLI EXPORT
 
 *   **Named Exports Preferiti**: Per funzioni, variabili, tipi e classi, devono essere utilizzati gli `named exports`. Questo migliora la tracciabilità e la refactoring.
-    ```typescript
+typescript
     // src/lib/utils.ts
     export function formatCurrency(amount: number): string { /* ... */ }
     export const APP_NAME = "Master Orchestrator App";
@@ -176,20 +174,18 @@ Le seguenti convenzioni di codice sono **OBBLIGATORIE** e devono essere applicat
     // src/components/Button.tsx
     export interface ButtonProps { /* ... */ }
     export function Button({ children }: ButtonProps) { /* ... */ }
-    ```
 *   **Default Exports solo per Pagine e Layout**: I `default exports` sono riservati esclusivamente per le pagine Next.js (`page.tsx`), i layout (`layout.tsx`) e, occasionalmente, per il file `index.tsx` di un componente che è l'export principale della sua cartella.
-    ```typescript
+typescript
     // src/app/dashboard/page.tsx
     export default function DashboardPage() { /* ... */ }
 
     // src/components/Button/index.tsx
     export { Button as default } from './Button'; // Se Button è definito in Button.tsx
-    ```
 
-### 3.4 Convenzioni sui Tipi TypeScript
+§ 3.4 CONVENZIONI SUI TIPI TYPESCRIPT
 
 *   **`interface` per oggetti**: Utilizzare `interface` per definire la forma di oggetti, classi e props di componenti. Le interfacce possono essere estese e implementate.
-    ```typescript
+typescript
     interface User {
       id: string;
       name: string;
@@ -200,15 +196,13 @@ Le seguenti convenzioni di codice sono **OBBLIGATORIE** e devono essere applicat
       variant: 'primary' | 'secondary';
       onClick: () => void;
     }
-    ```
 *   **`type` per union, intersection e utility types**: Utilizzare `type` per definire alias di tipi primitivi, tipi unione (`union types`), tipi intersezione (`intersection types`) e tipi utility complessi.
-    ```typescript
+typescript
     type UserRole = 'ADMIN' | 'USER' | 'GUEST';
     type ID = string | number;
     type ApiResponse<T> = { data: T; message: string; };
-    ```
 
-### 3.5 Ordine degli Imports
+§ 3.5 ORDINE DEGLI IMPORTS
 
 Gli import devono essere raggruppati e ordinati in base alla loro provenienza, con una riga vuota tra ogni gruppo.
 
@@ -222,7 +216,7 @@ Gli import devono essere raggruppati e ordinati in base alla loro provenienza, c
 8.  **Tipi (`src/types/`)**: `import { type User } from '@/types/user';`
 9.  **Stili (`src/styles/`)**: `import '@/styles/globals.css';`
 
-```typescript
+typescript
 // Esempio di ordine degli import
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -242,17 +236,16 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { type User } from '@/types/user';
 
 import '@/styles/globals.css';
-```
 
-## 4. PATTERN OBBLIGATORI
+§ 4. PATTERN OBBLIGATORI
 
 MASTER ORCHESTRATOR genera codice seguendo pattern specifici per garantire coerenza, manutenibilità e scalabilità.
 
-### 4.1 Service Pattern
+§ 4.1 SERVICE PATTERN
 
 Il Service Pattern incapsula la logica di business e l'interazione con il database per una specifica risorsa. Ogni servizio è una classe che espone metodi per operazioni CRUD e altre logiche correlate.
 
-```typescript
+typescript
 // src/server/services/UserService.ts
 import { db } from '@/lib/db';
 import { type UserCreateInput, type UserUpdateInput } from '@/types/user';
@@ -368,13 +361,12 @@ export class UserService {
 }
 
 export const userService = new UserService();
-```
 
-### 4.2 tRPC Router Pattern
+§ 4.2 TRPC ROUTER PATTERN
 
 Il tRPC Router Pattern definisce gli endpoint API type-safe. Ogni risorsa avrà il proprio router, che verrà poi aggregato nel `root.ts`.
 
-```typescript
+typescript
 // src/server/api/routers/userRouter.ts
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure, protectedProcedure } from '@/server/api/trpc';
@@ -411,13 +403,12 @@ export const userRouter = createTRPCRouter({
       return userService.deleteUser(input.id);
     }),
 });
-```
 
-### 4.3 React Component Pattern
+§ 4.3 REACT COMPONENT PATTERN
 
 Questo pattern definisce la struttura standard per i componenti React funzionali, inclusa la tipizzazione delle props e l'uso di Tailwind CSS con `clsx`/`tailwind-merge`.
 
-```typescript
+typescript
 // src/components/ui/button.tsx
 'use client'; // Se il componente è interattivo e usa hooks o eventi client-side
 
@@ -474,13 +465,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
-```
 
-### 4.4 Custom Hook Pattern
+§ 4.4 CUSTOM HOOK PATTERN
 
 I custom hooks incapsulano la logica di stato riutilizzabile e gli effetti collaterali.
 
-```typescript
+typescript
 // src/hooks/use-debounce.ts
 import { useState, useEffect } from 'react';
 
@@ -508,13 +498,12 @@ export function useDebounce<T>(value: T, delay: number): T {
 
   return debouncedValue;
 }
-```
 
-### 4.5 Zod Schema Pattern
+§ 4.5 ZOD SCHEMA PATTERN
 
 Zod è utilizzato per la validazione degli input in tutti i punti critici (API, Server Actions, forms).
 
-```typescript
+typescript
 // src/types/user.ts
 import { z } from 'zod';
 
@@ -551,17 +540,16 @@ export const loginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
-```
 
-## 5. ERROR HANDLING STANDARD
+§ 5. ERROR HANDLING STANDARD
 
 La gestione degli errori è cruciale per la robustezza di qualsiasi applicazione. MASTER ORCHESTRATOR implementa un sistema di error handling standardizzato e centralizzato.
 
-### 5.1 Classi Errore Custom
+§ 5.1 CLASSI ERRORE CUSTOM
 
 Vengono definite classi di errore custom per tipizzare e categorizzare gli errori, facilitando la gestione e la presentazione all'utente.
 
-```typescript
+typescript
 // src/lib/errors.ts
 export class AppError extends Error {
   public readonly statusCode: number;
@@ -601,13 +589,12 @@ export class ForbiddenError extends AppError {
     super(message, 403, details);
   }
 }
-```
 
-### 5.2 Try-Catch Pattern
+§ 5.2 TRY-CATCH PATTERN
 
 Tutte le operazioni che possono fallire (interazioni con DB, chiamate API esterne, logica complessa) devono essere avvolte in blocchi `try-catch`. Gli errori catturati devono essere trasformati nelle classi di errore custom appropriate o rilanciati come `AppError` per una gestione centralizzata.
 
-```typescript
+typescript
 // Esempio in un Service
 import { AppError, NotFoundError } from '@/lib/errors';
 import { db } from '@/lib/db';
@@ -657,13 +644,12 @@ export async function createNewUser(formData: FormData) {
     return { success: false, message: 'An unexpected error occurred.', statusCode: 500 };
   }
 }
-```
 
-### 5.3 Error Boundaries (Client-side)
+§ 5.3 ERROR BOUNDARIES (CLIENT-SIDE)
 
 Per i componenti React client-side, devono essere utilizzati gli Error Boundaries per catturare errori nell'albero dei componenti e mostrare un fallback UI, prevenendo il crash dell'intera applicazione.
 
-```typescript
+typescript
 // src/app/error.tsx (Next.js App Router Error Boundary)
 'use client'; // Error components must be Client Components
 
@@ -698,13 +684,12 @@ export default function Error({
     </div>
   );
 }
-```
 
-### 5.4 API Error Responses
+§ 5.4 API ERROR RESPONSES
 
 Le risposte API in caso di errore devono seguire uno standard JSON coerente per facilitare la gestione lato client.
 
-```json
+json
 // Esempio di risposta API in caso di errore
 {
   "success": false,
@@ -734,10 +719,9 @@ Le risposte API in caso di errore devono seguire uno standard JSON coerente per 
     }
   ]
 }
-```
 L'implementazione di tRPC gestirà automaticamente la serializzazione degli errori `AppError` in un formato coerente, ma è fondamentale che i servizi e le procedure tRPC lancino questi errori custom.
 
-## 6. CHECKLIST PRE-GENERAZIONE
+§ 6. CHECKLIST PRE-GENERAZIONE
 
 Prima di avviare il processo di generazione del codice, MASTER ORCHESTRATOR deve verificare che i seguenti requisiti siano stati definiti e siano coerenti. Questa checklist garantisce che l'input per l'AI sia completo e privo di ambiguità.
 
@@ -752,7 +736,7 @@ Prima di avviare il processo di generazione del codice, MASTER ORCHESTRATOR deve
 -   [x] **Strategia di Error Handling**: La strategia di gestione degli errori per ogni flusso critico è stata definita (es. quali errori possono verificarsi e come devono essere gestiti/presentati).
 -   [x] **Nessuna Ambiguità**: Tutti i requisiti sono chiari, non contraddittori e non lasciano spazio a interpretazioni.
 
-## 7. CHECKLIST POST-GENERAZIONE
+§ 7. CHECKLIST POST-GENERAZIONE
 
 Dopo la generazione del codice, MASTER ORCHESTRATOR deve eseguire una serie di controlli automatici per garantire che l'output sia conforme a tutti gli standard e i principi guida.
 

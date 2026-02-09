@@ -1,5 +1,5 @@
 # ============================================================================
-# CATALOGO INTERFACCIA PROMPT + REFERENCE USABILITÀ
+§ CATALOGO INTERFACCIA PROMPT + REFERENCE USABILITÀ
 # Versione: 1.0.0
 # Ultima modifica: 2026-01-26
 # ============================================================================
@@ -22,12 +22,11 @@ REQUISITI:
 """
 
 # ============================================================================
-# SEZIONE 1: INDICE CATALOGHI E RELAZIONI
+§ SEZIONE 1: INDICE CATALOGHI E RELAZIONI
 # ============================================================================
 
-## 1.1 MAPPA CATALOGHI
+§ 1.1 MAPPA CATALOGHI
 
-```
 CATALOGO-MASTER-INDEX.md
     │
     ├── CATALOGO-REQUISITI-FUNZIONALI-v1.md
@@ -53,13 +52,11 @@ CATALOGO-MASTER-INDEX.md
     │
     └── CATALOGO-AWS-DETERMINISTICO-v3.md
             └── Definisce l'INFRASTRUTTURA (servizi AWS, IaC)
-```
 
-## 1.2 ORDINE DI LETTURA PER RALPH
+§ 1.2 ORDINE DI LETTURA PER RALPH
 
 Per ogni nuovo progetto, Ralph DEVE leggere i cataloghi in questo ordine:
 
-```
 1. CATALOGO-MASTER-INDEX.md          → Panoramica e navigazione
 2. CATALOGO-REQUISITI-FUNZIONALI     → Capire cosa costruire
 3. CATALOGO-REQUISITI-ARCHITETTURA   → Capire come strutturare
@@ -69,32 +66,26 @@ Per ogni nuovo progetto, Ralph DEVE leggere i cataloghi in questo ordine:
 7. CATALOGO-UI-PATTERN-PRIMITIVI     → Componenti UI
 8. CATALOGO-CODICE                   → Standard implementativi
 9. CATALOGO-AWS-DETERMINISTICO       → Infrastruttura cloud
-```
 
-## 1.3 LOOKUP RAPIDO PER CATEGORIA
+§ 1.3 LOOKUP RAPIDO PER CATEGORIA
 
-### Quando Ralph deve creare un E-COMMERCE:
-```
+§ QUANDO RALPH DEVE CREARE UN E-COMMERCE:
 Leggere sezioni:
 - REQUISITI-FUNZIONALI → Sezione E-Commerce
 - DATA-MODEL → Entità: Product, Cart, Order, Payment
 - API → Endpoints: /products, /cart, /orders, /checkout
 - UI-PATTERN → Categoria E-Commerce (ProductCard, CartItem, Checkout)
 - AWS → Pattern: API Gateway + Lambda + DynamoDB + S3
-```
 
-### Quando Ralph deve creare un SaaS:
-```
+§ QUANDO RALPH DEVE CREARE UN SAAS:
 Leggere sezioni:
 - REQUISITI-FUNZIONALI → Sezione SaaS Multi-tenant
 - DATA-MODEL → Entità: Tenant, User, Subscription, Usage
 - API → Endpoints: /tenants, /users, /subscriptions
 - UI-PATTERN → Categoria SaaS (Dashboard, Pricing, Onboarding)
 - AWS → Pattern: Cognito + API Gateway + Lambda + RDS/DynamoDB
-```
 
-### Quando Ralph deve creare Healthcare (HIPAA):
-```
+§ QUANDO RALPH DEVE CREARE HEALTHCARE (HIPAA):
 Leggere sezioni:
 - REQUISITI-FUNZIONALI → Sezione Healthcare
 - REQUISITI-ARCHITETTURA → Compliance HIPAA
@@ -102,10 +93,8 @@ Leggere sezioni:
 - API → Endpoints con encryption e audit logging
 - UI-PATTERN → Categoria Healthcare (PatientCard, Vitals, SecureMessage)
 - AWS → Pattern: HIPAA-eligible services, encryption at rest/transit
-```
 
-### Quando Ralph deve creare FinTech (PCI-DSS):
-```
+§ QUANDO RALPH DEVE CREARE FINTECH (PCI-DSS):
 Leggere sezioni:
 - REQUISITI-FUNZIONALI → Sezione FinTech
 - REQUISITI-ARCHITETTURA → Compliance PCI-DSS
@@ -113,15 +102,14 @@ Leggere sezioni:
 - API → Endpoints con MFA, rate limiting
 - UI-PATTERN → Categoria FinTech (AccountCard, TransactionList, PaymentForm)
 - AWS → Pattern: PCI-compliant architecture, KMS, WAF
-```
 
 # ============================================================================
-# SEZIONE 2: TEMPLATE PROMPT PER RALPH
+§ SEZIONE 2: TEMPLATE PROMPT PER RALPH
 # ============================================================================
 
-## 2.1 TEMPLATE MASTER - Nuovo Progetto Completo
+§ 2.1 TEMPLATE MASTER - NUOVO PROGETTO COMPLETO
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - NUOVO PROGETTO
 
 ## CONTESTO
@@ -185,7 +173,6 @@ prima di procedere alla successiva:
 
 ## OUTPUT ATTESO
 Al termine, la directory deve contenere:
-```
 [NOME_PROGETTO]/
 ├── package.json
 ├── tsconfig.json
@@ -196,7 +183,6 @@ Al termine, la directory deve contenere:
 ├── tests/
 ├── infra/ (se richiesta)
 └── README.md
-```
 
 ## REGOLE CRITICHE
 1. NON inventare pattern - usa SOLO quelli documentati nei cataloghi
@@ -204,13 +190,12 @@ Al termine, la directory deve contenere:
 3. NON usare dipendenze non elencate nei cataloghi
 4. OGNI file deve seguire gli standard di CATALOGO-CODICE
 5. OGNI errore deve essere risolto prima di procedere
-```
 
 ---
 
-## 2.2 TEMPLATE - Solo Backend
+§ 2.2 TEMPLATE - SOLO BACKEND
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - BACKEND API
 
 ## CONTESTO
@@ -255,7 +240,6 @@ Leggi in ordine:
 - VERIFICA: Integration test
 
 ## OUTPUT
-```
 [NOME_PROGETTO]/
 ├── src/
 │   ├── routes/
@@ -267,14 +251,12 @@ Leggi in ordine:
 ├── tests/
 ├── package.json
 └── tsconfig.json
-```
-```
 
 ---
 
-## 2.3 TEMPLATE - Solo Frontend
+§ 2.3 TEMPLATE - SOLO FRONTEND
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - FRONTEND UI
 
 ## CONTESTO
@@ -323,7 +305,6 @@ Leggi in ordine:
 - VERIFICA: Navigazione funzionante
 
 ## OUTPUT
-```
 [NOME_PROGETTO]/
 ├── src/
 │   ├── components/
@@ -339,14 +320,12 @@ Leggi in ordine:
 ├── tailwind.config.js
 ├── package.json
 └── tsconfig.json
-```
-```
 
 ---
 
-## 2.4 TEMPLATE - Infrastruttura AWS
+§ 2.4 TEMPLATE - INFRASTRUTTURA AWS
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - INFRASTRUTTURA AWS
 
 ## CONTESTO
@@ -402,7 +381,6 @@ Leggi:
 - VERIFICA: Test auth flow
 
 ## OUTPUT
-```
 [NOME_PROGETTO]-infra/
 ├── bin/
 │   └── app.ts
@@ -412,28 +390,25 @@ Leggi:
 ├── cdk.json
 ├── package.json
 └── tsconfig.json
-```
-```
 
 
 # ============================================================================
-# SEZIONE 3: PROMPT SNIPPETS RIUTILIZZABILI
+§ SEZIONE 3: PROMPT SNIPPETS RIUTILIZZABILI
 # ============================================================================
 
-## 3.1 SNIPPET - Lettura Catalogo Specifica
+§ 3.1 SNIPPET - LETTURA CATALOGO SPECIFICA
 
-```markdown
+markdown
 ## ISTRUZIONE LETTURA CATALOGO
 Leggi il file [PATH]/[NOME_CATALOGO].md
 Estrai e memorizza:
 - Sezione: [NOME_SEZIONE]
 - Pattern/Entità: [LISTA_SPECIFICA]
 Conferma lettura con: "Ho letto [CATALOGO], sezione [SEZIONE]. Pattern estratti: [LISTA]"
-```
 
-## 3.2 SNIPPET - Verifica Pre-Fase
+§ 3.2 SNIPPET - VERIFICA PRE-FASE
 
-```markdown
+markdown
 ## VERIFICA PRE-FASE [N]
 Prima di iniziare la Fase [N], verifica:
 1. Fase [N-1] completata senza errori
@@ -443,11 +418,10 @@ Prima di iniziare la Fase [N], verifica:
 
 Se tutte le verifiche passano, scrivi: "VERIFICA FASE [N-1]: PASSED - Procedo con Fase [N]"
 Se fallisce, scrivi: "VERIFICA FASE [N-1]: FAILED - [MOTIVO]" e attendi istruzioni.
-```
 
-## 3.3 SNIPPET - Creazione File Standard
+§ 3.3 SNIPPET - CREAZIONE FILE STANDARD
 
-```markdown
+markdown
 ## CREAZIONE FILE
 Crea il file: [PATH_COMPLETO]
 Segui questi standard:
@@ -458,11 +432,10 @@ Segui questi standard:
 - Max 300 righe per file (splitta se necessario)
 
 Dopo creazione, verifica con: `tsc --noEmit [FILE]`
-```
 
-## 3.4 SNIPPET - Test Endpoint API
+§ 3.4 SNIPPET - TEST ENDPOINT API
 
-```markdown
+markdown
 ## TEST ENDPOINT
 Testa l'endpoint: [METHOD] [URL]
 Con payload: [JSON]
@@ -471,19 +444,16 @@ Aspettati:
 - Response body contiene: [CAMPI]
 
 Comando test:
-```bash
 curl -X [METHOD] [URL] \
   -H "Content-Type: application/json" \
   -d '[JSON]'
-```
 
 Se risposta corretta: "TEST PASSED: [ENDPOINT]"
 Se errore: "TEST FAILED: [ENDPOINT] - [ERRORE]"
-```
 
-## 3.5 SNIPPET - Build e Verifica
+§ 3.5 SNIPPET - BUILD E VERIFICA
 
-```markdown
+markdown
 ## BUILD E VERIFICA
 Esegui in ordine:
 1. `pnpm install` - Deve completare senza errori
@@ -496,11 +466,10 @@ Report finale:
 - Lint: [OK/FAIL] ([N] errori, [N] warning)
 - Build: [OK/FAIL]
 - Test: [OK/FAIL] ([N] passed, [N] failed)
-```
 
-## 3.6 SNIPPET - Gestione Errore
+§ 3.6 SNIPPET - GESTIONE ERRORE
 
-```markdown
+markdown
 ## GESTIONE ERRORE
 Si è verificato un errore: [DESCRIZIONE]
 
@@ -512,7 +481,6 @@ Azioni richieste:
 5. Dopo fix, ri-esegui la verifica della fase corrente
 
 Output richiesto:
-```
 ERRORE RILEVATO
 - Fase: [N]
 - File: [PATH]
@@ -520,16 +488,13 @@ ERRORE RILEVATO
 - Causa probabile: [ANALISI]
 - Soluzione proposta: [FIX]
 Attendo approvazione per procedere.
-```
-```
 
 # ============================================================================
-# SEZIONE 4: WORKFLOW OPERATIVO COMPLETO
+§ SEZIONE 4: WORKFLOW OPERATIVO COMPLETO
 # ============================================================================
 
-## 4.1 WORKFLOW - Nuovo Progetto da Zero
+§ 4.1 WORKFLOW - NUOVO PROGETTO DA ZERO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        WORKFLOW: NUOVO PROGETTO                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -564,11 +529,9 @@ STEP 5: ITERAZIONE (se necessario)
 ├── Identificare gap o modifiche richieste
 ├── Creare prompt incrementale specifico
 └── Ripetere da STEP 2
-```
 
-## 4.2 WORKFLOW - Aggiunta Feature a Progetto Esistente
+§ 4.2 WORKFLOW - AGGIUNTA FEATURE A PROGETTO ESISTENTE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        WORKFLOW: NUOVA FEATURE                               │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -615,11 +578,9 @@ STEP 4: REVIEW
 ├── Diff dei file modificati
 ├── Esecuzione test completa
 └── Merge se tutto OK
-```
 
-## 4.3 WORKFLOW - Fix Bug
+§ 4.3 WORKFLOW - FIX BUG
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        WORKFLOW: FIX BUG                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -666,11 +627,9 @@ STEP 3: VERIFICA
 ├── Test specifico per il bug passa
 ├── Test suite completa passa
 └── Bug non si riproduce più
-```
 
-## 4.4 WORKFLOW - Refactoring
+§ 4.4 WORKFLOW - REFACTORING
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        WORKFLOW: REFACTORING                                 │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -717,15 +676,14 @@ STEP 4: VALIDAZIONE
 ├── Code review delle modifiche
 ├── Test suite completa
 └── Performance comparison se rilevante
-```
 
 # ============================================================================
-# SEZIONE 5: CHECKLIST PRE-ESECUZIONE
+§ SEZIONE 5: CHECKLIST PRE-ESECUZIONE
 # ============================================================================
 
-## 5.1 CHECKLIST - Ambiente
+§ 5.1 CHECKLIST - AMBIENTE
 
-```markdown
+markdown
 ## CHECKLIST AMBIENTE
 
 ### Sistema Operativo
@@ -754,11 +712,10 @@ STEP 4: VALIDAZIONE
 - [ ] Accesso a npm/pnpm registry
 - [ ] Accesso a GitHub (se necessario)
 - [ ] Nessun proxy che blocca
-```
 
-## 5.2 CHECKLIST - Cataloghi
+§ 5.2 CHECKLIST - CATALOGHI
 
-```markdown
+markdown
 ## CHECKLIST CATALOGHI
 
 ### Presenza File
@@ -781,11 +738,10 @@ STEP 4: VALIDAZIONE
 ### Versioni
 - [ ] Verificare che le versioni siano allineate
 - [ ] Nessun catalogo obsoleto
-```
 
-## 5.3 CHECKLIST - Prompt
+§ 5.3 CHECKLIST - PROMPT
 
-```markdown
+markdown
 ## CHECKLIST PROMPT
 
 ### Struttura
@@ -807,11 +763,10 @@ STEP 4: VALIDAZIONE
 ### Regole
 - [ ] Regole critiche incluse
 - [ ] Gestione errori specificata
-```
 
-## 5.4 CHECKLIST - Directory Progetto
+§ 5.4 CHECKLIST - DIRECTORY PROGETTO
 
-```markdown
+markdown
 ## CHECKLIST DIRECTORY PROGETTO
 
 ### Pre-Creazione
@@ -827,220 +782,176 @@ STEP 4: VALIDAZIONE
 - [ ] Struttura directory come da template
 - [ ] README.md presente
 - [ ] .gitignore presente
-```
 
 
 # ============================================================================
-# SEZIONE 6: TROUBLESHOOTING
+§ SEZIONE 6: TROUBLESHOOTING
 # ============================================================================
 
-## 6.1 ERRORI COMUNI - Setup
+§ 6.1 ERRORI COMUNI - SETUP
 
-### Errore: "pnpm: command not found"
-```
+§ ERRORE: "PNPM: COMMAND NOT FOUND"
 CAUSA: pnpm non installato o non nel PATH
 SOLUZIONE:
 1. Installare pnpm: npm install -g pnpm
 2. Verificare: pnpm --version
 3. Se ancora non funziona, aggiungere al PATH:
    - Windows: %APPDATA%\npm
-```
 
-### Errore: "tsc: command not found"
-```
+§ ERRORE: "TSC: COMMAND NOT FOUND"
 CAUSA: TypeScript non installato globalmente
 SOLUZIONE:
 1. Installare: pnpm add -g typescript
 2. Verificare: tsc --version
-```
 
-### Errore: "EACCES: permission denied"
-```
+§ ERRORE: "EACCES: PERMISSION DENIED"
 CAUSA: Permessi insufficienti sulla directory
 SOLUZIONE:
 1. Windows: Eseguire PowerShell come amministratore
 2. Verificare permessi cartella
 3. Evitare directory di sistema
-```
 
-### Errore: "ENOENT: no such file or directory"
-```
+§ ERRORE: "ENOENT: NO SUCH FILE OR DIRECTORY"
 CAUSA: Path non esiste o errato
 SOLUZIONE:
 1. Verificare path assoluto corretto
 2. Creare directory parent se mancanti
 3. Usare forward slash (/) anche su Windows
-```
 
 ---
 
-## 6.2 ERRORI COMUNI - Build
+§ 6.2 ERRORI COMUNI - BUILD
 
-### Errore: "Cannot find module 'X'"
-```
+§ ERRORE: "CANNOT FIND MODULE 'X'"
 CAUSA: Dipendenza mancante o non installata
 SOLUZIONE:
 1. Verificare package.json contiene la dipendenza
 2. Eseguire: pnpm install
 3. Se persiste: pnpm add [PACKAGE_NAME]
 4. Verificare import path corretto
-```
 
-### Errore: "Type 'X' is not assignable to type 'Y'"
-```
+§ ERRORE: "TYPE 'X' IS NOT ASSIGNABLE TO TYPE 'Y'"
 CAUSA: Errore di tipizzazione TypeScript
 SOLUZIONE:
 1. Verificare tipi secondo CATALOGO-DATA-MODEL
 2. Controllare che Zod schema e tipi siano allineati
 3. Usare type assertion solo se necessario e documentato
-```
 
-### Errore: "Module not found: Can't resolve 'X'"
-```
+§ ERRORE: "MODULE NOT FOUND: CAN'T RESOLVE 'X'"
 CAUSA: Import errato o modulo non esportato
 SOLUZIONE:
 1. Verificare export nel modulo sorgente
 2. Controllare path relativo/assoluto
 3. Verificare tsconfig paths se configurati
-```
 
-### Errore: "ESLint: Parsing error"
-```
+§ ERRORE: "ESLINT: PARSING ERROR"
 CAUSA: Sintassi non valida o config ESLint errata
 SOLUZIONE:
 1. Verificare sintassi TypeScript valida
 2. Controllare .eslintrc.js configurazione
 3. Verificare versione ESLint compatibile
-```
 
 ---
 
-## 6.3 ERRORI COMUNI - Runtime
+§ 6.3 ERRORI COMUNI - RUNTIME
 
-### Errore: "TypeError: Cannot read property 'X' of undefined"
-```
+§ ERRORE: "TYPEERROR: CANNOT READ PROPERTY 'X' OF UNDEFINED"
 CAUSA: Accesso a proprietà di oggetto null/undefined
 SOLUZIONE:
 1. Aggiungere null check: obj?.property
 2. Verificare inizializzazione oggetto
 3. Aggiungere validazione Zod in input
-```
 
-### Errore: "CORS error"
-```
+§ ERRORE: "CORS ERROR"
 CAUSA: Cross-Origin Request bloccata
 SOLUZIONE:
 1. Backend: Aggiungere middleware CORS
-   ```typescript
    import cors from 'cors';
    app.use(cors({ origin: 'http://localhost:3000' }));
-   ```
 2. Verificare origin permessi corretti
-```
 
-### Errore: "Connection refused" (database/API)
-```
+§ ERRORE: "CONNECTION REFUSED" (DATABASE/API)
 CAUSA: Servizio non raggiungibile
 SOLUZIONE:
 1. Verificare servizio in esecuzione
 2. Controllare URL/porta corretti
 3. Verificare firewall/security groups
-```
 
 ---
 
-## 6.4 ERRORI COMUNI - AWS/CDK
+§ 6.4 ERRORI COMUNI - AWS/CDK
 
-### Errore: "User: arn:aws:iam::... is not authorized"
-```
+§ ERRORE: "USER: ARN:AWS:IAM::... IS NOT AUTHORIZED"
 CAUSA: Permessi IAM insufficienti
 SOLUZIONE:
 1. Verificare policy IAM dell'utente
 2. Aggiungere permessi necessari
 3. Controllare account ID corretto (039288790906)
-```
 
-### Errore: "cdk bootstrap required"
-```
+§ ERRORE: "CDK BOOTSTRAP REQUIRED"
 CAUSA: Account/regione non inizializzati per CDK
 SOLUZIONE:
 1. Eseguire: cdk bootstrap aws://039288790906/eu-south-1
 2. Verificare: bucket CDK creato in S3
-```
 
-### Errore: "Resource limit exceeded"
-```
+§ ERRORE: "RESOURCE LIMIT EXCEEDED"
 CAUSA: Limiti AWS raggiunti
 SOLUZIONE:
 1. Verificare Free Tier limits
 2. Eliminare risorse non utilizzate
 3. Richiedere aumento limiti se necessario
-```
 
-### Errore: "Template format error"
-```
+§ ERRORE: "TEMPLATE FORMAT ERROR"
 CAUSA: CloudFormation template non valido
 SOLUZIONE:
 1. Eseguire: cdk synth per vedere template
 2. Validare con: cfn-lint template.yaml
 3. Verificare riferimenti circolari
-```
 
 ---
 
-## 6.5 ERRORI COMUNI - Ralph/Claude Code
+§ 6.5 ERRORI COMUNI - RALPH/CLAUDE CODE
 
-### Errore: Ralph non legge i cataloghi
-```
+§ ERRORE: RALPH NON LEGGE I CATALOGHI
 CAUSA: Path errato o file non accessibile
 SOLUZIONE:
 1. Usare path assoluti nel prompt
 2. Verificare file esistono con: ls [PATH]
 3. Verificare permessi lettura
-```
 
-### Errore: Ralph salta fasi
-```
+§ ERRORE: RALPH SALTA FASI
 CAUSA: Prompt non chiaro o verifica non richiesta
 SOLUZIONE:
 1. Usare template con fasi esplicite
 2. Richiedere output "VERIFICA FASE N: PASSED/FAILED"
 3. Specificare: "Non procedere alla fase successiva senza verifica"
-```
 
-### Errore: Ralph usa pattern non in catalogo
-```
+§ ERRORE: RALPH USA PATTERN NON IN CATALOGO
 CAUSA: Istruzione non sufficientemente vincolante
 SOLUZIONE:
 1. Aggiungere regola: "USA SOLO pattern documentati nei cataloghi"
 2. Specificare: "Se pattern non trovato, chiedere prima di inventare"
 3. Elencare esplicitamente pattern consentiti
-```
 
-### Errore: Ralph si blocca o loop infinito
-```
+§ ERRORE: RALPH SI BLOCCA O LOOP INFINITO
 CAUSA: Errore non gestito o condizione irrisolvibile
 SOLUZIONE:
 1. Interrompere esecuzione (Ctrl+C)
 2. Analizzare ultimo output
 3. Rilanciare con prompt più specifico
 4. Aggiungere timeout se supportato
-```
 
-### Errore: Output incompleto o troncato
-```
+§ ERRORE: OUTPUT INCOMPLETO O TRONCATO
 CAUSA: Limite token raggiunto
 SOLUZIONE:
 1. Dividere task in sotto-task più piccoli
 2. Usare prompt incrementali
 3. Chiedere output per file singolo
-```
 
 ---
 
-## 6.6 MATRICE DIAGNOSTICA RAPIDA
+§ 6.6 MATRICE DIAGNOSTICA RAPIDA
 
-```
 ┌────────────────────────┬─────────────────────┬───────────────────────────┐
 │ SINTOMO                │ CAUSA PROBABILE     │ AZIONE IMMEDIATA          │
 ├────────────────────────┼─────────────────────┼───────────────────────────┤
@@ -1055,15 +966,14 @@ SOLUZIONE:
 │ Timeout                │ Servizio lento      │ Aumentare timeout/ottimizza│
 │ Memory exceeded        │ Memory leak         │ Profile e ottimizza       │
 └────────────────────────┴─────────────────────┴───────────────────────────┘
-```
 
 # ============================================================================
-# SEZIONE 7: ESEMPI PRONTI ALL'USO
+§ SEZIONE 7: ESEMPI PRONTI ALL'USO
 # ============================================================================
 
-## 7.1 ESEMPIO COMPLETO - E-Commerce MVP
+§ 7.1 ESEMPIO COMPLETO - E-COMMERCE MVP
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - E-COMMERCE MVP
 
 ## CONTESTO
@@ -1121,7 +1031,6 @@ Leggi in ordine:
 - [ ] VERIFICA: Add/remove cart funziona
 
 ## OUTPUT
-```
 ecommerce-mvp/
 ├── src/
 │   ├── components/
@@ -1133,19 +1042,17 @@ ecommerce-mvp/
 │   └── styles/
 ├── public/
 └── package.json
-```
 
 ## REGOLE
 1. USA SOLO pattern da CATALOGO-UI-PATTERN-PRIMITIVI
 2. USA SOLO token da CATALOGO-DESIGN-TOKEN-SYSTEM
 3. Ogni fase deve avere VERIFICA PASSED prima di procedere
-```
 
 ---
 
-## 7.2 ESEMPIO COMPLETO - SaaS Dashboard
+§ 7.2 ESEMPIO COMPLETO - SAAS DASHBOARD
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - SAAS DASHBOARD
 
 ## CONTESTO
@@ -1203,7 +1110,6 @@ Leggi in ordine:
 - [ ] VERIFICA: UX completa
 
 ## OUTPUT
-```
 saas-dashboard/
 ├── src/
 │   ├── app/
@@ -1214,14 +1120,12 @@ saas-dashboard/
 │   ├── components/
 │   └── lib/
 └── package.json
-```
-```
 
 ---
 
-## 7.3 ESEMPIO COMPLETO - API Backend
+§ 7.3 ESEMPIO COMPLETO - API BACKEND
 
-```markdown
+markdown
 # ISTRUZIONI PER RALPH - BACKEND API
 
 ## CONTESTO
@@ -1267,7 +1171,6 @@ Directory: C:\Users\cresc\Desktop\api-backend
 - [ ] VERIFICA: Errori gestiti correttamente
 
 ## OUTPUT
-```
 api-backend/
 ├── src/
 │   ├── routes/
@@ -1277,16 +1180,14 @@ api-backend/
 │   └── index.ts
 ├── tests/
 └── package.json
-```
-```
 
 # ============================================================================
-# SEZIONE 8: REFERENCE CARD (QUICK LOOKUP)
+§ SEZIONE 8: REFERENCE CARD (QUICK LOOKUP)
 # ============================================================================
 
-## 8.1 COMANDI FREQUENTI
+§ 8.1 COMANDI FREQUENTI
 
-```bash
+bash
 # Setup progetto
 pnpm init
 pnpm add typescript @types/node -D
@@ -1310,11 +1211,10 @@ node --version
 pnpm --version
 tsc --version
 aws sts get-caller-identity
-```
 
-## 8.2 TEMPLATE PROMPT MINIMO
+§ 8.2 TEMPLATE PROMPT MINIMO
 
-```markdown
+markdown
 # TASK: [DESCRIZIONE_BREVE]
 
 ## CATALOGHI
@@ -1327,21 +1227,17 @@ Leggi: [PATH]/[CATALOGO].md → Sezione [X]
 ## VERIFICA
 - [CRITERIO_1]
 - [CRITERIO_2]
-```
 
-## 8.3 CHECKLIST VELOCE
+§ 8.3 CHECKLIST VELOCE
 
-```
 □ Ambiente: Node 20, pnpm, TypeScript
 □ Cataloghi: Tutti presenti e accessibili
 □ Prompt: Template appropriato compilato
 □ Directory: Path valido, permessi OK
 □ Rete: npm registry raggiungibile
-```
 
-## 8.4 MAPPA CATALOGO → USO
+§ 8.4 MAPPA CATALOGO → USO
 
-```
 Devo capire COSA costruire    → REQUISITI-FUNZIONALI
 Devo capire COME strutturare  → REQUISITI-ARCHITETTURA
 Devo definire i DATI          → DATA-MODEL
@@ -1351,10 +1247,9 @@ Devo creare COMPONENTI UI     → UI-PATTERN-PRIMITIVI
 Devo scrivere CODICE          → CODICE
 Devo creare INFRA AWS         → AWS-DETERMINISTICO
 Devo creare PROMPT per Ralph  → INTERFACCIA-PROMPT-USABILITA
-```
 
 # ============================================================================
-# FINE CATALOGO INTERFACCIA PROMPT + REFERENCE USABILITÀ
+§ FINE CATALOGO INTERFACCIA PROMPT + REFERENCE USABILITÀ
 # ============================================================================
 
 """
@@ -1369,7 +1264,7 @@ Ultima modifica: 2026-01-26
 
 
 # ============================================================================
-# SEZIONE 9: FRAMEWORK DOMANDE PRELIMINARI (DISCOVERY)
+§ SEZIONE 9: FRAMEWORK DOMANDE PRELIMINARI (DISCOVERY)
 # ============================================================================
 
 """
@@ -1387,10 +1282,9 @@ PROCESSO:
 6. Solo dopo conferma utente → inizia sviluppo
 """
 
-## 9.1 DOMANDE OBBLIGATORIE - SEMPRE
+§ 9.1 DOMANDE OBBLIGATORIE - SEMPRE
 
-### CATEGORIA PROGETTO
-```
+§ CATEGORIA PROGETTO
 □ Che tipo di piattaforma stai costruendo?
   - [ ] E-Commerce
   - [ ] SaaS / Dashboard
@@ -1413,10 +1307,8 @@ PROCESSO:
   - [ ] 1-2 settimane
   - [ ] 1 mese
   - [ ] Timeline flessibile
-```
 
-### UTENTI TARGET
-```
+§ UTENTI TARGET
 □ Chi sono gli utenti principali?
   - Descrizione: ___________
   - Età/demografica: ___________
@@ -1431,10 +1323,8 @@ PROCESSO:
 □ Ci sono utenti con ruoli diversi?
   - [ ] No, tutti uguali
   - [ ] Sì, quali ruoli? ___________
-```
 
-### FUNZIONALITÀ CORE
-```
+§ FUNZIONALITÀ CORE
 □ Quali sono le 3-5 funzionalità ESSENZIALI (must-have)?
   1. ___________
   2. ___________
@@ -1456,10 +1346,8 @@ PROCESSO:
   - [ ] Sì, one-time payments
   - [ ] Sì, subscriptions
   - [ ] Sì, marketplace (multi-vendor)
-```
 
-### DESIGN E UI
-```
+§ DESIGN E UI
 □ Hai un brand esistente?
   - [ ] No, crea tu
   - [ ] Sì, colori: ___________
@@ -1481,10 +1369,8 @@ PROCESSO:
 □ Hai screenshot/reference di design che ti piacciono?
   - [ ] No
   - [ ] Sì → [RICHIEDI INVIO IMMAGINI]
-```
 
-### DATI E INTEGRAZIONI
-```
+§ DATI E INTEGRAZIONI
 □ Quali sono le entità/oggetti principali?
   (es: Prodotti, Utenti, Ordini, Post, etc.)
   - ___________
@@ -1502,10 +1388,8 @@ PROCESSO:
   - [ ] Sì, da CSV/Excel
   - [ ] Sì, da altro database
   - [ ] Sì, da API esterna
-```
 
-### INFRASTRUTTURA
-```
+§ INFRASTRUTTURA
 □ Dove vuoi hostare?
   - [ ] AWS (preferito, ho cataloghi)
   - [ ] Vercel/Netlify (frontend)
@@ -1524,14 +1408,12 @@ PROCESSO:
   - [ ] HIPAA (healthcare)
   - [ ] PCI-DSS (payments)
   - [ ] SOC2
-```
 
 ---
 
-## 9.2 DOMANDE SPECIFICHE PER CATEGORIA
+§ 9.2 DOMANDE SPECIFICHE PER CATEGORIA
 
-### SE E-COMMERCE:
-```
+§ SE E-COMMERCE:
 □ Quanti prodotti circa?
   - [ ] < 50
   - [ ] 50-500
@@ -1562,10 +1444,8 @@ PROCESSO:
 □ Checkout guest?
   - [ ] No, solo registrati
   - [ ] Sì, guest checkout permesso
-```
 
-### SE SAAS:
-```
+§ SE SAAS:
 □ Modello pricing?
   - [ ] Free only
   - [ ] Freemium
@@ -1589,10 +1469,8 @@ PROCESSO:
 □ Onboarding guidato?
   - [ ] No
   - [ ] Sì, wizard/checklist
-```
 
-### SE MARKETPLACE:
-```
+§ SE MARKETPLACE:
 □ Tipo marketplace?
   - [ ] Prodotti fisici
   - [ ] Prodotti digitali
@@ -1612,10 +1490,8 @@ PROCESSO:
 □ Gestione disputes?
   - [ ] No
   - [ ] Sì, sistema di reclami
-```
 
-### SE HEALTHCARE:
-```
+§ SE HEALTHCARE:
 □ Tipo dati sanitari?
   - [ ] Appuntamenti solo
   - [ ] Cartelle cliniche
@@ -1636,10 +1512,8 @@ PROCESSO:
   - [ ] Pazienti + Medici
   - [ ] Pazienti + Medici + Admin
   - [ ] Più complesso: ___________
-```
 
-### SE FINTECH:
-```
+§ SE FINTECH:
 □ Tipo operazioni finanziarie?
   - [ ] Solo visualizzazione
   - [ ] Trasferimenti interni
@@ -1655,14 +1529,12 @@ PROCESSO:
   - [ ] No
   - [ ] KYC base
   - [ ] KYC + AML completo
-```
 
 ---
 
-## 9.3 CHECKLIST EDGE CASES
+§ 9.3 CHECKLIST EDGE CASES
 
-### AUTENTICAZIONE
-```
+§ AUTENTICAZIONE
 □ Cosa succede se:
   - Email già registrata? → [ERRORE | RECOVERY | MERGE]
   - Password dimenticata? → [LINK RESET | DOMANDA SEGRETA | SUPPORTO]
@@ -1670,10 +1542,8 @@ PROCESSO:
   - Troppi tentativi login? → [LOCKOUT TEMPO | CAPTCHA | BLOCK]
   - Sessione scade durante operazione? → [SALVA DRAFT | PERDI DATI | PROMPT LOGIN]
   - Utente cancella account? → [SOFT DELETE | HARD DELETE | ANONIMIZZA]
-```
 
-### PAGAMENTI
-```
+§ PAGAMENTI
 □ Cosa succede se:
   - Pagamento fallisce? → [RETRY | CARRELLO SALVATO | NOTIFICA]
   - Pagamento pending lungo? → [TIMEOUT | WEBHOOK | POLLING]
@@ -1681,45 +1551,38 @@ PROCESSO:
   - Subscription scade? → [GRACE PERIOD | DOWNGRADE | BLOCK]
   - Carta scade? → [NOTIFICA PRE | RETRY | SOSPENDI]
   - Disputa/chargeback? → [PROCESSO | NOTIFICA | AUTO-REFUND]
-```
 
-### DATI E CONTENUTI
-```
+§ DATI E CONTENUTI
 □ Cosa succede se:
   - Upload file troppo grande? → [ERRORE | COMPRESS | CHUNK]
   - Upload file tipo sbagliato? → [REJECT | CONVERT | WARN]
   - Contenuto inappropriato? → [MODERATION | FLAG | AUTO-REMOVE]
   - Database pieno? → [SCALE | NOTIFICA | BLOCK WRITE]
   - Dati corrotti? → [BACKUP | RETRY | NOTIFICA]
-```
 
-### UI/UX
-```
+§ UI/UX
 □ Cosa succede se:
   - JavaScript disabilitato? → [FALLBACK | MESSAGGIO | SSR]
   - Connessione lenta? → [LOADING | SKELETON | OFFLINE MODE]
   - Connessione persa durante form? → [AUTO-SAVE | WARN | QUEUE]
   - Browser non supportato? → [FALLBACK | MESSAGGIO | BLOCK]
   - Screen reader? → [ARIA COMPLETO | BASE | NON SUPPORTATO]
-```
 
-### OPERAZIONI BUSINESS
-```
+§ OPERAZIONI BUSINESS
 □ Cosa succede se:
   - Stock esaurito durante checkout? → [ERRORE | WAITLIST | REMOVE]
   - Prezzo cambia durante checkout? → [PREZZO ORIGINALE | NUOVO | NOTIFICA]
   - Ordine annullato? → [REFUND AUTO | MANUALE | CREDITO]
   - Consegna fallita? → [RETRY | REFUND | PUNTO RITIRO]
   - Prodotto ritirato? → [NOTIFICA ACQUIRENTI | REFUND | SOSTITUZIONE]
-```
 
 ---
 
-## 9.4 TEMPLATE RIEPILOGO CONFERMA
+§ 9.4 TEMPLATE RIEPILOGO CONFERMA
 
 Dopo aver raccolto le risposte, Ralph deve produrre questo riepilogo:
 
-```markdown
+markdown
 # RIEPILOGO PROGETTO - CONFERMA PRIMA DI PROCEDERE
 
 ## Progetto
@@ -1762,13 +1625,11 @@ Dopo aver raccolto le risposte, Ralph deve produrre questo riepilogo:
 **CONFERMI QUESTO RIEPILOGO?**
 - [ ] Sì, procedi
 - [ ] No, devo modificare: ___________
-```
 
 ---
 
-## 9.5 WORKFLOW DISCOVERY COMPLETO
+§ 9.5 WORKFLOW DISCOVERY COMPLETO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        WORKFLOW DISCOVERY                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -1804,11 +1665,10 @@ STEP 5: INIZIO SVILUPPO
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  REGOLA: MAI iniziare sviluppo senza aver completato Step 1-4              │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 
 # ============================================================================
-# SEZIONE 10: WORKFLOW REVIEW E FIX FINALE
+§ SEZIONE 10: WORKFLOW REVIEW E FIX FINALE
 # ============================================================================
 
 """
@@ -1816,20 +1676,17 @@ Dopo che Ralph ha completato tutte le fasi di sviluppo, si esegue una review
 sistematica per identificare e correggere eventuali problemi.
 """
 
-## 10.1 CHECKLIST REVIEW FINALE
+§ 10.1 CHECKLIST REVIEW FINALE
 
-### STRUTTURA PROGETTO
-```
+§ STRUTTURA PROGETTO
 □ Tutti i file previsti esistono
 □ Struttura directory conforme a CATALOGO-CODICE
 □ Nessun file orfano o non utilizzato
 □ README.md presente e completo
 □ .gitignore configurato correttamente
 □ package.json ha tutti gli script necessari
-```
 
-### QUALITÀ CODICE
-```
+§ QUALITÀ CODICE
 □ `pnpm lint` passa senza errori
 □ `pnpm build` completa senza errori
 □ TypeScript strict mode attivo
@@ -1838,10 +1695,8 @@ sistematica per identificare e correggere eventuali problemi.
 □ Nessun `console.log` di debug
 □ Error handling presente ovunque
 □ Commenti per logica complessa
-```
 
-### FUNZIONALITÀ
-```
+§ FUNZIONALITÀ
 □ Tutte le feature core funzionano
 □ Autenticazione (se presente) funziona
 □ Flussi principali testati manualmente
@@ -1849,10 +1704,8 @@ sistematica per identificare e correggere eventuali problemi.
 □ Error states mostrati correttamente
 □ Loading states presenti
 □ Empty states presenti
-```
 
-### UI/UX
-```
+§ UI/UX
 □ Design tokens applicati correttamente
 □ Responsive su mobile (375px)
 □ Responsive su tablet (768px)
@@ -1861,52 +1714,42 @@ sistematica per identificare e correggere eventuali problemi.
 □ Accessibilità base (keyboard nav, ARIA)
 □ Immagini hanno alt text
 □ Focus states visibili
-```
 
-### PERFORMANCE
-```
+§ PERFORMANCE
 □ Bundle size ragionevole (< 500KB iniziale)
 □ Immagini ottimizzate
 □ Lazy loading dove appropriato
 □ No memory leak evidenti
 □ API calls non duplicate
 □ Caching implementato dove serve
-```
 
-### SICUREZZA
-```
+§ SICUREZZA
 □ Input sanitizzati
 □ No secrets in codice
 □ CORS configurato correttamente
 □ Auth tokens gestiti sicuramente
 □ SQL injection prevention (se SQL)
 □ XSS prevention
-```
 
-### DATABASE
-```
+§ DATABASE
 □ Schema corretto
 □ Indici presenti per query frequenti
 □ Relazioni corrette
 □ Seed data funzionante (se presente)
 □ Migration funzionanti (se presenti)
-```
 
-### INFRASTRUTTURA (se presente)
-```
+§ INFRASTRUTTURA (SE PRESENTE)
 □ `cdk synth` passa
 □ IAM policies least privilege
 □ Security groups corretti
 □ Environment variables configurate
 □ Logging abilitato
 □ Monitoring configurato
-```
 
 ---
 
-## 10.2 PROCESSO FIX SISTEMATICO
+§ 10.2 PROCESSO FIX SISTEMATICO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        PROCESSO FIX                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -1942,13 +1785,12 @@ STEP 6: DOCUMENTAZIONE FINALE
 ├── Documenta decisioni tecniche
 ├── Lista known issues (se minori non fixati)
 └── Istruzioni deploy/setup
-```
 
 ---
 
-## 10.3 TEMPLATE REPORT REVIEW
+§ 10.3 TEMPLATE REPORT REVIEW
 
-```markdown
+markdown
 # REVIEW REPORT - [NOME_PROGETTO]
 Data: [DATA]
 
@@ -1988,13 +1830,12 @@ Data: [DATA]
 - [ ] Fix critici applicati
 - [ ] Fix importanti applicati
 - [ ] Pronto per release
-```
 
 ---
 
-## 10.4 AUTOMAZIONE REVIEW (COMANDI)
+§ 10.4 AUTOMAZIONE REVIEW (COMANDI)
 
-```bash
+bash
 # Script review automatica (da eseguire in root progetto)
 
 # 1. Lint check
@@ -2024,12 +1865,11 @@ pnpm audit
 # 7. Outdated packages
 echo "=== OUTDATED PACKAGES ===" 
 pnpm outdated
-```
 
 ---
 
 # ============================================================================
-# FINE AGGIORNAMENTO CATALOGO INTERFACCIA PROMPT
+§ FINE AGGIORNAMENTO CATALOGO INTERFACCIA PROMPT
 # ============================================================================
 
 """
@@ -2045,7 +1885,7 @@ Il catalogo ora include il ciclo completo:
 
 
 # ============================================================================
-# SEZIONE 11: ESEMPI PRATICI DI UTILIZZO COMPLETO
+§ SEZIONE 11: ESEMPI PRATICI DI UTILIZZO COMPLETO
 # ============================================================================
 
 """
@@ -2054,18 +1894,15 @@ per creare progetti reali. Ogni esempio segue il workflow completo:
 Discovery → Selezione Stile → Sviluppo → Review
 """
 
-## 11.1 ESEMPIO COMPLETO: E-COMMERCE MVP "PetShop"
+§ 11.1 ESEMPIO COMPLETO: E-COMMERCE MVP "PETSHOP"
 
-### FASE 1: PROMPT INIZIALE UTENTE
-```
+§ FASE 1: PROMPT INIZIALE UTENTE
 "Voglio creare un e-commerce per vendere prodotti per animali domestici.
 Deve essere semplice, con catalogo prodotti, carrello e checkout.
 Budget limitato, voglio usare solo servizi gratuiti AWS."
-```
 
-### FASE 2: DISCOVERY (Domande che Ralph pone)
+§ FASE 2: DISCOVERY (DOMANDE CHE RALPH PONE)
 
-```
 RALPH: Prima di iniziare, ho bisogno di alcune informazioni per assicurarmi
 di creare esattamente ciò che ti serve.
 
@@ -2122,11 +1959,10 @@ EDGE CASES CONFERMATI:
 - Stock esaurito: mostra "Non disponibile" ma permetti wishlist
 - Pagamento fallito: mostra errore, mantieni carrello
 - Carrello abbandonato: nessuna email per MVP
-```
 
-### FASE 3: RIEPILOGO CONFERMA
+§ FASE 3: RIEPILOGO CONFERMA
 
-```markdown
+markdown
 # RIEPILOGO PROGETTO - PetShop MVP
 
 ## Progetto
@@ -2163,11 +1999,10 @@ EDGE CASES CONFERMATI:
 
 ---
 **CONFERMI?** [Sì, procedi]
-```
 
-### FASE 4: MAPPING CATALOGHI
+§ FASE 4: MAPPING CATALOGHI
 
-```yaml
+yaml
 cataloghi_da_leggere:
   
   1_requisiti:
@@ -2212,11 +2047,9 @@ cataloghi_da_leggere:
       - TypeScript standards
       - Zod schemas
       - API routes pattern
-```
 
-### FASE 5: STRUTTURA PROGETTO GENERATA
+§ FASE 5: STRUTTURA PROGETTO GENERATA
 
-```
 petshop-mvp/
 ├── src/
 │   ├── app/
@@ -2283,11 +2116,10 @@ petshop-mvp/
 ├── next.config.js
 ├── package.json
 └── tsconfig.json
-```
 
-### FASE 6: DESIGN TOKENS APPLICATI
+§ FASE 6: DESIGN TOKENS APPLICATI
 
-```css
+css
 /* styles/tokens.css - PetShop Theme */
 
 :root {
@@ -2323,11 +2155,10 @@ petshop-mvp/
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
-```
 
-### FASE 7: COMPONENTE ESEMPIO (ProductCard)
+§ FASE 7: COMPONENTE ESEMPIO (PRODUCTCARD)
 
-```tsx
+tsx
 // components/ecommerce/ProductCard.tsx
 // Pattern: CATALOGO-UI-PATTERN-PRIMITIVI → E-Commerce → EC-1
 
@@ -2407,11 +2238,10 @@ export function ProductCard({ product }: ProductCardProps) {
     </div>
   );
 }
-```
 
-### FASE 8: REVIEW CHECKLIST
+§ FASE 8: REVIEW CHECKLIST
 
-```markdown
+markdown
 ## REVIEW - PetShop MVP
 
 ### Struttura ✅
@@ -2442,22 +2272,19 @@ export function ProductCard({ product }: ProductCardProps) {
 - Minor: Aggiungere SEO meta tags (post-MVP)
 
 ### RISULTATO: READY FOR DEPLOY ✅
-```
 
 ---
 
-## 11.2 ESEMPIO COMPLETO: SAAS DASHBOARD "TaskFlow"
+§ 11.2 ESEMPIO COMPLETO: SAAS DASHBOARD "TASKFLOW"
 
-### FASE 1: PROMPT INIZIALE
-```
+§ FASE 1: PROMPT INIZIALE
 "Voglio creare una dashboard per gestione task/progetti per piccoli team.
 Deve avere autenticazione, progetti, task con status, e un dashboard overview.
 Stile moderno, developer-friendly."
-```
 
-### FASE 2: DISCOVERY COMPLETATO
+§ FASE 2: DISCOVERY COMPLETATO
 
-```yaml
+yaml
 categoria: SaaS
 tipo: MVP con auth
 
@@ -2490,11 +2317,10 @@ edge_cases:
   - Task senza assegnee: permesso, mostra "Unassigned"
   - Progetto senza task: mostra empty state con CTA
   - Utente rimosso da progetto: task rimangono ma reassign
-```
 
-### FASE 3: MAPPING CATALOGHI
+§ FASE 3: MAPPING CATALOGHI
 
-```yaml
+yaml
 cataloghi:
   
   design_reference:
@@ -2522,11 +2348,9 @@ cataloghi:
     - GET/POST /api/projects/[id]/tasks
     - PATCH /api/tasks/[id]
     - GET /api/dashboard/stats
-```
 
-### FASE 4: STRUTTURA GENERATA
+§ FASE 4: STRUTTURA GENERATA
 
-```
 taskflow/
 ├── src/
 │   ├── app/
@@ -2570,11 +2394,10 @@ taskflow/
 │       └── tokens.css      # Linear-style dark theme
 │
 └── ...
-```
 
-### FASE 5: DESIGN TOKENS (Linear Dark)
+§ FASE 5: DESIGN TOKENS (LINEAR DARK)
 
-```css
+css
 /* Linear-inspired dark theme */
 :root {
   --color-primary: #8B5CF6;        /* Violet */
@@ -2599,15 +2422,14 @@ taskflow/
   --radius-md: 6px;
   --radius-lg: 8px;
 }
-```
 
 ---
 
-## 11.3 TEMPLATE QUICK START
+§ 11.3 TEMPLATE QUICK START
 
 Per progetti futuri, usa questo template minimale:
 
-```markdown
+markdown
 # QUICK START - [Nome Progetto]
 
 ## 1. DISCOVERY RAPIDO
@@ -2638,11 +2460,10 @@ Per progetti futuri, usa questo template minimale:
 - [ ] CODICE → Pattern _____
 
 ## 6. GO!
-```
 
 
 # ============================================================================
-# SEZIONE 12: CROSS-REFERENCE TRA CATALOGHI
+§ SEZIONE 12: CROSS-REFERENCE TRA CATALOGHI
 # ============================================================================
 
 """
@@ -2650,9 +2471,8 @@ Questa sezione fornisce mapping rapidi per trovare informazioni specifiche
 attraverso tutti i cataloghi. Utile per lookup veloce durante lo sviluppo.
 """
 
-## 12.1 MAPPING: "Ho bisogno di..." → Catalogo
+§ 12.1 MAPPING: "HO BISOGNO DI..." → CATALOGO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ HO BISOGNO DI...                    │ CATALOGO DA CONSULTARE               │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2738,11 +2558,10 @@ attraverso tutti i cataloghi. Utile per lookup veloce durante lo sviluppo.
 │ Esempi pratici                      │ INTERFACCIA-PROMPT-USABILITA         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 12.2 MAPPING: Componente UI → Pattern + Tokens
+§ 12.2 MAPPING: COMPONENTE UI → PATTERN + TOKENS
 
-```yaml
+yaml
 # Per ogni componente, dove trovare specifiche
 
 Button:
@@ -2799,11 +2618,10 @@ Avatar:
     sizes: w-6, w-8, w-10, w-12, w-16
     fallback-bg: DESIGN-TOKEN-SYSTEM → colors.surface.muted
     status-colors: DESIGN-TOKEN-SYSTEM → colors.feedback.*
-```
 
-## 12.3 MAPPING: Categoria Piattaforma → Cataloghi Prioritari
+§ 12.3 MAPPING: CATEGORIA PIATTAFORMA → CATALOGHI PRIORITARI
 
-```yaml
+yaml
 E-Commerce:
   priorità_1:
     - DESIGN-REFERENCE → Stile Airbnb/Shopify, Layout E-commerce
@@ -2863,11 +2681,10 @@ Social/Community:
   priorità_3:
     - CODICE → Real-time patterns
     - AWS-DETERMINISTICO → WebSocket, notifications
-```
 
-## 12.4 CHECKLIST RAPIDA PRE-SVILUPPO
+§ 12.4 CHECKLIST RAPIDA PRE-SVILUPPO
 
-```markdown
+markdown
 ## CHECKLIST: Prima di scrivere codice
 
 ### Discovery ✓
@@ -2906,15 +2723,14 @@ Social/Community:
 - [ ] Tutto confermato con utente
 - [ ] Struttura progetto chiara
 - [ ] Prima fase definita
-```
 
 # ============================================================================
-# SEZIONE 13: SNIPPET CODICE PRONTI ALL'USO
+§ SEZIONE 13: SNIPPET CODICE PRONTI ALL'USO
 # ============================================================================
 
-## 13.1 SETUP PROGETTO NEXT.JS
+§ 13.1 SETUP PROGETTO NEXT.JS
 
-```bash
+bash
 # Comando setup completo
 pnpm create next-app@latest my-project --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
 
@@ -2929,11 +2745,10 @@ pnpm add @supabase/supabase-js @supabase/auth-helpers-nextjs
 
 # Se payments con Stripe
 pnpm add @stripe/stripe-js stripe
-```
 
-## 13.2 UTILITY CN (Class Names)
+§ 13.2 UTILITY CN (CLASS NAMES)
 
-```typescript
+typescript
 // lib/utils.ts
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -2941,11 +2756,10 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-```
 
-## 13.3 ZOD SCHEMA TEMPLATE
+§ 13.3 ZOD SCHEMA TEMPLATE
 
-```typescript
+typescript
 // schemas/product.ts
 import { z } from 'zod';
 
@@ -2973,11 +2787,10 @@ export type Product = z.infer<typeof ProductSchema>;
 export function validateProduct(data: unknown): Product {
   return ProductSchema.parse(data);
 }
-```
 
-## 13.4 REACT QUERY SETUP
+§ 13.4 REACT QUERY SETUP
 
-```typescript
+typescript
 // lib/query-client.ts
 import { QueryClient } from '@tanstack/react-query';
 
@@ -3016,11 +2829,10 @@ export function useProduct(id: string) {
     enabled: !!id,
   });
 }
-```
 
-## 13.5 LOCAL STORAGE CART HOOK
+§ 13.5 LOCAL STORAGE CART HOOK
 
-```typescript
+typescript
 // hooks/useCart.ts
 import { useState, useEffect, useCallback } from 'react';
 
@@ -3119,11 +2931,10 @@ export function useCart() {
     itemCount: cart.items.reduce((sum, i) => sum + i.quantity, 0),
   };
 }
-```
 
-## 13.6 API ROUTE TEMPLATE (Next.js)
+§ 13.6 API ROUTE TEMPLATE (NEXT.JS)
 
-```typescript
+typescript
 // app/api/products/route.ts
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -3183,11 +2994,10 @@ export async function POST(request: Request) {
     );
   }
 }
-```
 
-## 13.7 TAILWIND CONFIG CON DESIGN TOKENS
+§ 13.7 TAILWIND CONFIG CON DESIGN TOKENS
 
-```javascript
+javascript
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -3253,10 +3063,9 @@ module.exports = {
   },
   plugins: [],
 };
-```
 
 # ============================================================================
-# FINE SEZIONI AGGIUNTIVE
+§ FINE SEZIONI AGGIUNTIVE
 # ============================================================================
 
 """

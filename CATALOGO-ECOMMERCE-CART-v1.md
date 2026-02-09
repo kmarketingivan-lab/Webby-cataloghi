@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -29,9 +29,9 @@
 
 ---
 
-## 1. prisma/schema-ecommerce-cart.prisma
+§ 1. PRISMA/SCHEMA-ECOMMERCE-CART.PRISMA
 
-```prisma
+prisma
 // Questo schema assume l'esistenza di User, Product, ProductVariant e Coupon
 // da un modulo precedente o da un'altra parte del sistema.
 // Vengono inclusi qui per completezza delle relazioni.
@@ -306,13 +306,12 @@ model OrderItem {
   @@index([productId])
   @@index([variantId])
 }
-```
 
 ---
 
-## 2. src/server/services/cart-service.ts
+§ 2. SRC/SERVER/SERVICES/CART-SERVICE.TS
 
-```typescript
+typescript
 import { PrismaClient, Cart, CartItem, Product, ProductVariant, Coupon, DiscountType, Address } from '@prisma/client';
 import { Decimal } from 'decimal.js'; // Assumiamo l'uso di decimal.js per calcoli precisi
 
@@ -966,13 +965,12 @@ export class CartService {
     console.log(`Extended expiration for cart ${cartId} to ${newExpiresAt.toISOString()}`);
   }
 }
-```
 
 ---
 
-## 3. src/server/services/checkout-service.ts
+§ 3. SRC/SERVER/SERVICES/CHECKOUT-SERVICE.TS
 
-```typescript
+typescript
 import {
   PrismaClient,
   Cart,
@@ -1633,13 +1631,12 @@ export class CheckoutService {
     // });
   }
 }
-```
 
 ---
 
-## 4. src/server/trpc/routers/cart.ts
+§ 4. SRC/SERVER/TRPC/ROUTERS/CART.TS
 
-```typescript
+typescript
 import { z } from 'zod';
 import { publicProcedure, protectedProcedure, router } from '../trpc'; // Assumi che questi siano definiti
 import { CartService } from '../services/cart-service';
@@ -1806,13 +1803,12 @@ export const cartRouter = router({
 //   sessionId: string | null;
 //   // ... altre proprietà del contesto
 // }
-```
 
 ---
 
-## 5. src/server/trpc/routers/checkout.ts
+§ 5. SRC/SERVER/TRPC/ROUTERS/CHECKOUT.TS
 
-```typescript
+typescript
 import { z } from 'zod';
 import { publicProcedure, protectedProcedure, router } from '../trpc'; // Assumi che questi siano definiti
 import { CheckoutService } from '../services/checkout-service';
@@ -1930,13 +1926,12 @@ export const checkoutRouter = router({
 //   sessionId: string | null;
 //   // ... altre proprietà del contesto
 // }
-```
 
 ---
 
-## 6. src/lib/validations/cart.ts
+§ 6. SRC/LIB/VALIDATIONS/CART.TS
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // Schema per l'aggiunta di un item al carrello
@@ -2005,13 +2000,12 @@ export const UpdateCheckoutInputSchema = z.object({
   shipping: z.number().optional(),
   total: z.number().optional(),
 });
-```
 
 ---
 
-## 7. src/hooks/use-cart.ts
+§ 7. SRC/HOOKS/USE-CART.TS
 
-```typescript
+typescript
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { trpc } from '../utils/trpc'; // Assumi che trpc sia configurato
 import { Cart, CartItem } from '@prisma/client'; // Importa i tipi Prisma
@@ -2147,13 +2141,12 @@ export function useCart(): UseCartResult {
     error,
   };
 }
-```
 
 ---
 
-## 8. src/hooks/use-checkout.ts
+§ 8. SRC/HOOKS/USE-CHECKOUT.TS
 
-```typescript
+typescript
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { trpc } from '../utils/trpc'; // Assumi che trpc sia configurato
 import { CheckoutSession, CheckoutStep, Address } from '@prisma/client';
@@ -2306,13 +2299,12 @@ export function useCheckout(): UseCheckoutResult {
     refetchSession,
   };
 }
-```
 
 ---
 
-## 9. src/components/cart/cart-drawer.tsx
+§ 9. SRC/COMPONENTS/CART/CART-DRAWER.TSX
 
-```typescript
+typescript
 import React from 'react';
 import { useCart } from '../../hooks/use-cart';
 import { CartItemCard } from './cart-item';
@@ -2413,13 +2405,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     </div>
   );
 }
-```
 
 ---
 
-## 10. src/components/cart/cart-item.tsx
+§ 10. SRC/COMPONENTS/CART/CART-ITEM.TSX
 
-```typescript
+typescript
 import React from 'react';
 import Image from 'next/image';
 import { useCart } from '../../hooks/use-cart';
@@ -2520,13 +2511,12 @@ export function CartItemCard({ item }: CartItemCardProps) {
     </li>
   );
 }
-```
 
 ---
 
-## 11. src/components/cart/cart-summary.tsx
+§ 11. SRC/COMPONENTS/CART/CART-SUMMARY.TSX
 
-```typescript
+typescript
 import React, { useState } from 'react';
 import { useCart } from '../../hooks/use-cart';
 
@@ -2623,13 +2613,12 @@ export function CartSummary() {
     </div>
   );
 }
-```
 
 ---
 
-## 12. src/components/cart/cart-icon.tsx
+§ 12. SRC/COMPONENTS/CART/CART-ICON.TSX
 
-```typescript
+typescript
 import React from 'react';
 import { useCart } from '../../hooks/use-cart';
 
@@ -2672,13 +2661,12 @@ export function CartIcon({ onClick }: CartIconProps) {
     </button>
   );
 }
-```
 
 ---
 
-## 13. src/components/checkout/checkout-form.tsx
+§ 13. SRC/COMPONENTS/CHECKOUT/CHECKOUT-FORM.TSX
 
-```typescript
+typescript
 import React, { useState, useEffect } from 'react';
 import { useCheckout } from '../../hooks/use-checkout';
 import { CheckoutStep } from '@prisma/client';
@@ -2942,13 +2930,12 @@ export function CheckoutForm() {
     </div>
   );
 }
-```
 
 ---
 
-## 14. src/components/checkout/address-form.tsx
+§ 14. SRC/COMPONENTS/CHECKOUT/ADDRESS-FORM.TSX
 
-```typescript
+typescript
 import React from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
@@ -3176,13 +3163,12 @@ export function AddressForm({
     </form>
   );
 }
-```
 
 ---
 
-## 15. src/components/checkout/shipping-options.tsx
+§ 15. SRC/COMPONENTS/CHECKOUT/SHIPPING-OPTIONS.TSX
 
-```typescript
+typescript
 import React, { useEffect } from 'react';
 import { useCheckout } from '../../hooks/use-checkout';
 import { ShippingMethod } from '../../server/services/checkout-service'; // Importa il tipo

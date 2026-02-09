@@ -1,6 +1,6 @@
 # CATALOGO DRAG-DROP v1
 
-## §1. DRAG & DROP LIBRARY COMPARISON
+§ §1. DRAG & DROP LIBRARY COMPARISON
 
 | Library | Bundle | Touch | A11y | Tree Shaking | Status |
 |---------|--------|-------|------|--------------|--------|
@@ -12,16 +12,15 @@
 
 **Raccomandazione:** dnd-kit (moderno, performante, accessibile)
 
-## §2. DND-KIT SETUP
+§ §2. DND-KIT SETUP
 
-### 2.1 Installation & Providers
+§ 2.1 INSTALLATION & PROVIDERS
 
-```bash
+bash
 # Install dnd-kit core and utilities
 npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
-```
 
-```typescript
+typescript
 // lib/dnd/config.ts
 import type { Active, Over, UniqueIdentifier } from '@dnd-kit/core';
 import {
@@ -107,9 +106,8 @@ export const getScreenReaderAnnouncement = (
 
   return `${activeItem} was moved ${overItem}.`;
 };
-```
 
-```typescript
+typescript
 // providers/DndProvider.tsx
 'use client';
 
@@ -243,11 +241,10 @@ export function useDndContext() {
   }
   return context;
 }
-```
 
-### 2.2 Basic Draggable
+§ 2.2 BASIC DRAGGABLE
 
-```typescript
+typescript
 // components/dnd/Draggable.tsx
 'use client';
 
@@ -391,11 +388,10 @@ export function DraggableWithOverlay({
     </Draggable>
   );
 }
-```
 
-### 2.3 Basic Droppable
+§ 2.3 BASIC DROPPABLE
 
-```typescript
+typescript
 // components/dnd/Droppable.tsx
 'use client';
 
@@ -518,13 +514,12 @@ export function DroppableWithPlaceholder({
     </Droppable>
   );
 }
-```
 
-## §3. SORTABLE LIST
+§ §3. SORTABLE LIST
 
-### 3.1 Sortable Context
+§ 3.1 SORTABLE CONTEXT
 
-```typescript
+typescript
 // components/dnd/SortableList.tsx
 'use client';
 
@@ -657,11 +652,10 @@ export function SortableListWithHandle<T extends { id: string }>({
     />
   );
 }
-```
 
-### 3.2 Sortable Item
+§ 3.2 SORTABLE ITEM
 
-```typescript
+typescript
 // components/dnd/SortableItem.tsx
 'use client';
 
@@ -824,11 +818,10 @@ export function SortableCard({
     </SortableItem>
   );
 }
-```
 
-### 3.3 Persist Order
+§ 3.3 PERSIST ORDER
 
-```typescript
+typescript
 // hooks/useSortableList.ts
 import { useState, useCallback, useRef } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -1052,13 +1045,12 @@ export function SortableListExample() {
     </div>
   );
 }
-```
 
-## §4. KANBAN BOARD
+§ §4. KANBAN BOARD
 
-### 4.1 Kanban Implementation
+§ 4.1 KANBAN IMPLEMENTATION
 
-```typescript
+typescript
 // components/kanban/types.ts
 export interface KanbanItem {
   id: string;
@@ -1089,9 +1081,8 @@ export interface KanbanBoard {
   columns: KanbanColumn[];
   items: Record<string, KanbanItem>;
 }
-```
 
-```typescript
+typescript
 // components/kanban/KanbanBoard.tsx
 'use client';
 
@@ -1409,9 +1400,8 @@ export function KanbanBoard({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/kanban/KanbanColumn.tsx
 'use client';
 
@@ -1616,9 +1606,8 @@ export function KanbanColumn({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/kanban/KanbanCard.tsx
 'use client';
 
@@ -1842,11 +1831,10 @@ export function KanbanCard({
     </div>
   );
 }
-```
 
-## §5. FILE UPLOAD DROP ZONE
+§ §5. FILE UPLOAD DROP ZONE
 
-```typescript
+typescript
 // components/dnd/FileDropzone.tsx
 'use client';
 
@@ -2053,37 +2041,36 @@ export function FileDropzone({
     </div>
   );
 }
-```
 
 [Continua... Le sezioni rimanenti includerebbero:
 
-## §6. TREE/HIERARCHY DRAG
+§ §6. TREE/HIERARCHY DRAG
 - Sortable tree component con nesting
 - Collapse/expand durante il drag
 - Parent-child relationships
 
-## §7. ACCESSIBILITY
+§ §7. ACCESSIBILITY
 - Keyboard navigation completa
 - Screen reader announcements
 - Focus management durante il drag
 
-## §8. TOUCH SUPPORT
+§ §8. TOUCH SUPPORT
 - Touch sensor configuration
 - Delay per distinguere drag da scroll
 - Visual feedback per touch devices
 
-## §9. PERFORMANCE
+§ §9. PERFORMANCE
 - Virtualization per liste lunghe
 - Memoization con React.memo e useMemo
 - CSS transforms invece di layout changes
 
-## §10. COMMON PATTERNS
+§ §10. COMMON PATTERNS
 - Reorderable table rows
 - Image gallery reordering
 - Priority/ranking list
 - Dashboard widget drag & drop
 
-## §11. DRAG & DROP CHECKLIST
+§ §11. DRAG & DROP CHECKLIST
 - Checklist completo per deployment
 - Testing strategies
 - Performance optimization

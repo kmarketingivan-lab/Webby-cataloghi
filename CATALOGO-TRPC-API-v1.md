@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -26,9 +26,9 @@
 
 ---
 
-## 1. src/server/trpc/trpc.ts
+§ 1. SRC/SERVER/TRPC/TRPC.TS
 
-```typescript
+typescript
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
@@ -234,13 +234,12 @@ export const loggedProcedure = t.procedure.use(loggingMiddleware);
 
 // Puoi combinare i middleware come preferisci, ad esempio:
 // export const protectedAndLoggedProcedure = protectedProcedure.use(loggingMiddleware);
-```
 
 ---
 
-## 2. src/server/trpc/routers/_app.ts
+§ 2. SRC/SERVER/TRPC/ROUTERS/_APP.TS
 
-```typescript
+typescript
 import { createTRPCRouter } from "@/server/trpc/trpc";
 import { authRouter } from "./auth"; // Presuppone l'esistenza di un router auth
 import { userRouter } from "./user"; // Presuppone l'esistenza di un router user
@@ -340,13 +339,12 @@ export const appRouter = createTRPCRouter({
 
 // Esporta il tipo del router radice per l'uso lato client
 export type AppRouter = typeof appRouter;
-```
 
 ---
 
-## 3. src/server/trpc/client.ts
+§ 3. SRC/SERVER/TRPC/CLIENT.TS
 
-```typescript
+typescript
 // Client-side tRPC setup
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
@@ -421,13 +419,12 @@ function getBaseUrl() {
   // Fallback per sviluppo locale
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
-```
 
 ---
 
-## 4. src/app/api/trpc/[trpc]/route.ts
+§ 4. SRC/APP/API/TRPC/[TRPC]/ROUTE.TS
 
-```typescript
+typescript
 // Next.js API route handler per tRPC (App Router)
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "@/server/trpc/routers/_app";
@@ -454,13 +451,12 @@ const handler = (req: Request) =>
 // Esporta il gestore per i metodi GET e POST.
 // tRPC utilizza principalmente POST per le mutazioni e GET per le query.
 export { handler as GET, handler as POST };
-```
 
 ---
 
-## 5. src/lib/api/errors.ts
+§ 5. SRC/LIB/API/ERRORS.TS
 
-```typescript
+typescript
 import { TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
 
@@ -646,13 +642,12 @@ export function toTRPCError(error: ApiError): TRPCError {
     },
   });
 }
-```
 
 ---
 
-## 6. src/lib/api/response.ts
+§ 6. SRC/LIB/API/RESPONSE.TS
 
-```typescript
+typescript
 import { ApiError, InternalServerError } from "./errors";
 
 /**
@@ -756,13 +751,12 @@ export function paginatedResponse<T>(
 // function generateRequestId(): string {
 //   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 // }
-```
 
 ---
 
-## 7. src/lib/api/rate-limit.ts
+§ 7. SRC/LIB/API/RATE-LIMIT.TS
 
-```typescript
+typescript
 // Rate limiting utilities
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -842,13 +836,12 @@ export function createTRPCRateLimitMiddleware(limit: number, window: string) {
 
 // Importa t per il middleware (necessario per createTRPCRateLimitMiddleware)
 import { t } from "@/server/trpc/trpc"; // Assicurati che `t` sia esportato da trpc.ts
-```
 
 ---
 
-## 8. src/lib/api/validation.ts
+§ 8. SRC/LIB/API/VALIDATION.TS
 
-```typescript
+typescript
 // Validation utilities
 import { z, ZodError } from "zod";
 import { ValidationError } from "./errors";
@@ -951,13 +944,12 @@ export function useZodForm<T extends z.ZodSchema<any>>(
     resolver: zodResolver(schema),
   });
 }
-```
 
 ---
 
-## 9. src/lib/api/fetch.ts
+§ 9. SRC/LIB/API/FETCH.TS
 
-```typescript
+typescript
 import { ApiError, InternalServerError } from "./errors";
 
 /**
@@ -1067,13 +1059,12 @@ export const api = {
   delete: <T>(url: string, options?: FetchOptions) =>
     apiFetch<T>(url, { ...options, method: "DELETE" }),
 };
-```
 
 ---
 
-## 10. src/hooks/use-api.ts
+§ 10. SRC/HOOKS/USE-API.TS
 
-```typescript
+typescript
 import {
   useQuery,
   useMutation,
@@ -1164,13 +1155,12 @@ export function useInfiniteApiQuery<TData, TError = Error, TPageParam = string>(
     ...options,
   });
 }
-```
 
 ---
 
-## 11. src/server/middleware/index.ts
+§ 11. SRC/SERVER/MIDDLEWARE/INDEX.TS
 
-```typescript
+typescript
 import { ZodSchema, ZodError } from "zod";
 import { ValidationError, ApiError, InternalServerError } from "@/lib/api/errors";
 import { errorResponse } from "@/lib/api/response";
@@ -1321,13 +1311,12 @@ export const withErrorHandler: Middleware = (err, req, res, next) => {
 
   res.status(apiError.statusCode).json(errorResponse(apiError));
 };
-```
 
 ---
 
-## 12. tests/api.test.ts
+§ 12. TESTS/API.TEST.TS
 
-```typescript
+typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   ApiError,
@@ -1666,7 +1655,6 @@ describe("src/server/middleware/index.ts", () => {
     expect(mockNext).not.toHaveBeenCalled();
   });
 });
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 19873_

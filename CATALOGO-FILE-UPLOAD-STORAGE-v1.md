@@ -6,11 +6,11 @@
 
 ---
 
-## 1. PRESIGNED URL UPLOAD (STANDARD)
+§ 1. PRESIGNED URL UPLOAD (STANDARD)
 
-### 1.1 S3 Presigned URL Generation
+§ 1.1 S3 PRESIGNED URL GENERATION
 
-```typescript
+typescript
 // src/lib/s3.ts
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -51,11 +51,10 @@ export async function getDownloadPresignedUrl(key: string, expiresIn = 3600) {
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
   return getSignedUrl(s3, command, { expiresIn });
 }
-```
 
-### 1.2 API Route (Next.js)
+§ 1.2 API ROUTE (NEXT.JS)
 
-```typescript
+typescript
 // src/app/api/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getUploadPresignedUrl } from '@/lib/s3';
@@ -84,11 +83,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 }
-```
 
-### 1.3 Client Upload Function
+§ 1.3 CLIENT UPLOAD FUNCTION
 
-```typescript
+typescript
 // src/lib/upload.ts
 interface UploadOptions {
   file: File;
@@ -140,13 +138,12 @@ function uploadWithProgress(
     xhr.send(file);
   });
 }
-```
 
 ---
 
-## 2. CHUNKED / MULTIPART UPLOAD (LARGE FILES)
+§ 2. CHUNKED / MULTIPART UPLOAD (LARGE FILES)
 
-```typescript
+typescript
 // src/lib/s3-multipart.ts
 import { 
   S3Client, 
@@ -235,13 +232,12 @@ export async function abortMultipartUpload(session: MultipartSession) {
   });
   await s3.send(command);
 }
-```
 
 ---
 
-## 3. IMAGE PROCESSING (RESPONSIVE / WEBP / AVIF)
+§ 3. IMAGE PROCESSING (RESPONSIVE / WEBP / AVIF)
 
-```typescript
+typescript
 // src/lib/image.ts
 import sharp from 'sharp';
 import path from 'path';
@@ -293,11 +289,10 @@ export function generateSrcSet(
     .map(w => `${baseUrl}/${filename}-${w}.${format} ${w}w`)
     .join(', ');
 }
-```
 
 ---
 
-## 4. SECURITY PATTERNS
+§ 4. SECURITY PATTERNS
 
 | Pattern              | Implementation                                                               |
 | -------------------- | ---------------------------------------------------------------------------- |
@@ -312,9 +307,9 @@ export function generateSrcSet(
 | Multipart cleanup    | Abort incomplete multipart uploads after timeout                             |
 | User isolation       | Separate uploads by user ID folder (`users/{userId}/...`)                    |
 
-### 4.1 File Validation Schema
+§ 4.1 FILE VALIDATION SCHEMA
 
-```typescript
+typescript
 import { z } from 'zod';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -333,15 +328,14 @@ export const documentUploadSchema = z.object({
   contentType: z.enum(ALLOWED_DOC_TYPES as [string, ...string[]]),
   size: z.number().max(MAX_DOC_SIZE),
 });
-```
 
 ---
 
-## 5. REACT COMPONENTS
+§ 5. REACT COMPONENTS
 
-### 5.1 Dropzone + Upload Progress
+§ 5.1 DROPZONE + UPLOAD PROGRESS
 
-```tsx
+tsx
 // src/components/FileUploader.tsx
 'use client';
 import { useState, useCallback } from 'react';
@@ -432,11 +426,10 @@ export default function FileUploader() {
     </div>
   );
 }
-```
 
-### 5.2 Large File Uploader (Chunked)
+§ 5.2 LARGE FILE UPLOADER (CHUNKED)
 
-```tsx
+tsx
 // src/components/LargeFileUploader.tsx
 'use client';
 import { useState } from 'react';
@@ -550,11 +543,10 @@ async function uploadChunk(
     xhr.send(chunk);
   });
 }
-```
 
 ---
 
-## 6. CDN INTEGRATION
+§ 6. CDN INTEGRATION
 
 | Provider   | Setup                                        | Signed URLs | Edge Caching |
 | ---------- | -------------------------------------------- | ----------- | ------------ |
@@ -563,9 +555,9 @@ async function uploadChunk(
 | Bunny.net  | Pull zone from S3 origin                     | ✅          | ✅           |
 | Vercel     | Edge middleware for auth + rewrite to S3/R2  | ⚠️         | ✅           |
 
-### 6.1 CloudFront Signed URL
+§ 6.1 CLOUDFRONT SIGNED URL
 
-```typescript
+typescript
 import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
 
 export function getCloudFrontSignedUrl(key: string, expiresIn = 3600) {
@@ -579,11 +571,10 @@ export function getCloudFrontSignedUrl(key: string, expiresIn = 3600) {
     dateLessThan,
   });
 }
-```
 
 ---
 
-## 7. STORAGE COST COMPARISON
+§ 7. STORAGE COST COMPARISON
 
 | Provider        | Storage (GB/mo) | PUT (per 1k) | GET (per 1k) | Egress (GB)  |
 | --------------- | --------------- | ------------ | ------------ | ------------ |
@@ -595,9 +586,8 @@ export function getCloudFrontSignedUrl(key: string, expiresIn = 3600) {
 
 ---
 
-## 8. FILE UPLOAD CHECKLIST
+§ 8. FILE UPLOAD CHECKLIST
 
-```
 □ File type validation (whitelist)
 □ File size limits enforced
 □ Presigned URLs with short expiration
@@ -612,11 +602,10 @@ export function getCloudFrontSignedUrl(key: string, expiresIn = 3600) {
 □ Error handling & retry logic
 □ Lifecycle rules for temp files
 □ Logging & audit trail
-```
 
 ---
 
-## 9. ADDITIONAL TIPS
+§ 9. ADDITIONAL TIPS
 
 1. Use **Web Workers** for large file processing in browser
 2. Generate **responsive image sizes** for each format and serve via `<picture>` tag
@@ -627,11 +616,11 @@ export function getCloudFrontSignedUrl(key: string, expiresIn = 3600) {
 7. For multi-user apps, separate uploads by **user ID folder** to isolate permissions
 
 
-## 2. ADVANCED ERROR HANDLING
+§ 2. ADVANCED ERROR HANDLING
 
-### 2.1 Custom Error Types
+§ 2.1 CUSTOM ERROR TYPES
 
-```typescript
+typescript
 // src/lib/errors.ts
 class UploadError extends Error {
   constructor(message: string, public code: string) {
@@ -653,11 +642,10 @@ class FileTooLargeError extends UploadError {
 }
 
 export { UploadError, InvalidFileTypeError, FileTooLargeError };
-```
 
-### 2.2 Error Handling in API Route
+§ 2.2 ERROR HANDLING IN API ROUTE
 
-```typescript
+typescript
 // src/app/api/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getUploadPresignedUrl } from '@/lib/s3';
@@ -695,13 +683,12 @@ export async function POST(request: NextRequest) {
     }
   }
 }
-```
 
-## 3. PERFORMANCE CONSIDERATIONS
+§ 3. PERFORMANCE CONSIDERATIONS
 
-### 3.1 Optimizing Image Uploads
+§ 3.1 OPTIMIZING IMAGE UPLOADS
 
-```typescript
+typescript
 // src/lib/image-optimizer.ts
 import { Sharp } from 'sharp';
 
@@ -719,11 +706,10 @@ export async function optimizeImage(imageBuffer: Buffer) {
     return imageBuffer;
   }
 }
-```
 
-### 3.2 Caching Presigned URLs
+§ 3.2 CACHING PRESIGNED URLS
 
-```typescript
+typescript
 // src/lib/s3.ts
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -768,13 +754,12 @@ export async function getUploadPresignedUrl(
   await cache.set(cacheKey, url, expiresIn);
   return url;
 }
-```
 
-## 4. TESTING PATTERNS (Vitest)
+§ 4. TESTING PATTERNS (VITEST)
 
-### 4.1 Testing Upload API Route
+§ 4.1 TESTING UPLOAD API ROUTE
 
-```typescript
+typescript
 // src/app/api/upload/route.test.ts
 import { describe, expect, it } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
@@ -813,11 +798,10 @@ describe('Upload API Route', () => {
     expect(response).toHaveProperty('error');
   });
 });
-```
 
-## 5. BEST PRACTICES
+§ 5. BEST PRACTICES
 
-### 5.1 Security Best Practices
+§ 5.1 SECURITY BEST PRACTICES
 
 | Best Practice | Description |
 | --- | --- |
@@ -826,7 +810,7 @@ describe('Upload API Route', () => {
 | ✅ Use secure protocols | Always use secure protocols (HTTPS) for communication |
 | ❌ Store sensitive data in plain text | Never store sensitive data in plain text |
 
-### 5.2 Performance Best Practices
+§ 5.2 PERFORMANCE BEST PRACTICES
 
 | Best Practice | Description |
 | --- | --- |
@@ -835,27 +819,27 @@ describe('Upload API Route', () => {
 | ✅ Use caching | Always use caching to reduce the number of requests to your API |
 | ❌ Make unnecessary requests | Never make unnecessary requests to your API |
 
-## 6. COMMON PITFALLS & TROUBLESHOOTING
+§ 6. COMMON PITFALLS & TROUBLESHOOTING
 
-### 6.1 Common Pitfalls
+§ 6.1 COMMON PITFALLS
 
 * Not validating user input
 * Not using secure protocols
 * Not optimizing images
 * Not using caching
 
-### 6.2 Troubleshooting
+§ 6.2 TROUBLESHOOTING
 
 * Check the API logs for errors
 * Check the browser console for errors
 * Use a debugger to step through the code
 * Check the documentation for any known issues
 
-## 7. MIGRATION/UPGRADE PATTERNS
+§ 7. MIGRATION/UPGRADE PATTERNS
 
-### 7.1 Upgrading to a New Version of a Dependency
+§ 7.1 UPGRADING TO A NEW VERSION OF A DEPENDENCY
 
-```typescript
+typescript
 // src/lib/upgrade.ts
 import { exec } from 'child_process';
 
@@ -863,18 +847,16 @@ export async function upgradeDependency(dependency: string) {
   const command = `npm install ${dependency}@latest`;
   await exec(command);
 }
-```
 
-### 7.2 Migrating to a New Version of a Library
+§ 7.2 MIGRATING TO A NEW VERSION OF A LIBRARY
 
-```typescript
+typescript
 // src/lib/migrate.ts
 import { migrate } from 'library-migration-tool';
 
 export async function migrateLibrary(library: string) {
   await migrate(library);
 }
-```
 
 10. NEXT.JS 14 FILE UPLOAD ROUTES
 

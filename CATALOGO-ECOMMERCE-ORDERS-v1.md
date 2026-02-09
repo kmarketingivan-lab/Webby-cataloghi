@@ -8,9 +8,9 @@ Ecco i moduli ORDERS e PAYMENTS completi, come richiesto, con integrazione Strip
 
 ---
 
-### FILE 1: prisma/schema-ecommerce-orders.prisma
+§ FILE 1: PRISMA/SCHEMA-ECOMMERCE-ORDERS.PRISMA
 
-```prisma
+prisma
 // This file defines the Prisma schema for Orders and Payments in an e-commerce application.
 
 // --- User Model (Placeholder - assuming it exists in another schema file or here) ---
@@ -244,13 +244,12 @@ enum RefundStatus {
   SUCCEEDED
   FAILED
 }
-```
 
 ---
 
-### FILE 2: src/server/services/order-service.ts
+§ FILE 2: SRC/SERVER/SERVICES/ORDER-SERVICE.TS
 
-```typescript
+typescript
 import { PrismaClient, Order, OrderItem, Payment, Refund, OrderEvent, OrderStatus, PaymentStatus, FulfillmentStatus, OrderEventType, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { PaymentService } from './payment-service'; // Assuming PaymentService exists
@@ -1013,13 +1012,12 @@ export class OrderService {
     };
   }
 }
-```
 
 ---
 
-### FILE 3: src/server/services/payment-service.ts
+§ FILE 3: SRC/SERVER/SERVICES/PAYMENT-SERVICE.TS
 
-```typescript
+typescript
 import Stripe from 'stripe';
 import { PrismaClient, Order, User, PaymentStatus, OrderStatus, RefundStatus, Prisma } from '@prisma/client';
 import { OrderService, NotificationType } from './order-service'; // Assuming OrderService exists
@@ -1486,13 +1484,12 @@ export class PaymentService {
     }
   }
 }
-```
 
 ---
 
-### FILE 4: src/app/api/webhooks/stripe/route.ts
+§ FILE 4: SRC/APP/API/WEBHOOKS/STRIPE/ROUTE.TS
 
-```typescript
+typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { OrderService } from '../../../../server/services/order-service';
@@ -1529,13 +1526,12 @@ export async function POST(req: NextRequest) {
 process.on('beforeExit', () => {
   prisma.$disconnect();
 });
-```
 
 ---
 
-### FILE 5: src/server/trpc/routers/orders.ts
+§ FILE 5: SRC/SERVER/TRPC/ROUTERS/ORDERS.TS
 
-```typescript
+typescript
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../trpc'; // Adjust path as needed
 import { PrismaClient, Order, OrderEvent, Refund, OrderStatus, PaymentStatus } from '@prisma/client';
@@ -1791,13 +1787,12 @@ export const ordersRouter = router({
 
 // Export types for client-side usage
 export type OrdersRouter = typeof ordersRouter;
-```
 
 ---
 
-### FILE 6: src/lib/validations/order.ts
+§ FILE 6: SRC/LIB/VALIDATIONS/ORDER.TS
 
-```typescript
+typescript
 import { z } from 'zod';
 import { OrderStatus, PaymentStatus, FulfillmentStatus, OrderEventType, RefundStatus } from '@prisma/client';
 
@@ -1903,13 +1898,12 @@ export const orderEventInputSchema = z.object({
   details: z.record(z.any()).optional(), // JSON object for additional details
   userId: z.string().optional(), // User who performed the action
 });
-```
 
 ---
 
-### FILE 7: src/hooks/use-orders.ts
+§ FILE 7: SRC/HOOKS/USE-ORDERS.TS
 
-```typescript
+typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { trpc } from '../utils/trpc'; // Adjust path to your tRPC client setup
 import { OrderListParams, CreateOrderInput, UpdateOrderInput, TrackingInfo, RefundInput, OrderEventInput } from '../server/services/order-service';
@@ -2069,13 +2063,12 @@ export function useConfirmPayment() {
     },
   });
 }
-```
 
 ---
 
-### FILE 8: src/components/orders/order-list.tsx
+§ FILE 8: SRC/COMPONENTS/ORDERS/ORDER-LIST.TSX
 
-```typescript
+typescript
 'use client';
 
 import React, { useState } from 'react';
@@ -2247,13 +2240,12 @@ const PaginationComponent: React.FC<PaginationProps> = ({ currentPage, totalPage
     </div>
   );
 };
-```
 
 ---
 
-### FILE 9: src/components/orders/order-detail.tsx
+§ FILE 9: SRC/COMPONENTS/ORDERS/ORDER-DETAIL.TSX
 
-```typescript
+typescript
 'use client';
 
 import React from 'react';
@@ -2691,13 +2683,12 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
     </div>
   );
 }
-```
 
 ---
 
-### FILE 10: src/components/orders/order-status-badge.tsx
+§ FILE 10: SRC/COMPONENTS/ORDERS/ORDER-STATUS-BADGE.TSX
 
-```typescript
+typescript
 import React from 'react';
 import { OrderStatus, PaymentStatus, FulfillmentStatus } from '@prisma/client';
 import { Badge } from '../ui/badge'; // Assuming shadcn/ui Badge component
@@ -2810,13 +2801,12 @@ export function OrderStatusBadge({ status, className }: OrderStatusBadgeProps) {
     </Badge>
   );
 }
-```
 
 ---
 
-### FILE 11: src/components/orders/order-timeline.tsx
+§ FILE 11: SRC/COMPONENTS/ORDERS/ORDER-TIMELINE.TSX
 
-```typescript
+typescript
 'use client';
 
 import React from 'react';
@@ -2875,13 +2865,12 @@ export function OrderTimeline({ orderId }: OrderTimelineProps) {
     </div>
   );
 }
-```
 
 ---
 
-### FILE 12: src/components/payment/stripe-elements.tsx
+§ FILE 12: SRC/COMPONENTS/PAYMENT/STRIPE-ELEMENTS.TSX
 
-```typescript
+typescript
 'use client';
 
 import React, { useState, useEffect } from 'react';

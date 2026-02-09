@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -42,9 +42,9 @@
 
 ---
 
-## 35. src/lib/utils/cn.ts
+§ 35. SRC/LIB/UTILS/CN.TS
 
-```typescript
+typescript
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -58,13 +58,12 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-```
 
 ---
 
-## 1. src/components/ui/button.tsx
+§ 1. SRC/COMPONENTS/UI/BUTTON.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -154,13 +153,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-```
 
 ---
 
-## 2. src/components/ui/input.tsx
+§ 2. SRC/COMPONENTS/UI/INPUT.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X, Search } from "lucide-react"; // Assuming lucide-react for icons
@@ -310,13 +308,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export { Input };
-```
 
 ---
 
-## 3. src/components/ui/textarea.tsx
+§ 3. SRC/COMPONENTS/UI/TEXTAREA.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -437,13 +434,12 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea";
 
 export { Textarea };
-```
 
 ---
 
-## 4. src/components/ui/select.tsx
+§ 4. SRC/COMPONENTS/UI/SELECT.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, Search } from "lucide-react";
@@ -658,13 +654,12 @@ export {
   SelectItem,
   SelectSeparator,
 };
-```
 
 ---
 
-## 5. src/components/ui/checkbox.tsx
+§ 5. SRC/COMPONENTS/UI/CHECKBOX.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { Check } from "lucide-react";
@@ -709,13 +704,12 @@ const Checkbox = React.forwardRef<
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 export { Checkbox };
-```
 
 ---
 
-## 6. src/components/ui/radio-group.tsx
+§ 6. SRC/COMPONENTS/UI/RADIO-GROUP.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { Circle } from "lucide-react";
@@ -797,13 +791,12 @@ const RadioGroupItem = React.forwardRef<
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
 
 export { RadioGroup, RadioGroupItem };
-```
 
 ---
 
-## 7. src/components/ui/switch.tsx
+§ 7. SRC/COMPONENTS/UI/SWITCH.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 
@@ -847,13 +840,12 @@ const Switch = React.forwardRef<
 Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export { Switch };
-```
 
 ---
 
-## 8. src/components/ui/slider.tsx
+§ 8. SRC/COMPONENTS/UI/SLIDER.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
@@ -901,13 +893,12 @@ const Slider = React.forwardRef<
 Slider.displayName = SliderPrimitive.Root.displayName;
 
 export { Slider };
-```
 
 ---
 
-## 9. src/components/ui/label.tsx
+§ 9. SRC/COMPONENTS/UI/LABEL.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -951,13 +942,12 @@ const Label = React.forwardRef<
 Label.displayName = LabelPrimitive.Root.displayName;
 
 export { Label };
-```
 
 ---
 
-## 10. src/components/ui/form.tsx
+§ 10. SRC/COMPONENTS/UI/FORM.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import {
@@ -1214,13 +1204,12 @@ export {
   FormMessage,
   FormField,
 };
-```
 
 ---
 
-## 11. src/components/ui/card.tsx
+§ 11. SRC/COMPONENTS/UI/CARD.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -1416,13 +1405,12 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
 CardFooter.displayName = "CardFooter";
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
-```
 
 ---
 
-## 12. src/components/ui/badge.tsx
+§ 12. SRC/COMPONENTS/UI/BADGE.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -1481,13 +1469,12 @@ function Badge({ className, variant, size, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants };
-```
 
 ---
 
-## 13. src/components/ui/avatar.tsx
+§ 13. SRC/COMPONENTS/UI/AVATAR.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -1604,13 +1591,12 @@ const AvatarFallback = React.forwardRef<
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 export { Avatar, AvatarImage, AvatarFallback };
-```
 
 ---
 
-## 14. src/components/ui/alert.tsx
+§ 14. SRC/COMPONENTS/UI/ALERT.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react"; // Assuming lucide-react for icons
@@ -1764,13 +1750,12 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription };
-```
 
 ---
 
-## 15. src/components/ui/dialog.tsx
+§ 15. SRC/COMPONENTS/UI/DIALOG.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
@@ -2021,13 +2006,12 @@ export {
   DialogTitle,
   DialogDescription,
 };
-```
 
 ---
 
-## 16. src/components/ui/sheet.tsx
+§ 16. SRC/COMPONENTS/UI/SHEET.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -2272,13 +2256,12 @@ export {
   SheetTitle,
   SheetDescription,
 };
-```
 
 ---
 
-## 17. src/components/ui/dropdown-menu.tsx
+§ 17. SRC/COMPONENTS/UI/DROPDOWN-MENU.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight, Circle } from "lucide-react";
@@ -2517,13 +2500,12 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 };
-```
 
 ---
 
-## 18. src/components/ui/popover.tsx
+§ 18. SRC/COMPONENTS/UI/POPOVER.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 
@@ -2563,13 +2545,12 @@ const PopoverContent = React.forwardRef<
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 export { Popover, PopoverTrigger, PopoverContent };
-```
 
 ---
 
-## 19. src/components/ui/tooltip.tsx
+§ 19. SRC/COMPONENTS/UI/TOOLTIP.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
@@ -2611,13 +2592,12 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
-```
 
 ---
 
-## 20. src/components/ui/tabs.tsx
+§ 20. SRC/COMPONENTS/UI/TABS.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -2745,13 +2725,12 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };
-```
 
 ---
 
-## 21. src/components/ui/accordion.tsx
+§ 21. SRC/COMPONENTS/UI/ACCORDION.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
@@ -2863,13 +2842,12 @@ const AccordionContent = React.forwardRef<
 AccordionContent.displayName = AccordionPrimitive.Content.displayName;
 
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
-```
 
 ---
 
-## 22. src/components/ui/table.tsx
+§ 22. SRC/COMPONENTS/UI/TABLE.TSX
 
-```typescript
+typescript
 import * as React from "react";
 
 import { cn } from "@/lib/utils/cn";
@@ -3140,13 +3118,12 @@ export {
   TableCell,
   TableCaption,
 };
-```
 
 ---
 
-## 23. src/components/ui/pagination.tsx
+§ 23. SRC/COMPONENTS/UI/PAGINATION.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
@@ -3390,13 +3367,12 @@ export {
   PaginationNext,
   PaginationPrevious,
 };
-```
 
 ---
 
-## 24. src/components/ui/breadcrumb.tsx
+§ 24. SRC/COMPONENTS/UI/BREADCRUMB.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { Slot } from "@radix-ui/react-slot";
@@ -3649,13 +3625,12 @@ export {
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
 };
-```
 
 ---
 
-## 25. src/components/ui/separator.tsx
+§ 25. SRC/COMPONENTS/UI/SEPARATOR.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 
@@ -3711,13 +3686,12 @@ const Separator = React.forwardRef<
 Separator.displayName = SeparatorPrimitive.Root.displayName;
 
 export { Separator };
-```
 
 ---
 
-## 26. src/components/ui/skeleton.tsx
+§ 26. SRC/COMPONENTS/UI/SKELETON.TSX
 
-```typescript
+typescript
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -3751,13 +3725,12 @@ function Skeleton({ className, ...props }: SkeletonProps) {
 }
 
 export { Skeleton };
-```
 
 ---
 
-## 27. src/components/ui/spinner.tsx
+§ 27. SRC/COMPONENTS/UI/SPINNER.TSX
 
-```typescript
+typescript
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 

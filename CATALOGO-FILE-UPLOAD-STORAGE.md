@@ -7,7 +7,7 @@ markdown
 
 ### Configurazione Completa Next.js 14
 
-```typescript
+typescript
 // app/api/uploadthing/core.ts
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";

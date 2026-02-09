@@ -7,7 +7,7 @@
 
 ---
 
-## INDICE
+§ INDICE
 
 | # | Sezione | Path |
 |---|---------|------|

@@ -1,11 +1,11 @@
 # CATALOGO EXPORT-IMPORT v1
-## Documentazione Tecnica Completa per Export/Import Dati in React/Next.js
+§ DOCUMENTAZIONE TECNICA COMPLETA PER EXPORT/IMPORT DATI IN REACT/NEXT.JS
 
 ---
 
-## §1. EXPORT FORMATS COMPARISON
+§ §1. EXPORT FORMATS COMPARISON
 
-### **Tabella Comparativa Dettagliata**
+§ **TABELLA COMPARATIVA DETTAGLIATA**
 
 | Format | Use Case | Library | Bundle Size | Styling | Performance | Best For | Limitations |
 |--------|----------|---------|-------------|---------|-------------|----------|-------------|
@@ -17,9 +17,9 @@
 | **JSON** | API responses, backup, data sync | Native | 0kB | None | Excellent | Data transfer, backup | No human-readable formatting |
 | **XML** | Legacy systems, SOAP APIs | fast-xml-parser | 7kB gzipped | None | Good | Enterprise integrations | Verbose, outdated |
 
-### **Decision Matrix**
+§ **DECISION MATRIX**
 
-```typescript
+typescript
 const EXPORT_FORMAT_RECOMMENDATIONS = {
   // Per tipo di dato:
   tableData: {
@@ -56,15 +56,14 @@ const EXPORT_FORMAT_RECOMMENDATIONS = {
     realtime: 'In-memory export'
   }
 };
-```
 
 ---
 
-## §2. CSV EXPORT
+§ §2. CSV EXPORT
 
-### 2.1 Papa Parse Export
+§ 2.1 PAPA PARSE EXPORT
 
-```typescript
+typescript
 // lib/export/csv.ts
 import Papa from 'papaparse';
 
@@ -317,11 +316,10 @@ exportToCSV(data, {
   preprocess: (data) => data.filter(user => user.status === 'active'),
 });
 */
-```
 
-### 2.2 Streaming CSV (Large Datasets)
+§ 2.2 STREAMING CSV (LARGE DATASETS)
 
-```typescript
+typescript
 // lib/export/csv-stream.ts
 import { TransformStream } from 'stream/web';
 
@@ -572,15 +570,14 @@ export function useStreamingDownload() {
   
   return { downloadStream };
 }
-```
 
 ---
 
-## §3. EXCEL EXPORT
+§ §3. EXCEL EXPORT
 
-### 3.1 xlsx Library (SheetJS)
+§ 3.1 XLSX LIBRARY (SHEETJS)
 
-```typescript
+typescript
 // lib/export/excel-xlsx.ts
 import * as XLSX from 'xlsx';
 
@@ -923,11 +920,10 @@ exportToExcel([], {
   ],
 });
 */
-```
 
-### 3.2 ExcelJS (Advanced Formatting)
+§ 3.2 EXCELJS (ADVANCED FORMATTING)
 
-```typescript
+typescript
 // lib/export/excel-advanced.ts
 import ExcelJS from 'exceljs';
 
@@ -1168,15 +1164,14 @@ export const financialReportColumns = [
     },
   },
 ];
-```
 
 ---
 
-## §4. PDF EXPORT
+§ §4. PDF EXPORT
 
-### 4.1 jsPDF with AutoTable
+§ 4.1 JSPDF WITH AUTOTABLE
 
-```typescript
+typescript
 // lib/export/pdf-jspdf.ts
 import jsPDF from 'jspdf';
 import autoTable, { UserOptions } from 'jspdf-autotable';
@@ -1514,7 +1509,6 @@ export function exportInvoiceToPDF(invoiceData: any): PDFExportResult {
     blobUrl,
   };
 }
-```
 
 ---
 

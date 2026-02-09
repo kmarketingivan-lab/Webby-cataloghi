@@ -1,10 +1,10 @@
 # ============================================================================
 # CATALOGO DESIGN TOKEN SYSTEM v1.0 - SPECIFICA COMPLETA
 # ============================================================================
-# TIPO: SPECIFICA DETERMINISTICA
+§ TIPO: SPECIFICA DETERMINISTICA
 # STANDARD: W3C DTCG 2025.10 (Design Tokens Format Module)
 # TARGET: Generazione automatica UI/UX per piattaforme web
-# AFFIDABILITÀ TARGET: 95%
+§ AFFIDABILITÀ TARGET: 95%
 # DATA: Gennaio 2026
 # ============================================================================
 
@@ -22,10 +22,10 @@ ISTRUZIONI PER IL MODELLO AI:
 """
 
 # ============================================================================
-# SEZIONE 1: STRUTTURA FILE E FORMATO
+§ SEZIONE 1: STRUTTURA FILE E FORMATO
 # ============================================================================
 
-## 1.1 File Format
+§ 1.1 FILE FORMAT
 
 - **Formato**: JSON
 - **Estensione**: `.tokens` o `.tokens.json`
@@ -33,7 +33,7 @@ ISTRUZIONI PER IL MODELLO AI:
 - **Encoding**: UTF-8
 - **Schema**: `https://www.designtokens.org/schemas/2025.10/format.json`
 
-## 1.2 Proprietà Riservate (Prefisso $)
+§ 1.2 PROPRIETÀ RISERVATE (PREFISSO $)
 
 | Proprietà | Obbligatoria | Descrizione |
 |-----------|--------------|-------------|
@@ -45,15 +45,15 @@ ISTRUZIONI PER IL MODELLO AI:
 
 *Se non specificato, DEVE essere ereditato dal gruppo padre o determinato dall'alias.
 
-## 1.3 Caratteri Proibiti nei Nomi
+§ 1.3 CARATTERI PROIBITI NEI NOMI
 
 - `{` e `}` (usati per alias)
 - `.` (usato per path)
 - Nomi che iniziano con `$`
 
-## 1.4 Esempio Struttura Base
+§ 1.4 ESEMPIO STRUTTURA BASE
 
-```json
+json
 {
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
   "color": {
@@ -67,18 +67,17 @@ ISTRUZIONI PER IL MODELLO AI:
     "semantic": { ... }
   }
 }
-```
 
 # ============================================================================
-# SEZIONE 2: TIPI PRIMITIVI
+§ SEZIONE 2: TIPI PRIMITIVI
 # ============================================================================
 
-## 2.1 COLOR
+§ 2.1 COLOR
 
 Rappresenta un colore. Supporta spazi colore moderni (sRGB, Display P3, Oklch, etc).
 
-### Struttura OBBLIGATORIA:
-```json
+§ STRUTTURA OBBLIGATORIA:
+json
 {
   "token-name": {
     "$type": "color",
@@ -90,9 +89,8 @@ Rappresenta un colore. Supporta spazi colore moderni (sRGB, Display P3, Oklch, e
     }
   }
 }
-```
 
-### Campi:
+§ CAMPI:
 | Campo | Tipo | Obbligatorio | Descrizione |
 |-------|------|--------------|-------------|
 | colorSpace | string | SÌ | "srgb", "display-p3", "oklch", etc |
@@ -100,17 +98,17 @@ Rappresenta un colore. Supporta spazi colore moderni (sRGB, Display P3, Oklch, e
 | alpha | number | NO | Opacità 0-1 (default: 1) |
 | hex | string | NO | Fallback esadecimale per compatibilità |
 
-### Spazi Colore Supportati:
+§ SPAZI COLORE SUPPORTATI:
 - `srgb` - Standard RGB (components: [r, g, b] 0-1)
 - `display-p3` - Wide gamut (components: [r, g, b] 0-1)
 - `oklch` - Perceptually uniform (components: [l, c, h] 0-1, 0-0.4, 0-360)
 
-## 2.2 DIMENSION
+§ 2.2 DIMENSION
 
 Rappresenta una misura (spacing, sizing, border-width, etc).
 
-### Struttura OBBLIGATORIA:
-```json
+§ STRUTTURA OBBLIGATORIA:
+json
 {
   "spacing-md": {
     "$type": "dimension",
@@ -120,51 +118,48 @@ Rappresenta una misura (spacing, sizing, border-width, etc).
     }
   }
 }
-```
 
-### Campi:
+§ CAMPI:
 | Campo | Tipo | Obbligatorio | Valori Ammessi |
 |-------|------|--------------|----------------|
 | value | number | SÌ | Qualsiasi numero |
 | unit | string | SÌ | "px" o "rem" |
 
-### Note:
+§ NOTE:
 - `px` = pixel ideale (convertito in dp su Android, pt su iOS)
 - `rem` = relativo al font-size base (16px default)
 
-## 2.3 FONT FAMILY
+§ 2.3 FONT FAMILY
 
 Rappresenta una famiglia di font.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "font-primary": {
     "$type": "fontFamily",
     "$value": ["Inter", "Helvetica Neue", "sans-serif"]
   }
 }
-```
 
-### Formati Ammessi:
+§ FORMATI AMMESSI:
 - Stringa singola: `"Inter"`
 - Array di fallback: `["Inter", "Arial", "sans-serif"]`
 
-## 2.4 FONT WEIGHT
+§ 2.4 FONT WEIGHT
 
 Rappresenta il peso del font.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "weight-bold": {
     "$type": "fontWeight",
     "$value": 700
   }
 }
-```
 
-### Valori Ammessi:
+§ VALORI AMMESSI:
 | Numerico | Alias String |
 |----------|--------------|
 | 100 | "thin", "hairline" |
@@ -178,12 +173,12 @@ Rappresenta il peso del font.
 | 900 | "black", "heavy" |
 | 950 | "extra-black", "ultra-black" |
 
-## 2.5 DURATION
+§ 2.5 DURATION
 
 Rappresenta una durata temporale (animazioni).
 
-### Struttura OBBLIGATORIA:
-```json
+§ STRUTTURA OBBLIGATORIA:
+json
 {
   "duration-fast": {
     "$type": "duration",
@@ -193,55 +188,52 @@ Rappresenta una durata temporale (animazioni).
     }
   }
 }
-```
 
-### Unità Ammesse:
+§ UNITÀ AMMESSE:
 - `ms` - millisecondi
 - `s` - secondi
 
-## 2.6 CUBIC BÉZIER
+§ 2.6 CUBIC BÉZIER
 
 Rappresenta una curva di easing per animazioni.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "ease-out": {
     "$type": "cubicBezier",
     "$value": [0, 0, 0.2, 1]
   }
 }
-```
 
-### Formato:
+§ FORMATO:
 Array di 4 numeri: `[P1x, P1y, P2x, P2y]`
 - P1x, P2x: range [0, 1]
 - P1y, P2y: range [-∞, ∞]
 
-## 2.7 NUMBER
+§ 2.7 NUMBER
 
 Rappresenta un numero generico (line-height, aspect-ratio, etc).
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "line-height-normal": {
     "$type": "number",
     "$value": 1.5
   }
 }
-```
 
 # ============================================================================
-# SEZIONE 3: TIPI COMPOSITI
+§ SEZIONE 3: TIPI COMPOSITI
 # ============================================================================
 
-## 3.1 TYPOGRAPHY
+§ 3.1 TYPOGRAPHY
 
 Combina proprietà tipografiche correlate.
 
-### Struttura OBBLIGATORIA:
-```json
+§ STRUTTURA OBBLIGATORIA:
+json
 {
   "heading-1": {
     "$type": "typography",
@@ -254,9 +246,8 @@ Combina proprietà tipografiche correlate.
     }
   }
 }
-```
 
-### Campi:
+§ CAMPI:
 | Campo | Tipo | Obbligatorio |
 |-------|------|--------------|
 | fontFamily | fontFamily | SÌ |
@@ -265,12 +256,12 @@ Combina proprietà tipografiche correlate.
 | letterSpacing | dimension | NO |
 | lineHeight | number | NO |
 
-## 3.2 SHADOW
+§ 3.2 SHADOW
 
 Rappresenta un'ombra (box-shadow, drop-shadow).
 
-### Struttura Singola:
-```json
+§ STRUTTURA SINGOLA:
+json
 {
   "shadow-sm": {
     "$type": "shadow",
@@ -287,10 +278,9 @@ Rappresenta un'ombra (box-shadow, drop-shadow).
     }
   }
 }
-```
 
-### Struttura Multipla (Layered):
-```json
+§ STRUTTURA MULTIPLA (LAYERED):
+json
 {
   "shadow-lg": {
     "$type": "shadow",
@@ -312,9 +302,8 @@ Rappresenta un'ombra (box-shadow, drop-shadow).
     ]
   }
 }
-```
 
-### Campi Shadow Object:
+§ CAMPI SHADOW OBJECT:
 | Campo | Tipo | Obbligatorio |
 |-------|------|--------------|
 | color | color | SÌ |
@@ -324,12 +313,12 @@ Rappresenta un'ombra (box-shadow, drop-shadow).
 | spread | dimension | SÌ |
 | inset | boolean | NO (default: false) |
 
-## 3.3 BORDER
+§ 3.3 BORDER
 
 Rappresenta uno stile di bordo.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "border-default": {
     "$type": "border",
@@ -343,24 +332,23 @@ Rappresenta uno stile di bordo.
     }
   }
 }
-```
 
-### Campi:
+§ CAMPI:
 | Campo | Tipo | Obbligatorio |
 |-------|------|--------------|
 | color | color | SÌ |
 | width | dimension | SÌ |
 | style | strokeStyle | SÌ |
 
-## 3.4 STROKE STYLE
+§ 3.4 STROKE STYLE
 
 Può essere stringa o oggetto.
 
-### Valori Stringa:
+§ VALORI STRINGA:
 `"solid"`, `"dashed"`, `"dotted"`, `"double"`, `"groove"`, `"ridge"`, `"outset"`, `"inset"`
 
-### Valore Oggetto (custom dash):
-```json
+§ VALORE OGGETTO (CUSTOM DASH):
+json
 {
   "style": {
     "dashArray": [
@@ -370,14 +358,13 @@ Può essere stringa o oggetto.
     "lineCap": "round"
   }
 }
-```
 
-## 3.5 GRADIENT
+§ 3.5 GRADIENT
 
 Rappresenta un gradiente di colori.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "gradient-primary": {
     "$type": "gradient",
@@ -393,20 +380,19 @@ Rappresenta un gradiente di colori.
     ]
   }
 }
-```
 
-### Campi Stop:
+§ CAMPI STOP:
 | Campo | Tipo | Obbligatorio |
 |-------|------|--------------|
 | color | color | SÌ |
 | position | number | SÌ (0-1) |
 
-## 3.6 TRANSITION
+§ 3.6 TRANSITION
 
 Rappresenta una transizione animata.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "transition-default": {
     "$type": "transition",
@@ -417,19 +403,18 @@ Rappresenta una transizione animata.
     }
   }
 }
-```
 
 
 # ============================================================================
-# SEZIONE 4: GRUPPI E ALIAS
+§ SEZIONE 4: GRUPPI E ALIAS
 # ============================================================================
 
-## 4.1 Gruppi
+§ 4.1 GRUPPI
 
 I gruppi organizzano i token in strutture gerarchiche.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "color": {
     "$type": "color",
@@ -442,17 +427,16 @@ I gruppi organizzano i token in strutture gerarchiche.
     }
   }
 }
-```
 
-### Ereditarietà $type:
+§ EREDITARIETÀ $TYPE:
 Il `$type` definito su un gruppo viene ereditato da tutti i token figli.
 
-## 4.2 Alias (Reference)
+§ 4.2 ALIAS (REFERENCE)
 
 Un token può referenziare il valore di un altro token.
 
-### Sintassi:
-```json
+§ SINTASSI:
+json
 {
   "color": {
     "brand": {
@@ -467,20 +451,19 @@ Un token può referenziare il valore di un altro token.
     }
   }
 }
-```
 
-### Regole:
+§ REGOLE:
 - Usa `{path.to.token}` per referenziare
 - Il path usa `.` come separatore
 - Gli alias possono essere concatenati (a → b → c)
 - VIETATI i riferimenti circolari
 
-## 4.3 Estensione Gruppi ($extends)
+§ 4.3 ESTENSIONE GRUPPI ($EXTENDS)
 
 Un gruppo può ereditare da un altro.
 
-### Struttura:
-```json
+§ STRUTTURA:
+json
 {
   "button": {
     "$type": "color",
@@ -495,22 +478,20 @@ Un gruppo può ereditare da un altro.
     }
   }
 }
-```
 
-### Comportamento:
+§ COMPORTAMENTO:
 - **Eredità**: Tutti i token del gruppo referenziato vengono copiati
 - **Override**: Token locali con stesso path sovrascrivono quelli ereditati
 - **Aggiunta**: Token locali nuovi vengono aggiunti
 
 # ============================================================================
-# SEZIONE 5: ARCHITETTURA TOKEN A 3 LIVELLI
+§ SEZIONE 5: ARCHITETTURA TOKEN A 3 LIVELLI
 # ============================================================================
 
-## 5.1 Panoramica
+§ 5.1 PANORAMICA
 
 L'architettura a 3 livelli garantisce scalabilità e manutenibilità:
 
-```
 ┌─────────────────────────────────────────────────────────────┐
 │                    COMPONENT TOKENS                          │
 │   (button.background, input.border, card.shadow)            │
@@ -524,20 +505,19 @@ L'architettura a 3 livelli garantisce scalabilità e manutenibilità:
 │   (blue.500, gray.100, spacing.4, font.size.lg)             │
 │   (valori raw - NON usare direttamente nei componenti)      │
 └─────────────────────────────────────────────────────────────┘
-```
 
-## 5.2 Livello 1: PRIMITIVE TOKENS
+§ 5.2 LIVELLO 1: PRIMITIVE TOKENS
 
-### Definizione:
+§ DEFINIZIONE:
 Token che definiscono valori RAW senza significato semantico.
 NON devono essere usati direttamente nei componenti UI.
 
-### Naming Convention:
+§ NAMING CONVENTION:
 `[property].[scale]` oppure `[color-name].[intensity]`
 
-### Scala Colori Primitiva STANDARD:
+§ SCALA COLORI PRIMITIVA STANDARD:
 
-```json
+json
 {
   "primitive": {
     "$description": "Raw values - DO NOT use directly in components",
@@ -613,11 +593,10 @@ NON devono essere usati direttamente nei componenti UI.
     }
   }
 }
-```
 
-### Scala Spacing Primitiva (8px base unit):
+§ SCALA SPACING PRIMITIVA (8PX BASE UNIT):
 
-```json
+json
 {
   "primitive": {
     "spacing": {
@@ -660,11 +639,10 @@ NON devono essere usati direttamente nei componenti UI.
     }
   }
 }
-```
 
-### Scala Typography Primitiva (Modular Scale 1.250):
+§ SCALA TYPOGRAPHY PRIMITIVA (MODULAR SCALE 1.250):
 
-```json
+json
 {
   "primitive": {
     "fontSize": {
@@ -721,16 +699,15 @@ NON devono essere usati direttamente nei componenti UI.
     }
   }
 }
-```
 
 
-## 5.3 Livello 2: SEMANTIC TOKENS
+§ 5.3 LIVELLO 2: SEMANTIC TOKENS
 
-### Definizione:
+§ DEFINIZIONE:
 Token che definiscono COME e DOVE usare i primitivi.
 Rappresentano intenzioni di design, non valori specifici.
 
-### Naming Convention:
+§ NAMING CONVENTION:
 `[category].[subcategory].[variant].[state]`
 
 Dove:
@@ -739,9 +716,9 @@ Dove:
 - **variant**: hover, active, disabled, etc (opzionale)
 - **state**: light, dark (gestito da theming)
 
-### Semantic Color Tokens STANDARD:
+§ SEMANTIC COLOR TOKENS STANDARD:
 
-```json
+json
 {
   "semantic": {
     "$description": "Intent-based tokens - USE these in components",
@@ -823,11 +800,10 @@ Dove:
     }
   }
 }
-```
 
-### Semantic Spacing Tokens:
+§ SEMANTIC SPACING TOKENS:
 
-```json
+json
 {
   "semantic": {
     "spacing": {
@@ -878,11 +854,10 @@ Dove:
     }
   }
 }
-```
 
-### Semantic Typography Tokens:
+§ SEMANTIC TYPOGRAPHY TOKENS:
 
-```json
+json
 {
   "semantic": {
     "typography": {
@@ -1057,21 +1032,20 @@ Dove:
     }
   }
 }
-```
 
 
-## 5.4 Livello 3: COMPONENT TOKENS
+§ 5.4 LIVELLO 3: COMPONENT TOKENS
 
-### Definizione:
+§ DEFINIZIONE:
 Token specifici per ogni componente UI.
 Referenziano SOLO semantic tokens (mai primitivi direttamente).
 
-### Naming Convention:
+§ NAMING CONVENTION:
 `[component].[element].[property].[variant].[state]`
 
-### Component Token EXAMPLES:
+§ COMPONENT TOKEN EXAMPLES:
 
-```json
+json
 {
   "component": {
     "$description": "Component-specific tokens - reference semantic tokens only",
@@ -1298,16 +1272,15 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
 
 # ============================================================================
-# SEZIONE 6: SCALE AGGIUNTIVE STANDARD
+§ SEZIONE 6: SCALE AGGIUNTIVE STANDARD
 # ============================================================================
 
-## 6.1 Border Radius Scale
+§ 6.1 BORDER RADIUS SCALE
 
-```json
+json
 {
   "primitive": {
     "borderRadius": {
@@ -1323,11 +1296,10 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
-## 6.2 Shadow Scale
+§ 6.2 SHADOW SCALE
 
-```json
+json
 {
   "primitive": {
     "shadow": {
@@ -1427,11 +1399,10 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
-## 6.3 Z-Index Scale
+§ 6.3 Z-INDEX SCALE
 
-```json
+json
 {
   "primitive": {
     "zIndex": {
@@ -1452,11 +1423,10 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
-## 6.4 Breakpoints Scale
+§ 6.4 BREAKPOINTS SCALE
 
-```json
+json
 {
   "primitive": {
     "breakpoint": {
@@ -1470,11 +1440,10 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
-## 6.5 Animation/Motion Scale
+§ 6.5 ANIMATION/MOTION SCALE
 
-```json
+json
 {
   "primitive": {
     "duration": {
@@ -1500,11 +1469,10 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
-## 6.6 Opacity Scale
+§ 6.6 OPACITY SCALE
 
-```json
+json
 {
   "primitive": {
     "opacity": {
@@ -1527,27 +1495,24 @@ Referenziano SOLO semantic tokens (mai primitivi direttamente).
     }
   }
 }
-```
 
 # ============================================================================
-# SEZIONE 7: THEMING (LIGHT/DARK MODE)
+§ SEZIONE 7: THEMING (LIGHT/DARK MODE)
 # ============================================================================
 
-## 7.1 Struttura Multi-File per Theming
+§ 7.1 STRUTTURA MULTI-FILE PER THEMING
 
 Per supportare light/dark mode, usa file separati per ogni tema:
 
-```
 tokens/
 ├── primitive.tokens.json      # Valori raw condivisi
 ├── semantic.light.tokens.json # Semantic tokens per light mode
 ├── semantic.dark.tokens.json  # Semantic tokens per dark mode
 └── component.tokens.json      # Component tokens (condivisi)
-```
 
-## 7.2 Semantic Tokens - DARK MODE
+§ 7.2 SEMANTIC TOKENS - DARK MODE
 
-```json
+json
 {
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
   "$description": "Dark mode semantic tokens",
@@ -1625,11 +1590,10 @@ tokens/
     }
   }
 }
-```
 
-## 7.3 CSS Output per Theming
+§ 7.3 CSS OUTPUT PER THEMING
 
-```css
+css
 /* Light mode (default) */
 :root {
   --color-surface-default: #ffffff;
@@ -1658,18 +1622,17 @@ tokens/
     /* ... dark mode tokens ... */
   }
 }
-```
 
 
 # ============================================================================
-# SEZIONE 8: INTEGRAZIONE TAILWIND CSS
+§ SEZIONE 8: INTEGRAZIONE TAILWIND CSS
 # ============================================================================
 
-## 8.1 Tailwind CSS 4 @theme Directive
+§ 8.1 TAILWIND CSS 4 @THEME DIRECTIVE
 
 Tailwind CSS 4 introduce la direttiva `@theme` per definire tokens direttamente in CSS:
 
-```css
+css
 @theme {
   /* Colors - Primitive */
   --color-gray-50: #f9fafb;
@@ -1740,11 +1703,10 @@ Tailwind CSS 4 introduce la direttiva `@theme` per definire tokens direttamente 
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
-```
 
-## 8.2 tailwind.config.js (Pre-v4)
+§ 8.2 TAILWIND.CONFIG.JS (PRE-V4)
 
-```javascript
+javascript
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class', // o 'media'
@@ -1928,11 +1890,10 @@ module.exports = {
   },
   plugins: [],
 };
-```
 
-## 8.3 CSS Variables per Semantic Tokens
+§ 8.3 CSS VARIABLES PER SEMANTIC TOKENS
 
-```css
+css
 /* globals.css */
 @tailwind base;
 @tailwind components;
@@ -2002,18 +1963,16 @@ module.exports = {
     --feedback-info-muted: #172554;
   }
 }
-```
 
 # ============================================================================
-# SEZIONE 9: REGOLE DI VALIDAZIONE
+§ SEZIONE 9: REGOLE DI VALIDAZIONE
 # ============================================================================
 
-## 9.1 Regole OBBLIGATORIE
+§ 9.1 REGOLE OBBLIGATORIE
 
 Per garantire affidabilità al 95%, OGNI token DEVE:
 
-### R1: Struttura Valida
-```
+§ R1: STRUTTURA VALIDA
 ✅ CORRETTO:
 {
   "token-name": {
@@ -2029,19 +1988,15 @@ Per garantire affidabilità al 95%, OGNI token DEVE:
     "type": "..."    // Manca $
   }
 }
-```
 
-### R2: Tipi Corretti
-```
+§ R2: TIPI CORRETTI
 ✅ VALIDI: "color", "dimension", "fontFamily", "fontWeight", 
           "duration", "cubicBezier", "number", "typography",
           "shadow", "border", "gradient", "transition"
 
 ❌ INVALIDI: "size", "spacing", "font", "style", "animation"
-```
 
-### R3: Formato Colori
-```
+§ R3: FORMATO COLORI
 ✅ CORRETTO:
 {
   "$value": {
@@ -2055,10 +2010,8 @@ Per garantire affidabilità al 95%, OGNI token DEVE:
   "$value": "#3366cc"           // No hex diretto
   "$value": "rgb(51, 102, 204)" // No CSS string
 }
-```
 
-### R4: Formato Dimensioni
-```
+§ R4: FORMATO DIMENSIONI
 ✅ CORRETTO:
 {
   "$value": {
@@ -2072,10 +2025,8 @@ Per garantire affidabilità al 95%, OGNI token DEVE:
   "$value": "16px"    // No CSS string
   "$value": 16        // No numero raw
 }
-```
 
-### R5: Alias Validi
-```
+§ R5: ALIAS VALIDI
 ✅ CORRETTO:
 {
   "$value": "{primitive.color.blue.500}"
@@ -2087,10 +2038,8 @@ Per garantire affidabilità al 95%, OGNI token DEVE:
   "$value": "{blue.500}"                  // Path incompleto
   "$value": "{primitive/color/blue/500}" // Usa / invece di .
 }
-```
 
-### R6: Nomi Token Validi
-```
+§ R6: NOMI TOKEN VALIDI
 ✅ VALIDI: 
 "color-primary", "spacing-md", "button-background"
 
@@ -2098,9 +2047,8 @@ Per garantire affidabilità al 95%, OGNI token DEVE:
 "$color"        // Inizia con $
 "color.primary" // Contiene .
 "color{test}"   // Contiene {}
-```
 
-## 9.2 Checklist Pre-Deploy
+§ 9.2 CHECKLIST PRE-DEPLOY
 
 Prima di usare i token in produzione, verificare:
 
@@ -2114,19 +2062,18 @@ Prima di usare i token in produzione, verificare:
 - [ ] Light/Dark mode hanno gli stessi percorsi token
 
 # ============================================================================
-# SEZIONE 10: TOOL E CONVERSIONE
+§ SEZIONE 10: TOOL E CONVERSIONE
 # ============================================================================
 
-## 10.1 Style Dictionary v4
+§ 10.1 STYLE DICTIONARY V4
 
 Style Dictionary è lo strumento standard per convertire i token DTCG in output platform-specific:
 
-```bash
+bash
 npm install style-dictionary@4
-```
 
-### config.json:
-```json
+§ CONFIG.JSON:
+json
 {
   "source": ["tokens/**/*.tokens.json"],
   "platforms": {
@@ -2162,9 +2109,8 @@ npm install style-dictionary@4
     }
   }
 }
-```
 
-## 10.2 Tokens Studio for Figma
+§ 10.2 TOKENS STUDIO FOR FIGMA
 
 Per sincronizzare token tra Figma e codice:
 
@@ -2173,10 +2119,10 @@ Per sincronizzare token tra Figma e codice:
 3. Esporta in formato DTCG
 4. Usa Style Dictionary per build
 
-## 10.3 Output Esempio
+§ 10.3 OUTPUT ESEMPIO
 
-### CSS Variables:
-```css
+§ CSS VARIABLES:
+css
 :root {
   --color-primitive-gray-50: #f9fafb;
   --color-primitive-gray-500: #6c7480;
@@ -2186,18 +2132,16 @@ Per sincronizzare token tra Figma e codice:
   --spacing-primitive-4: 16px;
   --spacing-semantic-inset-md: var(--spacing-primitive-4);
 }
-```
 
-### JavaScript ES6:
-```javascript
+§ JAVASCRIPT ES6:
+javascript
 export const colorPrimitiveGray50 = "#f9fafb";
 export const colorPrimitiveGray500 = "#6c7480";
 export const colorPrimitiveBlue500 = "#3b82f6";
 export const spacingPrimitive4 = "16px";
-```
 
 # ============================================================================
-# FINE SPECIFICA
+§ FINE SPECIFICA
 # ============================================================================
 
 """

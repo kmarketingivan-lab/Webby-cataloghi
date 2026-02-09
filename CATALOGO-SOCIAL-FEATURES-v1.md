@@ -1,11 +1,11 @@
 # CATALOGO SOCIAL-FEATURES v1
-## Documentazione Tecnica Completa per Funzionalità Social in React/Next.js
+§ DOCUMENTAZIONE TECNICA COMPLETA PER FUNZIONALITÀ SOCIAL IN REACT/NEXT.JS
 
 ---
 
-## §1. SOCIAL FEATURES OVERVIEW
+§ §1. SOCIAL FEATURES OVERVIEW
 
-### **Tabella Comparativa Funzionalità Social**
+§ **TABELLA COMPARATIVA FUNZIONALITÀ SOCIAL**
 
 | Feature | Complexity | Real-time | Database Load | Cache Strategy | Implementation Time | Best Practices |
 |---------|------------|-----------|---------------|----------------|---------------------|----------------|
@@ -19,9 +19,9 @@
 | **Share** | Low | No | Low | Analytics only | 1 day | Web Share API fallback |
 | **Mentions** | Medium | Yes (WebSocket) | Medium | Bloom filter cache | 2-3 days | Async parsing, user search index |
 
-### **Stack Consigliato per Scalabilità**
+§ **STACK CONSIGLIATO PER SCALABILITÀ**
 
-```typescript
+typescript
 // Tech stack per produzione:
 {
   database: "PostgreSQL (Supabase/Neon)", // Per transazioni ACID
@@ -31,15 +31,14 @@
   analytics: "PostHog" o "Mixpanel", // Per engagement metrics
   moderation: "Akismet API", // Per spam detection
 }
-```
 
 ---
 
-## §2. COMMENTS SYSTEM
+§ §2. COMMENTS SYSTEM
 
-### 2.1 Comment Data Model Completo
+§ 2.1 COMMENT DATA MODEL COMPLETO
 
-```prisma
+prisma
 // schema.prisma - Comment System
 model Comment {
   id          String        @id @default(cuid())
@@ -144,11 +143,10 @@ enum CommentStatus {
 // Materialized view per performance (opzionale)
 // CREATE MATERIALIZED VIEW comment_threads AS
 // WITH RECURSIVE thread_path AS (...)
-```
 
-### 2.2 Comment Service Completo
+§ 2.2 COMMENT SERVICE COMPLETO
 
-```typescript
+typescript
 // lib/services/comment-service.ts
 import { PrismaClient, Comment, CommentStatus, Prisma } from '@prisma/client';
 import { z } from 'zod';
@@ -1210,11 +1208,10 @@ export class CommentService {
     // etc.
   }
 }
-```
 
-### 2.3 Nested Comments Implementation
+§ 2.3 NESTED COMMENTS IMPLEMENTATION
 
-```typescript
+typescript
 // lib/services/comment-tree.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -1366,7 +1363,6 @@ export class CommentTreeService {
     return count;
   }
 }
-```
 
 ---
 

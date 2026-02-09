@@ -1,11 +1,11 @@
 # CATALOGO PWA-OFFLINE v1
-## Documentazione Tecnica Completa per PWA e Offline Capabilities in Next.js
+§ DOCUMENTAZIONE TECNICA COMPLETA PER PWA E OFFLINE CAPABILITIES IN NEXT.JS
 
 ---
 
-## §1. PWA FUNDAMENTALS
+§ §1. PWA FUNDAMENTALS
 
-### **Tabella Funzionalità PWA Complete**
+§ **TABELLA FUNZIONALITÀ PWA COMPLETE**
 
 | Feature | Purpose | Required | Implementation Difficulty | User Value |
 |---------|---------|----------|---------------------------|------------|
@@ -23,9 +23,9 @@
 | **URL Handling** | Handle custom URLs | Optional | Medium | High |
 | **Badging** | App icon badge | Optional | Low | Medium |
 
-### **PWA Checklist per Next.js**
+§ **PWA CHECKLIST PER NEXT.JS**
 
-```typescript
+typescript
 const PWA_REQUIREMENTS = {
   mandatory: [
     'Web App Manifest (manifest.json)',
@@ -68,15 +68,14 @@ const PWA_REQUIREMENTS = {
     'Performance Audit',
   ]
 };
-```
 
 ---
 
-## §2. NEXT.JS PWA SETUP
+§ §2. NEXT.JS PWA SETUP
 
-### 2.1 next-pwa Configuration Completa
+§ 2.1 NEXT-PWA CONFIGURATION COMPLETA
 
-```typescript
+typescript
 // next.config.js - Configurazione PWA completa
 /** @type {import('next').NextConfig} */
 const withPWA = require('next-pwa')({
@@ -290,11 +289,10 @@ const nextConfig = {
 };
 
 module.exports = withPWA(nextConfig);
-```
 
-### 2.2 Web App Manifest Completo
+§ 2.2 WEB APP MANIFEST COMPLETO
 
-```json
+json
 // public/manifest.json - Manifest completo con tutti i campi
 {
   "$schema": "http://json.schemastore.org/web-manifest",
@@ -490,11 +488,10 @@ module.exports = withPWA(nextConfig);
     }
   ]
 }
-```
 
-### 2.3 Icon Generation Script
+§ 2.3 ICON GENERATION SCRIPT
 
-```typescript
+typescript
 // scripts/generate-icons.js - Genera automaticamente tutte le icone necessarie
 #!/usr/bin/env node
 
@@ -617,15 +614,14 @@ async function generateIcons() {
 }
 
 generateIcons().catch(console.error);
-```
 
 ---
 
-## §3. SERVICE WORKER E OFFLINE SUPPORT
+§ §3. SERVICE WORKER E OFFLINE SUPPORT
 
-### 3.1 Custom Service Worker con Offline Support Avanzato
+§ 3.1 CUSTOM SERVICE WORKER CON OFFLINE SUPPORT AVANZATO
 
-```typescript
+typescript
 // public/sw-custom.js - Service Worker personalizzato con funzionalità avanzate
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
 
@@ -944,11 +940,10 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
-```
 
-### 3.2 Offline Page Component
+§ 3.2 OFFLINE PAGE COMPONENT
 
-```typescript
+typescript
 // app/offline/page.tsx - Pagina offline completa
 'use client';
 
@@ -1166,15 +1161,14 @@ export default function OfflinePage() {
     </div>
   );
 }
-```
 
 ---
 
-## §4. HOOKS E UTILITIES PWA
+§ §4. HOOKS E UTILITIES PWA
 
-### 4.1 useOnlineStatus Hook
+§ 4.1 USEONLINESTATUS HOOK
 
-```typescript
+typescript
 // hooks/use-online-status.ts - Hook per gestione stato connessione
 'use client';
 
@@ -1332,7 +1326,6 @@ export function useOnlineStatus(options: OnlineStatusOptions = {}): OnlineStatus
     recentErrors,
   };
 }
-```
 
 ---
 

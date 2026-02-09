@@ -1,6 +1,6 @@
 # Catalogo I18N per Next.js 14+ App Router
 
-## 1. I18N LIBRARY COMPARISON
+§ 1. I18N LIBRARY COMPARISON
 
 | Library | Bundle Size | RSC Support | Type Safety | ICU Format | Pluralization | Best For |
 |---------|-------------|-------------|-------------|------------|---------------|----------|
@@ -27,10 +27,10 @@ Tabella features dettagliate:
 
 ---
 
-## 2. NEXT-INTL COMPLETE SETUP
+§ 2. NEXT-INTL COMPLETE SETUP
 
-### 2.1 Installation & Configuration
-```bash
+§ 2.1 INSTALLATION & CONFIGURATION
+bash
 # Dependencies
 npm install next-intl
 npm install -D @formatjs/cli  # For message extraction (optional)
@@ -39,10 +39,8 @@ npm install -D @formatjs/cli  # For message extraction (optional)
 npm install react@latest next@latest
 
 # TypeScript types (included)
-```
 
-### 2.2 Project Structure
-```
+§ 2.2 PROJECT STRUCTURE
 /
 ├── messages/
 │   ├── en.json
@@ -58,11 +56,10 @@ npm install react@latest next@latest
 ├── middleware.ts
 ├── navigation.ts
 └── next.config.js
-```
 
-### 2.3 Core Configuration Files
+§ 2.3 CORE CONFIGURATION FILES
 
-```typescript
+typescript
 // i18n.ts - Core configuration
 import { notFound } from 'next/navigation';
 import { getRequestConfig } from 'next-intl/server';
@@ -103,9 +100,8 @@ export default getRequestConfig(async ({ locale }) => {
     }
   };
 });
-```
 
-```typescript
+typescript
 // middleware.ts - Locale detection & routing
 import createMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale, localePrefix } from './i18n';
@@ -157,9 +153,8 @@ export const config = {
     '/(it|en|de|fr|es|ar)/:path*'
   ]
 };
-```
 
-```typescript
+typescript
 // navigation.ts - Type-safe routing
 import { createSharedPathnamesNavigation } from 'next-intl/navigation';
 import { locales } from './i18n';
@@ -170,9 +165,8 @@ export type Locale = (typeof locales)[number];
 // Create typed navigation utilities
 export const { Link, redirect, usePathname, useRouter } = 
   createSharedPathnamesNavigation({ locales });
-```
 
-```javascript
+javascript
 // next.config.js
 const withNextIntl = require('next-intl/plugin')();
 
@@ -195,10 +189,9 @@ const nextConfig = {
 };
 
 module.exports = withNextIntl(nextConfig);
-```
 
-### 2.4 Layout & Provider Setup
-```typescript
+§ 2.4 LAYOUT & PROVIDER SETUP
+typescript
 // app/[locale]/layout.tsx
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
@@ -310,13 +303,12 @@ async function Footer({ locale }: { locale: string }) {
     </footer>
   );
 }
-```
 
 ---
 
-## 3. TRANSLATION PATTERNS
+§ 3. TRANSLATION PATTERNS
 
-### 3.1 Pattern Reference Table
+§ 3.1 PATTERN REFERENCE TABLE
 
 | Pattern | JSON Syntax | TypeScript Usage | Output Example |
 |---------|-------------|------------------|----------------|
@@ -329,9 +321,9 @@ async function Footer({ locale }: { locale: string }) {
 | Nested Keys | `"auth": { "login": { "title": "Login" } }` | `t('auth.login.title')` | "Login" |
 | Ordinal | `"position": "You are {pos, selectordinal, one {#st} two {#nd} ...}"` | `t('position', { pos: 1 })` | "You are 1st" |
 
-### 3.2 Implementation Examples
+§ 3.2 IMPLEMENTATION EXAMPLES
 
-```typescript
+typescript
 // Basic usage in Client Component
 'use client';
 
@@ -415,10 +407,9 @@ export async function ServerTranslatedContent() {
     </section>
   );
 }
-```
 
-### 3.3 Message File Structure (JSON)
-```json
+§ 3.3 MESSAGE FILE STRUCTURE (JSON)
+json
 // messages/en.json example completo
 {
   "Metadata": {
@@ -511,13 +502,12 @@ export async function ServerTranslatedContent() {
     }
   }
 }
-```
 
 ---
 
-## 4. DATE, TIME, NUMBER FORMATTING
+§ 4. DATE, TIME, NUMBER FORMATTING
 
-### 4.1 Date Formats Table
+§ 4.1 DATE FORMATS TABLE
 
 | Format | en-US | it-IT | de-DE | Code |
 |--------|-------|-------|-------|------|
@@ -530,7 +520,7 @@ export async function ServerTranslatedContent() {
 | datetime | Dec 31, 2023, 2:30 PM | 31 dic 2023, 14:30 | 31. Dez. 2023, 14:30 | `datetime, medium` |
 | relative | 2 hours ago | 2 ore fa | vor 2 Stunden | `relativeTime, hours` |
 
-### 4.2 Number Formats Table
+§ 4.2 NUMBER FORMATS TABLE
 
 | Format | en-US | it-IT | de-DE | Code |
 |--------|-------|-------|-------|------|
@@ -541,8 +531,8 @@ export async function ServerTranslatedContent() {
 | scientific | 1.23E3 | 1,23E3 | 1,23E3 | `number, scientific` |
 | unit | 5 meters | 5 metri | 5 Meter | `number, unit:meter` |
 
-### 4.3 Implementation
-```typescript
+§ 4.3 IMPLEMENTATION
+typescript
 // lib/formatters.ts
 import { createTranslator } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -748,10 +738,9 @@ export function ProductCard({ product }: { product: Product }) {
     </div>
   );
 }
-```
 
-### 4.4 Timezone Handling
-```typescript
+§ 4.4 TIMEZONE HANDLING
+typescript
 // lib/timezone.ts
 import { headers } from 'next/headers';
 
@@ -848,13 +837,12 @@ export function ClientTimezoneDetector() {
     </div>
   );
 }
-```
 
 ---
 
-## 5. LOCALE DETECTION & ROUTING
+§ 5. LOCALE DETECTION & ROUTING
 
-### 5.1 Detection Strategy Priority
+§ 5.1 DETECTION STRATEGY PRIORITY
 
 | Priority | Source | Reliability | Persistence | Implementation |
 |----------|--------|-------------|-------------|----------------|
@@ -864,7 +852,7 @@ export function ClientTimezoneDetector() {
 | 4 | Default | ✅ High | ✅ Yes | Fallback to `defaultLocale` |
 | 5 | GeoIP | ⚠️ Low | ❌ No | Vercel/Cloudflare headers |
 
-### 5.2 URL Strategies Comparison
+§ 5.2 URL STRATEGIES COMPARISON
 
 | Strategy | Example | SEO | Complexity | Use Case | Implementation |
 |----------|---------|-----|------------|----------|----------------|
@@ -874,8 +862,8 @@ export function ClientTimezoneDetector() {
 | Query param | ?lang=it | ❌ Poor | ✅ Low | Temporary/optional | Search params handling |
 | Cookie only | No URL change | ❌ Poor | ✅ Low | User preference | Cookie-based detection |
 
-### 5.3 Middleware Implementation
-```typescript
+§ 5.3 MIDDLEWARE IMPLEMENTATION
+typescript
 // middleware.ts - Complete implementation
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
@@ -983,10 +971,9 @@ export const config = {
     '/',
   ],
 };
-```
 
-### 5.4 Locale Switcher Component
-```typescript
+§ 5.4 LOCALE SWITCHER COMPONENT
+typescript
 // components/LocaleSwitcher.tsx
 'use client';
 
@@ -1221,13 +1208,12 @@ export function LocaleSwitcher({
     }
   }
 }
-```
 
 ---
 
-## 6. SERVER COMPONENTS INTEGRATION
+§ 6. SERVER COMPONENTS INTEGRATION
 
-### 6.1 Server vs Client Translation
+§ 6.1 SERVER VS CLIENT TRANSLATION
 
 | Context | Hook/Function | Import From | When to Use |
 |---------|---------------|-------------|-------------|
@@ -1239,8 +1225,8 @@ export function LocaleSwitcher({
 | Route Handler | Manual extraction | - | API routes, webhooks |
 | Middleware | No translation | - | Routing, redirects |
 
-### 6.2 Server Component Translations
-```typescript
+§ 6.2 SERVER COMPONENT TRANSLATIONS
+typescript
 // app/[locale]/products/page.tsx
 import { getTranslations, getFormatter } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -1399,10 +1385,9 @@ export async function submitContactForm(
     };
   }
 }
-```
 
-### 6.3 Metadata Translation
-```typescript
+§ 6.3 METADATA TRANSLATION
+typescript
 // app/[locale]/layout.tsx - Extended metadata
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -1531,10 +1516,9 @@ export async function generateMetadata({
     keywords: post.tags.join(', '),
   };
 }
-```
 
-### 6.4 Static Generation
-```typescript
+§ 6.4 STATIC GENERATION
+typescript
 // app/[locale]/blog/[slug]/page.tsx - Static generation
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -1670,13 +1654,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   return sitemapEntries;
 }
-```
 
 ---
 
-## 7. RTL (RIGHT-TO-LEFT) SUPPORT
+§ 7. RTL (RIGHT-TO-LEFT) SUPPORT
 
-### 7.1 RTL Languages Reference
+§ 7.1 RTL LANGUAGES REFERENCE
 
 | Language | Code | Direction | Script | Notes |
 |----------|------|-----------|--------|-------|
@@ -1689,7 +1672,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 | Syriac | syr | RTL | Syriac | Liturgical language |
 | Divehi | dv | RTL | Thaana | Maldives language |
 
-### 7.2 CSS Logical Properties
+§ 7.2 CSS LOGICAL PROPERTIES
 
 | Physical Property | Logical Property | CSS Example | Use Case |
 |-------------------|------------------|-------------|----------|
@@ -1704,8 +1687,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 | `clear: left` | `clear: inline-start` | `clear: inline-start` | Clearing floats |
 | `left: 0` | `inset-inline-start: 0` | `inset-inline-start: 0` | Absolute positioning |
 
-### 7.3 Tailwind RTL Setup
-```typescript
+§ 7.3 TAILWIND RTL SETUP
+typescript
 // tailwind.config.ts
 import type { Config } from 'tailwindcss';
 
@@ -1850,10 +1833,9 @@ export default config;
     padding-inline-end: 1rem;
   }
 }
-```
 
-### 7.4 Dynamic dir Attribute
-```typescript
+§ 7.4 DYNAMIC DIR ATTRIBUTE
+typescript
 // hooks/useDirection.ts
 'use client';
 
@@ -1952,9 +1934,8 @@ export function flipPosition(
   if (position === 'right') return direction === 'ltr' ? 'right' : 'left';
   return position;
 }
-```
 
-### 7.5 Icon Mirroring Rules
+§ 7.5 ICON MIRRORING RULES
 
 | Mirror | Don't Mirror | Conditional Mirror |
 |--------|--------------|-------------------|
@@ -1964,7 +1945,7 @@ export function flipPosition(
 | Indentation icons | Bookmark icons | Play/Pause (culture-dependent) |
 | Transfer/swap icons | Star ratings | Timeline arrows |
 
-```typescript
+typescript
 // components/RTLIcon.tsx
 'use client';
 
@@ -2080,14 +2061,13 @@ export function NavigationButtons() {
     </div>
   );
 }
-```
 
 ---
 
-## 8. TYPE SAFETY
+§ 8. TYPE SAFETY
 
-### 8.1 Typed Keys Setup
-```typescript
+§ 8.1 TYPED KEYS SETUP
+typescript
 // global.d.ts
 import en from './messages/en.json';
 
@@ -2186,10 +2166,9 @@ export function validateTranslationKey<K extends TranslationKeys>(
   // This function ensures type safety at runtime
   return true;
 }
-```
 
-### 8.2 Compile-time Validation
-```json
+§ 8.2 COMPILE-TIME VALIDATION
+json
 // tsconfig.json
 {
   "compilerOptions": {
@@ -2342,10 +2321,9 @@ function findEmptyValues(obj, prefix = '') {
 }
 
 validateMessages();
-```
 
-### 8.3 IDE Autocomplete
-```typescript
+§ 8.3 IDE AUTOCOMPLETE
+typescript
 // .vscode/settings.json
 {
   "typescript.preferences.includePackageJsonAutoImports": "on",
@@ -2478,13 +2456,12 @@ const home = createTranslationHelper('HomePage');
 // Now home.t() will autocomplete HomePage keys
 // home.t('hero.title') ✅
 // home.t('invalid.key') ❌ Type error
-```
 
 ---
 
-## 9. TRANSLATION WORKFLOW
+§ 9. TRANSLATION WORKFLOW
 
-### 9.1 File Organization Patterns
+§ 9.1 FILE ORGANIZATION PATTERNS
 
 | Pattern | Structure | Best For | Pros | Cons |
 |---------|-----------|----------|------|------|
@@ -2494,7 +2471,7 @@ const home = createTranslationHelper('HomePage');
 | Domain-based | `/domains/shop/messages/en.json`<br>`/domains/blog/messages/en.json` | Enterprise apps, micro-frontends | Domain separation, team autonomy | Duplication risk |
 | Dynamic loading | Async import per route/chunk | Apps with code splitting | Optimized bundles, lazy loading | Runtime overhead |
 
-### 9.2 Key Naming Conventions
+§ 9.2 KEY NAMING CONVENTIONS
 
 | Convention | Example | Pros | Cons | Best For |
 |------------|---------|------|------|----------|
@@ -2504,7 +2481,7 @@ const home = createTranslationHelper('HomePage');
 | Component scoped | `LoginForm.title`<br>`LoginForm.button.submit` | Component isolation, portable | Duplication across components | Component libraries |
 | Action-oriented | `title.login`<br>`button.login.submit` | Focus on action/UI element | Inconsistent with data structure | Design-system driven |
 
-### 9.3 Translation Management Tools
+§ 9.3 TRANSLATION MANAGEMENT TOOLS
 
 | Tool | Type | CI/CD | Pricing | Key Features | Integration |
 |------|------|-------|---------|-------------|-------------|
@@ -2516,8 +2493,8 @@ const home = createTranslationHelper('HomePage');
 | SimpleLocalize | Cloud | ✅ | $$ | Auto-translation, In-context | GitHub, CLI, Webhooks |
 | Tolgee | Self-hosted/Cloud | ✅ | Freemium | In-context, Auto-translation | SDK, API, Plugins |
 
-### 9.4 CI/CD Integration
-```yaml
+§ 9.4 CI/CD INTEGRATION
+yaml
 # .github/workflows/validate-i18n.yml
 name: Validate Internationalization
 
@@ -2761,13 +2738,12 @@ function extractKeys(obj, prefix = '') {
 }
 
 extractMessages();
-```
 
 ---
 
-## 10. SEO FOR MULTI-LANGUAGE
+§ 10. SEO FOR MULTI-LANGUAGE
 
-### 10.1 Required Elements
+§ 10.1 REQUIRED ELEMENTS
 
 | Element | Purpose | Implementation | Example |
 |---------|---------|----------------|---------|
@@ -2779,8 +2755,8 @@ extractMessages();
 | Sitemap per locale | Help indexing | Separate or combined sitemap | `sitemap-en.xml`, `sitemap-it.xml` |
 | x-default hreflang | Default language for unspecified regions | Link tag | `<link rel="alternate" hreflang="x-default" href="https://example.com/" />` |
 
-### 10.2 Hreflang Implementation
-```typescript
+§ 10.2 HREFLANG IMPLEMENTATION
+typescript
 // components/HreflangTags.tsx
 import { locales, defaultLocale } from '@/i18n';
 
@@ -2947,10 +2923,9 @@ export function validateHreflangImplementation() {
   // Implementation would check rendered HTML
   return requiredElements.every(element => true); // Simplified
 }
-```
 
-### 10.3 Sitemap Generation
-```typescript
+§ 10.3 SITEMAP GENERATION
+typescript
 // app/sitemap.ts - Complete multi-locale sitemap
 import { MetadataRoute } from 'next';
 import { locales, defaultLocale } from '@/i18n';
@@ -3130,13 +3105,11 @@ export async function GET() {
     },
   });
 }
-```
 
 ---
 
-## 11. I18N CHECKLIST
+§ 11. I18N CHECKLIST
 
-```
 SETUP
 ☑ Library installed (next-intl recommended)
 ☑ Middleware configured with locale detection

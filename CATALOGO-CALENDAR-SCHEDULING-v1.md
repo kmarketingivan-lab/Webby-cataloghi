@@ -1,6 +1,6 @@
 # CATALOGO CALENDAR-SCHEDULING v1
 
-## §1. CALENDAR LIBRARY COMPARISON
+§ §1. CALENDAR LIBRARY COMPARISON
 
 | Library | Bundle | Views | Drag & Drop | Events | Best For |
 |---------|--------|-------|-------------|--------|----------|
@@ -12,9 +12,9 @@
 
 **Raccomandazione:** react-big-calendar per la maggior parte dei casi. FullCalendar per funzionalità avanzate. @schedule-x per bundle leggero con features moderne.
 
-## §2. EVENT DATA MODEL
+§ §2. EVENT DATA MODEL
 
-```prisma
+prisma
 // prisma/schema.prisma
 model Calendar {
   id          String    @id @default(cuid())
@@ -223,13 +223,12 @@ enum BookingStatus {
   NO_SHOW
   COMPLETED
 }
-```
 
-## §3. CALENDAR COMPONENT
+§ §3. CALENDAR COMPONENT
 
-### 3.1 Calendar Views Setup
+§ 3.1 CALENDAR VIEWS SETUP
 
-```typescript
+typescript
 // lib/calendar/config.ts
 import { Calendar as BigCalendar, View, ViewNames } from 'react-big-calendar';
 
@@ -296,9 +295,8 @@ export const calendarConfig = {
     showMore: (count: number) => `+${count} more`,
   },
 } as const;
-```
 
-```typescript
+typescript
 // components/calendar/CalendarContainer.tsx
 'use client';
 
@@ -582,11 +580,10 @@ export function CalendarContainer({
     </div>
   );
 }
-```
 
-### 3.2 Calendar Toolbar
+§ 3.2 CALENDAR TOOLBAR
 
-```typescript
+typescript
 // components/calendar/CalendarToolbar.tsx
 'use client';
 
@@ -810,11 +807,10 @@ export function CalendarToolbar({
     </div>
   );
 }
-```
 
-### 3.3 Event Details Component
+§ 3.3 EVENT DETAILS COMPONENT
 
-```typescript
+typescript
 // components/calendar/EventDetails.tsx
 'use client';
 
@@ -1047,13 +1043,12 @@ export function EventDetails({
     </Dialog>
   );
 }
-```
 
-## §4. EVENT CRUD
+§ §4. EVENT CRUD
 
-### 4.1 Event Service
+§ 4.1 EVENT SERVICE
 
-```typescript
+typescript
 // lib/services/event-service.ts
 import { prisma } from '@/lib/prisma';
 import { addMinutes, subMinutes, isWithinInterval, eachDayOfInterval } from 'date-fns';
@@ -1545,11 +1540,10 @@ export class EventService {
     console.log('Sending invitation to:', email);
   }
 }
-```
 
-### 4.2 Event Form
+§ 4.2 EVENT FORM
 
-```typescript
+typescript
 // components/calendar/EventForm.tsx
 'use client';
 
@@ -1907,13 +1901,12 @@ export function EventForm({
     </Dialog>
   );
 }
-```
 
-## §5. RECURRING EVENTS
+§ §5. RECURRING EVENTS
 
-### 5.1 RRULE Implementation
+§ 5.1 RRULE IMPLEMENTATION
 
-```typescript
+typescript
 // lib/calendar/recurrence.ts
 import { RRule, RRuleSet, rrulestr, Frequency } from 'rrule';
 
@@ -2021,11 +2014,10 @@ export class RecurrenceService {
     return weekdays.map(day => dayNames[day]);
   }
 }
-```
 
-### 5.2 Recurrence Selector
+§ 5.2 RECURRENCE SELECTOR
 
-```typescript
+typescript
 // components/calendar/RecurrenceSelector.tsx
 'use client';
 
@@ -2271,32 +2263,31 @@ export function RecurrenceSelector({ value, onChange }: RecurrenceSelectorProps)
     </div>
   );
 }
-```
 
 [Continua... Le sezioni rimanenti includerebbero:
 
-## §6. AVAILABILITY & BOOKING
+§ §6. AVAILABILITY & BOOKING
 - Availability service e model
 - Booking flow completo
 - Slot picker component
 - Conflict detection
 
-## §7. CALENDAR INTEGRATIONS
+§ §7. CALENDAR INTEGRATIONS
 - Google Calendar OAuth setup
 - iCal export implementation
 - Webhook per sincronizzazione
 
-## §8. REMINDERS & NOTIFICATIONS
+§ §8. REMINDERS & NOTIFICATIONS
 - Scheduled jobs con Inngest/CRON
 - Email notification templates
 - Push notification setup
 
-## §9. TIME & TIMEZONE
+§ §9. TIME & TIMEZONE
 - Timezone conversion utilities
 - DateTimePicker component completo
 - User timezone preferences
 
-## §10. CALENDAR CHECKLIST
+§ §10. CALENDAR CHECKLIST
 - Checklist completo per deployment
 - Testing strategies
 - Performance optimization

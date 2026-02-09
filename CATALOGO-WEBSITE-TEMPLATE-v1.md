@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | Sezione | Descrizione |
 |---------|-------------|
@@ -22,12 +22,12 @@
 
 ---
 
-## 1. PANORAMICA
+§ 1. PANORAMICA
 
-### 1.1 Obiettivo
+§ 1.1 OBIETTIVO
 Sito web dinamico con funzionalità CMS per gestione contenuti, menu, form contatti e impostazioni del sito.
 
-### 1.2 Funzionalità Principali
+§ 1.2 FUNZIONALITÀ PRINCIPALI
 
 | Funzionalità | Descrizione |
 |--------------|-------------|
@@ -36,7 +36,7 @@ Sito web dinamico con funzionalità CMS per gestione contenuti, menu, form conta
 | **Form Contatti** | Submissions con status, spam detection, email notifications |
 | **Site Settings** | Configurazione globale sito (nome, descrizione, logo) |
 
-### 1.3 Struttura File
+§ 1.3 STRUTTURA FILE
 
 | Layer | Path | Descrizione |
 |-------|------|-------------|
@@ -50,16 +50,15 @@ Sito web dinamico con funzionalità CMS per gestione contenuti, menu, form conta
 
 ---
 
-## 2. SCHEMA DATABASE
+§ 2. SCHEMA DATABASE
 
-### 2.1 File: `prisma/schema-website.prisma`
+§ 2.1 FILE: `PRISMA/SCHEMA-WEBSITE.PRISMA`
 
-```prisma
+prisma
 // Schema database per CMS website
 // Modelli: Page, MenuItem, ContactSubmission, SiteSetting
-```
 
-### 2.2 Modelli Principali
+§ 2.2 MODELLI PRINCIPALI
 
 | Modello | Campi Chiave | Relazioni |
 |---------|--------------|-----------|
@@ -70,9 +69,9 @@ Sito web dinamico con funzionalità CMS per gestione contenuti, menu, form conta
 
 ---
 
-## 3. SERVICES LAYER
+§ 3. SERVICES LAYER
 
-### 3.1 PageService
+§ 3.1 PAGESERVICE
 
 **File**: `src/server/services/page-service.ts`
 
@@ -91,7 +90,7 @@ Sito web dinamico con funzionalità CMS per gestione contenuti, menu, form conta
 | `generateSlug` | `title` | `string` | Genera slug da titolo |
 | `renderContent` | `markdown` | `string` | Render markdown → HTML |
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -145,9 +144,8 @@ export class PageService {
     // implementazione della renderizzazione del contenuto
   }
 }
-```
 
-### 3.2 MenuService
+§ 3.2 MENUSERVICE
 
 **File**: `src/server/services/menu-service.ts`
 
@@ -159,7 +157,7 @@ export class PageService {
 | `deleteItem` | `itemId` | `void` | Elimina voce |
 | `reorder` | `items[]` | `void` | Riordina voci |
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -184,9 +182,8 @@ export class MenuService {
     // implementazione del reordering degli elementi del menu
   }
 }
-```
 
-### 3.3 ContactService
+§ 3.3 CONTACTSERVICE
 
 **File**: `src/server/services/contact-service.ts`
 
@@ -201,7 +198,7 @@ export class MenuService {
 | `sendConfirmationEmail` | `submission` | `void` | Email conferma utente |
 | `sendNotificationEmail` | `submission` | `void` | Email notifica admin |
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -239,9 +236,8 @@ export class ContactService {
     // implementazione dell'invio dell'email di notifica
   }
 }
-```
 
-### 3.4 SettingsService
+§ 3.4 SETTINGSSERVICE
 
 **File**: `src/server/services/settings-service.ts`
 
@@ -253,7 +249,7 @@ export class ContactService {
 | `getSiteInfo` | - | `SiteInfo` | Info sito aggregate |
 | `updateSiteInfo` | `Partial<SiteInfo>` | `SiteInfo` | Aggiorna info sito |
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -280,13 +276,12 @@ export class SettingsService {
     // implementazione dell'aggiornamento delle informazioni del sito
   }
 }
-```
 
 ---
 
-## 4. API LAYER
+§ 4. API LAYER
 
-### 4.1 Router tRPC
+§ 4.1 ROUTER TRPC
 
 **File**: `src/server/trpc/routers/website.ts`
 
@@ -297,7 +292,7 @@ export class SettingsService {
 | `updatePage` | Mutation | `{ id, title, content }` | Aggiorna pagina |
 | `deletePage` | Mutation | `string` (id) | Elimina pagina |
 
-```typescript
+typescript
 import * as trpc from '@trpc/server';
 import * as trpcNext from '@trpc/server/adapters/next';
 import { z } from 'zod';
@@ -316,9 +311,8 @@ export const appRouter = trpc.router()
     },
   })
   //... altre query e mutation
-```
 
-### 4.2 Validazioni Zod
+§ 4.2 VALIDAZIONI ZOD
 
 **File**: `src/lib/validations/website.ts`
 
@@ -328,7 +322,7 @@ export const appRouter = trpc.router()
 | `menuSchema` | label, url? | Validazione menu |
 | `contactSchema` | name, email, message | Validazione form contatto |
 
-```typescript
+typescript
 import { z } from 'zod';
 
 export const pageSchema = z.object({
@@ -346,13 +340,12 @@ export const contactSchema = z.object({
   email: z.string().email(),
   message: z.string(),
 });
-```
 
 ---
 
-## 5. COMPONENTI WEBSITE
+§ 5. COMPONENTI WEBSITE
 
-### 5.1 Mappa Componenti
+§ 5.1 MAPPA COMPONENTI
 
 | Componente | File | Descrizione |
 |------------|------|-------------|
@@ -370,11 +363,11 @@ export const contactSchema = z.object({
 | **ContactInfo** | `contact-info.tsx` | Info contatto (indirizzo, tel, email) |
 | **Map** | `map.tsx` | Embed Google Maps |
 
-### 5.2 Header
+§ 5.2 HEADER
 
 **File**: `src/components/website/header.tsx`
 
-```tsx
+tsx
 import React from 'react';
 
 const Header = () => {
@@ -392,13 +385,12 @@ const Header = () => {
 };
 
 export default Header;
-```
 
-### 5.3 Footer
+§ 5.3 FOOTER
 
 **File**: `src/components/website/footer.tsx`
 
-```tsx
+tsx
 import React from 'react';
 
 const Footer = () => {
@@ -414,13 +406,12 @@ const Footer = () => {
 };
 
 export default Footer;
-```
 
-### 5.4 HeroSection
+§ 5.4 HEROSECTION
 
 **File**: `src/components/website/hero-section.tsx`
 
-```tsx
+tsx
 import React from 'react';
 
 const HeroSection = () => {
@@ -434,13 +425,12 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-```
 
-### 5.5 ContactForm
+§ 5.5 CONTACTFORM
 
 **File**: `src/components/website/contact-form.tsx`
 
-```tsx
+tsx
 import React, { useState } from 'react';
 
 const ContactForm = () => {
@@ -473,13 +463,12 @@ const ContactForm = () => {
 };
 
 export default ContactForm;
-```
 
 ---
 
-## 6. PAGINE PUBBLICHE
+§ 6. PAGINE PUBBLICHE
 
-### 6.1 Struttura Route
+§ 6.1 STRUTTURA ROUTE
 
 | Route | File | Descrizione |
 |-------|------|-------------|
@@ -488,11 +477,11 @@ export default ContactForm;
 | `/contact` | `src/app/(website)/contact/page.tsx` | Pagina contatti |
 | Layout | `src/app/(website)/layout.tsx` | Layout wrapper |
 
-### 6.2 Homepage
+§ 6.2 HOMEPAGE
 
 **File**: `src/app/(website)/page.tsx`
 
-```tsx
+tsx
 import React from 'react';
 
 const Page = () => {
@@ -505,13 +494,12 @@ const Page = () => {
 };
 
 export default Page;
-```
 
-### 6.3 Pagine Dinamiche
+§ 6.3 PAGINE DINAMICHE
 
 **File**: `src/app/(website)/[...slug]/page.tsx`
 
-```tsx
+tsx
 import React from 'react';
 
 const Page = () => {
@@ -524,13 +512,12 @@ const Page = () => {
 };
 
 export default Page;
-```
 
-### 6.4 Layout
+§ 6.4 LAYOUT
 
 **File**: `src/app/(website)/layout.tsx`
 
-```tsx
+tsx
 import React from 'react';
 import Header from '../components/website/header';
 import Footer from '../components/website/footer';
@@ -546,13 +533,12 @@ const Layout = ({ children }) => {
 };
 
 export default Layout;
-```
 
 ---
 
-## 7. PANNELLO ADMIN
+§ 7. PANNELLO ADMIN
 
-### 7.1 Struttura Route Admin
+§ 7.1 STRUTTURA ROUTE ADMIN
 
 | Route | File | Descrizione |
 |-------|------|-------------|
@@ -563,11 +549,11 @@ export default Layout;
 | `/admin/submissions` | `submissions/page.tsx` | Lista submissions |
 | `/admin/settings/site` | `settings/site/page.tsx` | Impostazioni sito |
 
-### 7.2 Lista Pagine
+§ 7.2 LISTA PAGINE
 
 **File**: `src/app/admin/pages/page.tsx`
 
-```tsx
+tsx
 import React, { useState, useEffect } from 'react';
 import { useSession } from '../context/session';
 
@@ -599,13 +585,12 @@ const Pages = () => {
 };
 
 export default Pages;
-```
 
-### 7.3 Crea Pagina
+§ 7.3 CREA PAGINA
 
 **File**: `src/app/admin/pages/new/page.tsx`
 
-```tsx
+tsx
 import React, { useState } from 'react';
 
 const NewPage = () => {
@@ -633,13 +618,12 @@ const NewPage = () => {
 };
 
 export default NewPage;
-```
 
-### 7.4 Section Builder
+§ 7.4 SECTION BUILDER
 
 **File**: `src/components/admin/pages/section-builder.tsx`
 
-```tsx
+tsx
 import React, { useState } from 'react';
 
 const SectionBuilder = () => {
@@ -672,13 +656,12 @@ const SectionBuilder = () => {
 };
 
 export default SectionBuilder;
-```
 
-### 7.5 Site Settings
+§ 7.5 SITE SETTINGS
 
 **File**: `src/app/admin/settings/site/page.tsx`
 
-```tsx
+tsx
 import React, { useState, useEffect } from 'react';
 
 const SiteSettings = () => {
@@ -716,17 +699,16 @@ const SiteSettings = () => {
 };
 
 export default SiteSettings;
-```
 
 ---
 
-## 8. TESTING
+§ 8. TESTING
 
-### 8.1 Test Componenti
+§ 8.1 TEST COMPONENTI
 
 **File**: `tests/website.test.ts`
 
-```typescript
+typescript
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { Page } from '../components/website/page';
@@ -744,11 +726,10 @@ describe('Page component', () => {
     await waitFor(() => expect(window.location.href).toBe('https://example.com'));
   });
 });
-```
 
 ---
 
-## 10. CHECKLIST IMPLEMENTAZIONE
+§ 10. CHECKLIST IMPLEMENTAZIONE
 
 | Step | Descrizione | Status |
 |------|-------------|--------|
@@ -1439,9 +1420,9 @@ export default function SidebarNavigation() {
 
   return (
 
-## 9. STRATEGY/DECISION TABLES
+§ 9. STRATEGY/DECISION TABLES
 
-### 9.1 Decision Table per Gestione Pagine
+§ 9.1 DECISION TABLE PER GESTIONE PAGINE
 
 | Condizione | Azione |
 |------------|--------|
@@ -1449,7 +1430,7 @@ export default function SidebarNavigation() {
 | Pagina esiste, ma non è pubblicata | Aggiorna pagina e pubblica |
 | Pagina esiste e è pubblicata | Aggiorna pagina |
 
-### 9.2 Decision Table per Menu Dinamici
+§ 9.2 DECISION TABLE PER MENU DINAMICI
 
 | Condizione | Azione |
 |------------|--------|
@@ -1457,41 +1438,41 @@ export default function SidebarNavigation() {
 | Menu esiste, ma non ha elementi | Aggiungi elementi al menu |
 | Menu esiste e ha elementi | Aggiorna elementi del menu |
 
-## 10. BEST PRACTICES
+§ 10. BEST PRACTICES
 
-### 10.1 ✅ DO
+§ 10.1 ✅ DO
 
 * Utilizzare tipi TypeScript per garantire la sicurezza dei dati
 * Utilizzare Prisma per gestire il database
 * Utilizzare tRPC per gestire le API
 * Utilizzare componenti UI personalizzati per migliorare l'esperienza utente
 
-### 10.2 ❌ DON'T
+§ 10.2 ❌ DON'T
 
 * Non utilizzare tipi TypeScript per garantire la sicurezza dei dati
 * Non utilizzare Prisma per gestire il database
 * Non utilizzare tRPC per gestire le API
 * Non utilizzare componenti UI personalizzati per migliorare l'esperienza utente
 
-## 11. PERFORMANCE CONSIDERATIONS
+§ 11. PERFORMANCE CONSIDERATIONS
 
-### 11.1 Ottimizzazione del Database
+§ 11.1 OTTIMIZZAZIONE DEL DATABASE
 
 * Utilizzare indici per migliorare la velocità di query
 * Utilizzare caching per ridurre il carico del database
 * Utilizzare query ottimizzate per ridurre il tempo di esecuzione
 
-### 11.2 Ottimizzazione del Codice
+§ 11.2 OTTIMIZZAZIONE DEL CODICE
 
 * Utilizzare funzioni pure per migliorare la velocità di esecuzione
 * Utilizzare memoizzazione per ridurre il carico del codice
 * Utilizzare codice ottimizzato per ridurre il tempo di esecuzione
 
-## 12. TESTING PATTERNS (Vitest)
+§ 12. TESTING PATTERNS (VITEST)
 
-### 12.1 Test per Componenti Principali
+§ 12.1 TEST PER COMPONENTI PRINCIPALI
 
-```typescript
+typescript
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { PageComponent } from '../components/page';
 
@@ -1506,11 +1487,10 @@ describe('PageComponent', () => {
     expect(getByText('Contenuto della pagina')).toBeInTheDocument();
   });
 });
-```
 
-### 12.2 Test per API
+§ 12.2 TEST PER API
 
-```typescript
+typescript
 import { createTRPCClient } from '@trpc/client';
 import { createTRPCServer } from '@trpc/server';
 import { z } from 'zod';
@@ -1528,114 +1508,113 @@ describe('apiRouter', () => {
     expect(result).toBe('risultato');
   });
 });
-```
 
-## 13. COMMON PITFALLS & TROUBLESHOOTING
+§ 13. COMMON PITFALLS & TROUBLESHOOTING
 
-### 13.1 Problemi Comuni
+§ 13.1 PROBLEMI COMUNI
 
 * Errore di tipo: assicurarsi di utilizzare tipi TypeScript corretti
 * Errore di database: assicurarsi di utilizzare Prisma correttamente
 * Errore di API: assicurarsi di utilizzare tRPC correttamente
 
-### 13.2 Soluzioni Comuni
+§ 13.2 SOLUZIONI COMUNI
 
 * Utilizzare il debugger per identificare l'origine dell'errore
 * Utilizzare la documentazione per risolvere problemi comuni
 * Utilizzare la community per chiedere aiuto
 
-## 14. MIGRATION/UPGRADE PATTERNS
+§ 14. MIGRATION/UPGRADE PATTERNS
 
-### 14.1 Migrazione del Database
+§ 14.1 MIGRAZIONE DEL DATABASE
 
 * Utilizzare Prisma per eseguire la migrazione del database
 * Utilizzare script di migrazione per eseguire la migrazione del database
 
-### 14.2 Upgrade del Codice
+§ 14.2 UPGRADE DEL CODICE
 
 * Utilizzare TypeScript per eseguire l'upgrade del codice
 * Utilizzare funzioni di upgrade per eseguire l'upgrade del codice
 
-## 15. EDGE CASES
+§ 15. EDGE CASES
 
-### 15.1 Gestione di Errori
+§ 15.1 GESTIONE DI ERRORI
 
 * Utilizzare try-catch per gestire gli errori
 * Utilizzare error handling per gestire gli errori
 
-### 15.2 Gestione di Input Invalidi
+§ 15.2 GESTIONE DI INPUT INVALIDI
 
 * Utilizzare validazione per gestire input invalidi
 * Utilizzare error handling per gestire input invalidi
 
-## 16. ERROR HANDLING
+§ 16. ERROR HANDLING
 
-### 16.1 Gestione di Errori
+§ 16.1 GESTIONE DI ERRORI
 
 * Utilizzare try-catch per gestire gli errori
 * Utilizzare error handling per gestire gli errori
 
-### 16.2 Gestione di Eccezioni
+§ 16.2 GESTIONE DI ECCEZIONI
 
 * Utilizzare try-catch per gestire le eccezioni
 * Utilizzare error handling per gestire le eccezioni
 
-## 17. CODE ORGANIZATION
+§ 17. CODE ORGANIZATION
 
-### 17.1 Organizzazione del Codice
+§ 17.1 ORGANIZZAZIONE DEL CODICE
 
 * Utilizzare una struttura di directory per organizzare il codice
 * Utilizzare moduli per organizzare il codice
 
-### 17.2 Gestione di Dipendenze
+§ 17.2 GESTIONE DI DIPENDENZE
 
 * Utilizzare dipendenze per gestire le dipendenze
 * Utilizzare gestione di dipendenze per gestire le dipendenze
 
-## 18. SECURITY
+§ 18. SECURITY
 
-### 18.1 Gestione di Password
+§ 18.1 GESTIONE DI PASSWORD
 
 * Utilizzare hashing per gestire le password
 * Utilizzare salting per gestire le password
 
-### 18.2 Gestione di Autenticazione
+§ 18.2 GESTIONE DI AUTENTICAZIONE
 
 * Utilizzare autenticazione per gestire l'accesso
 * Utilizzare autorizzazione per gestire l'accesso
 
-## 19. DEPLOYMENT
+§ 19. DEPLOYMENT
 
-### 19.1 Deploy su Server
+§ 19.1 DEPLOY SU SERVER
 
 * Utilizzare un server per deployare l'applicazione
 * Utilizzare un servizio di deploy per deployare l'applicazione
 
-### 19.2 Deploy su Cloud
+§ 19.2 DEPLOY SU CLOUD
 
 * Utilizzare un servizio cloud per deployare l'applicazione
 * Utilizzare un servizio di deploy per deployare l'applicazione
 
-## 20. MONITORING
+§ 20. MONITORING
 
-### 20.1 Monitoraggio dell'Applicazione
+§ 20.1 MONITORAGGIO DELL'APPLICAZIONE
 
 * Utilizzare strumenti di monitoraggio per monitorare l'applicazione
 * Utilizzare log per monitorare l'applicazione
 
-### 20.2 Monitoraggio del Server
+§ 20.2 MONITORAGGIO DEL SERVER
 
 * Utilizzare strumenti di monitoraggio per monitorare il server
 * Utilizzare log per monitorare il server
 
-## 21. OPTIMIZATION
+§ 21. OPTIMIZATION
 
-### 21.1 Ottimizzazione dell'Applicazione
+§ 21.1 OTTIMIZZAZIONE DELL'APPLICAZIONE
 
 * Utilizzare strumenti di ottimizzazione per ottimizzare l'applicazione
 * Utilizzare tecniche di ottimizzazione per ottimizzare l'applicazione
 
-### 21.2 Ottimizzazione del Server
+§ 21.2 OTTIMIZZAZIONE DEL SERVER
 
 * Utilizzare strumenti di ottimizzazione per ottimizzare il server
 * Utilizzare tecniche di ottimizzazione per ottimizzare il server

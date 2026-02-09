@@ -6,7 +6,7 @@
 
 ---
 
-## 1. TECHNOLOGY COMPARISON
+§ 1. TECHNOLOGY COMPARISON
 
 | Technology            | Protocol       | Bidirectional | Latency  | Scalability | Browser Support | Use Case                   |
 | --------------------- | -------------- | ------------- | -------- | ----------- | --------------- | -------------------------- |
@@ -17,7 +17,7 @@
 | WebRTC Data Channels  | UDP            | ✅            | Very Low | Medium      | ✅              | P2P file sharing, gaming   |
 | GraphQL Subscriptions | WS or SSE      | ✅            | Low      | Medium      | ✅              | Real-time GraphQL APIs     |
 
-### 1.1 Decision Matrix
+§ 1.1 DECISION MATRIX
 
 | Requirement          | WebSocket | Socket.io | SSE     | Long Polling |
 | -------------------- | --------- | --------- | ------- | ------------ |
@@ -31,11 +31,11 @@
 
 ---
 
-## 2. WEBSOCKET IMPLEMENTATION
+§ 2. WEBSOCKET IMPLEMENTATION
 
-### 2.1 Server (Node.js + ws)
+§ 2.1 SERVER (NODE.JS + WS)
 
-```typescript
+typescript
 import WebSocket, { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 import { IncomingMessage } from 'http';
@@ -125,11 +125,10 @@ setInterval(() => {
     client.ping();
   });
 }, 30000);
-```
 
-### 2.2 Client React Hook
+§ 2.2 CLIENT REACT HOOK
 
-```typescript
+typescript
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface WebSocketMessage {
@@ -220,15 +219,14 @@ export function useWebSocket(
     leaveRoom,
   };
 }
-```
 
 ---
 
-## 3. SOCKET.IO IMPLEMENTATION
+§ 3. SOCKET.IO IMPLEMENTATION
 
-### 3.1 Server Setup with Redis Adapter
+§ 3.1 SERVER SETUP WITH REDIS ADAPTER
 
-```typescript
+typescript
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { createAdapter } from '@socket.io/redis-adapter';
@@ -322,11 +320,10 @@ io.on('connection', (socket) => {
 httpServer.listen(3000, () => {
   console.log('Socket.io server running on port 3000');
 });
-```
 
-### 3.2 Client React Hook
+§ 3.2 CLIENT REACT HOOK
 
-```typescript
+typescript
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -413,15 +410,14 @@ export function useSocket(url: string, token: string, options: UseSocketOptions 
     sendTyping,
   };
 }
-```
 
 ---
 
-## 4. SERVER-SENT EVENTS (SSE)
+§ 4. SERVER-SENT EVENTS (SSE)
 
-### 4.1 Next.js App Router SSE Endpoint
+§ 4.1 NEXT.JS APP ROUTER SSE ENDPOINT
 
-```typescript
+typescript
 // app/api/events/route.ts
 import { NextRequest } from 'next/server';
 
@@ -468,11 +464,10 @@ export async function GET(req: NextRequest) {
     },
   });
 }
-```
 
-### 4.2 SSE Client Hook
+§ 4.2 SSE CLIENT HOOK
 
-```typescript
+typescript
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface SSEOptions {
@@ -536,11 +531,10 @@ export function useSSE<T = any>(url: string, options: SSEOptions = {}) {
     close,
   };
 }
-```
 
 ---
 
-## 5. PRESENCE SYSTEM
+§ 5. PRESENCE SYSTEM
 
 | Pattern           | Storage    | Latency | Accuracy | Scalability | Best For           |
 | ----------------- | ---------- | ------- | -------- | ----------- | ------------------ |
@@ -549,9 +543,9 @@ export function useSSE<T = any>(url: string, options: SSEOptions = {}) {
 | Activity tracking | Redis + DB | Medium  | High     | High        | Last seen          |
 | Typing indicators | Memory     | Low     | Medium   | Medium      | Real-time feedback |
 
-### 5.1 Redis Presence Implementation
+§ 5.1 REDIS PRESENCE IMPLEMENTATION
 
-```typescript
+typescript
 import Redis from 'ioredis';
 
 const redis = new Redis(process.env.REDIS_URL);
@@ -594,15 +588,14 @@ export async function getLastSeen(userId: string): Promise<Date | null> {
 export async function heartbeat(userId: string): Promise<void> {
   await setOnline(userId);
 }
-```
 
 ---
 
-## 6. MESSAGE SCHEMAS
+§ 6. MESSAGE SCHEMAS
 
-### 6.1 Chat Message
+§ 6.1 CHAT MESSAGE
 
-```typescript
+typescript
 export interface Message {
   id: string;
   roomId: string;
@@ -621,11 +614,10 @@ export interface Message {
   status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
   readBy: string[];
 }
-```
 
-### 6.2 Room Management
+§ 6.2 ROOM MANAGEMENT
 
-```typescript
+typescript
 export interface Room {
   id: string;
   name: string;
@@ -685,11 +677,10 @@ class RoomService {
     return this.rooms.get(roomId)?.members || [];
   }
 }
-```
 
 ---
 
-## 7. SCALING PATTERNS
+§ 7. SCALING PATTERNS
 
 | Pattern               | Technology          | Horizontal | Complexity | Cost   | Use Case                |
 | --------------------- | ------------------- | ---------- | ---------- | ------ | ----------------------- |
@@ -698,9 +689,9 @@ class RoomService {
 | Sticky Sessions       | Load balancer       | ✅         | Low        | Medium | Session affinity        |
 | Kubernetes Deployment | All                 | ✅         | Medium     | Medium | Container orchestration |
 
-### 7.1 Redis Pub/Sub for Socket.io
+§ 7.1 REDIS PUB/SUB FOR SOCKET.IO
 
-```typescript
+typescript
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 import { Server } from 'socket.io';
@@ -719,11 +710,10 @@ async function setupRedisAdapter(io: Server) {
     await subClient.quit();
   });
 }
-```
 
 ---
 
-## 8. SECURITY PATTERNS
+§ 8. SECURITY PATTERNS
 
 | Threat              | Mitigation            | Implementation                |
 | ------------------- | --------------------- | ----------------------------- |
@@ -734,9 +724,9 @@ async function setupRedisAdapter(io: Server) {
 | DoS                 | Connection throttling | Max connections per IP        |
 | Message spoofing    | Server-side senderId  | Never trust client userId     |
 
-### 8.1 Rate Limiting Middleware
+§ 8.1 RATE LIMITING MIDDLEWARE
 
-```typescript
+typescript
 import Redis from 'ioredis';
 import { Socket } from 'socket.io';
 
@@ -763,11 +753,10 @@ export function rateLimitMiddleware(options: RateLimitOptions) {
     next();
   };
 }
-```
 
 ---
 
-## 9. MONITORING & DEBUGGING
+§ 9. MONITORING & DEBUGGING
 
 | Metric           | Tool       | Implementation               |
 | ---------------- | ---------- | ---------------------------- |
@@ -776,9 +765,9 @@ export function rateLimitMiddleware(options: RateLimitOptions) {
 | Error logging    | Sentry     | Capture server/client errors |
 | Heartbeat        | Custom     | Detect disconnected clients  |
 
-### 9.1 Prometheus Metrics
+§ 9.1 PROMETHEUS METRICS
 
-```typescript
+typescript
 import { Counter, Gauge, Histogram } from 'prom-client';
 
 export const wsConnections = new Gauge({
@@ -798,11 +787,10 @@ export const wsLatency = new Histogram({
   help: 'WebSocket message latency',
   buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
 });
-```
 
 ---
 
-## 10. REAL-TIME CHECKLIST
+§ 10. REAL-TIME CHECKLIST
 
 | Category | Item |
 | -------- | ---- |
@@ -2018,13 +2006,13 @@ services:
               {showCount && unreadCount > 9 ? (
                 <
 
-## 3. ADVANCED EDGE CASES
+§ 3. ADVANCED EDGE CASES
 
-### 3.1 Handling Disconnections and Reconnections
+§ 3.1 HANDLING DISCONNECTIONS AND RECONNECTIONS
 
 In real-time applications, handling disconnections and reconnections is crucial for maintaining a seamless user experience. Here's an example of how to handle disconnections and reconnections using WebSocket:
 
-```typescript
+typescript
 import WebSocket, { WebSocketServer } from 'ws';
 
 interface WSClient extends WebSocket {
@@ -2060,13 +2048,12 @@ wss.on('connection', (ws: WSClient, req: IncomingMessage) => {
     ws.isAlive = true;
   });
 });
-```
 
-### 3.2 Error Handling and Logging
+§ 3.2 ERROR HANDLING AND LOGGING
 
 Error handling and logging are essential for debugging and monitoring real-time applications. Here's an example of how to handle errors and log messages using WebSocket:
 
-```typescript
+typescript
 import WebSocket, { WebSocketServer } from 'ws';
 import winston from 'winston';
 
@@ -2098,11 +2085,10 @@ wss.on('connection', (ws: WSClient, req: IncomingMessage) => {
     }
   });
 });
-```
 
-## 4. PERFORMANCE CONSIDERATIONS
+§ 4. PERFORMANCE CONSIDERATIONS
 
-### 4.1 Optimizing WebSocket Connections
+§ 4.1 OPTIMIZING WEBSOCKET CONNECTIONS
 
 Optimizing WebSocket connections is crucial for improving the performance of real-time applications. Here are some best practices for optimizing WebSocket connections:
 
@@ -2113,7 +2099,7 @@ Optimizing WebSocket connections is crucial for improving the performance of rea
 | ✅ Use compression | Compress messages to reduce payload size |
 | ❌ Use unnecessary features | Avoid using features that are not necessary for your application |
 
-### 4.2 Optimizing Server-Side Performance
+§ 4.2 OPTIMIZING SERVER-SIDE PERFORMANCE
 
 Optimizing server-side performance is crucial for improving the performance of real-time applications. Here are some best practices for optimizing server-side performance:
 
@@ -2124,13 +2110,13 @@ Optimizing server-side performance is crucial for improving the performance of r
 | ✅ Use caching | Cache frequently accessed data to reduce database queries |
 | ❌ Use synchronous operations | Avoid using synchronous operations that can block the event loop |
 
-## 5. TESTING PATTERNS
+§ 5. TESTING PATTERNS
 
-### 5.1 Testing WebSocket Connections
+§ 5.1 TESTING WEBSOCKET CONNECTIONS
 
 Testing WebSocket connections is crucial for ensuring the reliability and performance of real-time applications. Here's an example of how to test WebSocket connections using Vitest:
 
-```typescript
+typescript
 import { describe, it, expect } from 'vitest';
 import WebSocket from 'ws';
 
@@ -2161,11 +2147,10 @@ describe('WebSocket connection', () => {
     });
   });
 });
-```
 
-## 6. COMMON PITFALLS AND TROUBLESHOOTING
+§ 6. COMMON PITFALLS AND TROUBLESHOOTING
 
-### 6.1 Handling Connection Drops
+§ 6.1 HANDLING CONNECTION DROPS
 
 Handling connection drops is crucial for maintaining a seamless user experience. Here are some common pitfalls and troubleshooting tips for handling connection drops:
 
@@ -2175,9 +2160,9 @@ Handling connection drops is crucial for maintaining a seamless user experience.
 | Connection drops due to server overload | Connection drops due to server overload can cause data loss and corruption | Implement load balancing and use clustering to distribute incoming connections across multiple servers |
 | Connection drops due to client-side issues | Connection drops due to client-side issues can cause data loss and corruption | Implement client-side retry mechanisms and use caching to reduce the impact of connection drops |
 
-## 7. MIGRATION AND UPGRADE PATTERNS
+§ 7. MIGRATION AND UPGRADE PATTERNS
 
-### 7.1 Migrating from WebSocket to Socket.io
+§ 7.1 MIGRATING FROM WEBSOCKET TO SOCKET.IO
 
 Migrating from WebSocket to Socket.io can be a complex process. Here are some best practices for migrating from WebSocket to Socket.io:
 
@@ -2188,7 +2173,7 @@ Migrating from WebSocket to Socket.io can be a complex process. Here are some be
 | ✅ Use testing and validation | Thoroughly test and validate the migration to ensure that it works as expected |
 | ❌ Use a big-bang approach | Avoid migrating everything at once, as this can cause significant downtime and disruption |
 
-### 7.2 Upgrading from Socket.io 3 to Socket.io 4
+§ 7.2 UPGRADING FROM SOCKET.IO 3 TO SOCKET.IO 4
 
 Upgrading from Socket.io 3 to Socket.io 4 can be a complex process. Here are some best practices for upgrading from Socket.io 3 to Socket.io 4:
 

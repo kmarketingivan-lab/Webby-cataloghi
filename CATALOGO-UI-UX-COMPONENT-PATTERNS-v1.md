@@ -6,7 +6,7 @@
 
 ---
 
-## PATTERN 1: Compound Components
+§ PATTERN 1: COMPOUND COMPONENTS
 
 **Metadata:**
 
@@ -19,7 +19,7 @@
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface TabsContextType {
@@ -57,7 +57,6 @@ export const TabPanel: React.FC<{ index: number; children: ReactNode }> = ({ ind
   const { active } = useTabs();
   return active === index ? <div role="tabpanel">{children}</div> : null;
 };
-```
 
 **Quando Usare:** ✅ UI composte | ✅ API dichiarativa | ✅ No prop drilling
 
@@ -65,7 +64,7 @@ export const TabPanel: React.FC<{ index: number; children: ReactNode }> = ({ ind
 
 ---
 
-## PATTERN 2: Render Props
+§ PATTERN 2: RENDER PROPS
 
 **Metadata:**
 
@@ -78,7 +77,7 @@ export const TabPanel: React.FC<{ index: number; children: ReactNode }> = ({ ind
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useState, ReactNode } from 'react';
 
 interface MouseProps {
@@ -98,7 +97,6 @@ export const MouseTracker: React.FC<MouseProps> = ({ children }) => {
     </div>
   );
 };
-```
 
 **Quando Usare:** ✅ Riutilizzo logica | ✅ Separazione logica/UI | ✅ API flessibile
 
@@ -106,7 +104,7 @@ export const MouseTracker: React.FC<MouseProps> = ({ children }) => {
 
 ---
 
-## PATTERN 3: Custom Hooks
+§ PATTERN 3: CUSTOM HOOKS
 
 **Metadata:**
 
@@ -119,7 +117,7 @@ export const MouseTracker: React.FC<MouseProps> = ({ children }) => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import { useEffect, useState } from 'react';
 
 export const useOnlineStatus = (): boolean => {
@@ -143,7 +141,6 @@ export const StatusIndicator: React.FC = () => {
   const online = useOnlineStatus();
   return <span>{online ? 'Online' : 'Offline'}</span>;
 };
-```
 
 **Quando Usare:** ✅ Condivisione logica | ✅ Composizione funzionale | ✅ API semplice
 
@@ -151,7 +148,7 @@ export const StatusIndicator: React.FC = () => {
 
 ---
 
-## PATTERN 4: Higher-Order Components (HOC)
+§ PATTERN 4: HIGHER-ORDER COMPONENTS (HOC)
 
 **Metadata:**
 
@@ -164,7 +161,7 @@ export const StatusIndicator: React.FC = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { ComponentType } from 'react';
 
 interface WithLoadingProps {
@@ -186,7 +183,6 @@ interface DataProps {
 
 export const DataView: React.FC<DataProps> = ({ data }) => <div>{data}</div>;
 export const DataViewWithLoading = withLoading(DataView);
-```
 
 **Quando Usare:** ✅ Cross-cutting concerns | ✅ Logging, auth, loading
 
@@ -194,7 +190,7 @@ export const DataViewWithLoading = withLoading(DataView);
 
 ---
 
-## PATTERN 5: Provider Pattern
+§ PATTERN 5: PROVIDER PATTERN
 
 **Metadata:**
 
@@ -207,7 +203,7 @@ export const DataViewWithLoading = withLoading(DataView);
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ThemeContextType {
@@ -228,7 +224,6 @@ export const useTheme = () => {
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
   return ctx;
 };
-```
 
 **Quando Usare:** ✅ Stato condiviso | ✅ Configurazioni globali | ✅ Riduzione prop drilling
 
@@ -236,7 +231,7 @@ export const useTheme = () => {
 
 ---
 
-## PATTERN 6: Container/Presentational
+§ PATTERN 6: CONTAINER/PRESENTATIONAL
 
 **Metadata:**
 
@@ -249,7 +244,7 @@ export const useTheme = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useEffect, useState } from 'react';
 
 interface User {
@@ -274,13 +269,12 @@ export const UserContainer: React.FC = () => {
 
   return <UserList users={users} />;
 };
-```
 
 **Quando Usare:** ✅ Separazione responsabilità | ✅ Testabilità | ✅ Manutenibilità
 
 ---
 
-## PATTERN 7: Controlled vs Uncontrolled
+§ PATTERN 7: CONTROLLED VS UNCONTROLLED
 
 **Metadata:**
 
@@ -293,7 +287,7 @@ export const UserContainer: React.FC = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useRef, useState } from 'react';
 
 // Controlled
@@ -315,13 +309,12 @@ export const UncontrolledInput: React.FC = () => {
     </div>
   );
 };
-```
 
 **Quando Usare:** ✅ Controlled: validazione | ✅ Uncontrolled: performance
 
 ---
 
-## PATTERN 8: State Reducer
+§ PATTERN 8: STATE REDUCER
 
 **Metadata:**
 
@@ -334,7 +327,7 @@ export const UncontrolledInput: React.FC = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useReducer } from 'react';
 
 type Action = { type: 'inc' } | { type: 'dec' };
@@ -357,13 +350,12 @@ export const Counter: React.FC = () => {
     </div>
   );
 };
-```
 
 **Quando Usare:** ✅ Logica complessa | ✅ Stato prevedibile | ✅ Estendibilità
 
 ---
 
-## PATTERN 9: Props Getters
+§ PATTERN 9: PROPS GETTERS
 
 **Metadata:**
 
@@ -376,7 +368,7 @@ export const Counter: React.FC = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const useToggle = () => {
@@ -398,11 +390,10 @@ export const ToggleButton: React.FC = () => {
   const { on, getTogglerProps } = useToggle();
   return <button {...getTogglerProps()}>{on ? 'ON' : 'OFF'}</button>;
 };
-```
 
 ---
 
-## PATTERN 10: Compound Component with Context
+§ PATTERN 10: COMPOUND COMPONENT WITH CONTEXT
 
 **Metadata:**
 
@@ -415,7 +406,7 @@ export const ToggleButton: React.FC = () => {
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface DropdownContextType {
@@ -446,15 +437,14 @@ export const DropdownMenu: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { open } = useDropdown();
   return open ? <div>{children}</div> : null;
 };
-```
 
 ---
 
-## PATTERN 11: Slot Pattern
+§ PATTERN 11: SLOT PATTERN
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { ReactNode } from 'react';
 
 interface CardProps {
@@ -470,15 +460,14 @@ export const Card: React.FC<CardProps> = ({ header, footer, children }) => (
     {footer && <div className="text-xs text-gray-500">{footer}</div>}
   </div>
 );
-```
 
 ---
 
-## PATTERN 12: Polymorphic Components
+§ PATTERN 12: POLYMORPHIC COMPONENTS
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { ElementType, ComponentPropsWithoutRef } from 'react';
 
 type PolymorphicProps<T extends ElementType> = {
@@ -494,15 +483,14 @@ export const Text = <T extends ElementType = 'span'>({
   const Component = as || 'span';
   return <Component {...props}>{children}</Component>;
 };
-```
 
 ---
 
-## PATTERN 13: Headless Components
+§ PATTERN 13: HEADLESS COMPONENTS
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useState, ReactNode } from 'react';
 
 interface ToggleProps {
@@ -514,15 +502,14 @@ export const ToggleHeadless: React.FC<ToggleProps> = ({ children }) => {
   const toggle = () => setOn((v) => !v);
   return <>{children({ on, toggle })}</>;
 };
-```
 
 ---
 
-## PATTERN 14: Forwarding Refs
+§ PATTERN 14: FORWARDING REFS
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { forwardRef, InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -537,15 +524,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     </label>
   )
 );
-```
 
 ---
 
-## PATTERN 15: Error Boundary
+§ PATTERN 15: ERROR BOUNDARY
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { Component, ReactNode } from 'react';
 
 interface ErrorBoundaryState {
@@ -568,15 +554,14 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
     return this.props.children;
   }
 }
-```
 
 ---
 
-## PATTERN 16: Suspense Pattern
+§ PATTERN 16: SUSPENSE PATTERN
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { Suspense, lazy } from 'react';
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
@@ -586,15 +571,14 @@ export const AppSuspense: React.FC = () => (
     <LazyComponent />
   </Suspense>
 );
-```
 
 ---
 
-## PATTERN 17: Optimistic Updates
+§ PATTERN 17: OPTIMISTIC UPDATES
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useState } from 'react';
 
 export const OptimisticList: React.FC = () => {
@@ -616,15 +600,14 @@ export const OptimisticList: React.FC = () => {
     </div>
   );
 };
-```
 
 ---
 
-## PATTERN 18: Derived State
+§ PATTERN 18: DERIVED STATE
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useMemo } from 'react';
 
 export const SumView: React.FC<{ numbers: number[] }> = ({ numbers }) => {
@@ -636,15 +619,14 @@ export const SumView: React.FC<{ numbers: number[] }> = ({ numbers }) => {
     </div>
   );
 };
-```
 
 ---
 
-## PATTERN 19: State Machine (XState)
+§ PATTERN 19: STATE MACHINE (XSTATE)
 
 **Implementazione:**
 
-```typescript
+typescript
 import React from 'react';
 import { createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
@@ -666,15 +648,14 @@ export const ToggleMachine: React.FC = () => {
     </button>
   );
 };
-```
 
 ---
 
-## PATTERN 20: Composition over Inheritance
+§ PATTERN 20: COMPOSITION OVER INHERITANCE
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { ReactNode } from 'react';
 
 export const Box: React.FC<{ children: ReactNode }> = ({ children }) => (
@@ -686,11 +667,10 @@ export const Alert: React.FC<{ message: string }> = ({ message }) => (
     <strong>Alert:</strong> {message}
   </Box>
 );
-```
 
 ---
 
-## PATTERN DECISION MATRIX
+§ PATTERN DECISION MATRIX
 
 | Pattern                  | Complessità | Use Case Principale            | Alternative       |
 | ------------------------ | ----------- | ------------------------------ | ----------------- |
@@ -717,9 +697,8 @@ export const Alert: React.FC<{ message: string }> = ({ message }) => (
 
 ---
 
-## CHECKLIST COMPONENT PATTERNS
+§ CHECKLIST COMPONENT PATTERNS
 
-```
 □ Pattern selezionato in base al use case
 □ TypeScript strict mode abilitato
 □ Props tipizzate correttamente
@@ -730,7 +709,6 @@ export const Alert: React.FC<{ message: string }> = ({ message }) => (
 □ Suspense per lazy loading
 □ Ref forwarding per componenti UI
 □ State derivato con useMemo
-```
 
 9. ADVANCED LAYOUT PATTERNS
 tsx
@@ -1553,7 +1531,7 @@ border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-start justify-between mb-4">
         <div
 
-## PATTERN 3: Higher-Order Components (HOC)
+§ PATTERN 3: HIGHER-ORDER COMPONENTS (HOC)
 
 **Metadata:**
 
@@ -1566,7 +1544,7 @@ border-gray-200 dark:border-gray-700 p-6">
 
 **Implementazione:**
 
-```typescript
+typescript
 import React, { useState, useEffect } from 'react';
 
 interface WithLoadingIndicatorProps {
@@ -1587,13 +1565,12 @@ const withLoadingIndicator = <P extends {}>(WrappedComponent: React.ComponentTyp
 export const MyComponent = withLoadingIndicator(({ name }: { name: string }) => {
   return <div>Hello, {name}!</div>;
 });
-```
 
 **Quando Usare:** ✅ Condivisione logica tra componenti non correlati | ✅ Gestione stato di caricamento
 
 **Quando Evitare:** ❌ Componenti semplici | ❌ Performance critiche
 
-## PATTERN 4: React Hooks
+§ PATTERN 4: REACT HOOKS
 
 **Metadata:**
 
@@ -1606,7 +1583,7 @@ export const MyComponent = withLoadingIndicator(({ name }: { name: string }) => 
 
 **Implementazione:**
 
-```typescript
+typescript
 import { useState, useEffect } from 'react';
 
 export const useFetchData = (url: string) => {
@@ -1632,17 +1609,16 @@ export const useFetchData = (url: string) => {
 
   return { data, error, isLoading };
 };
-```
 
 **Quando Usare:** ✅ Gestione stato e effetti collaterali in componenti funzionali | ✅ Fetching dati da API
 
 **Quando Evitare:** ❌ Componenti classici | ❌ Performance critiche
 
-## Testing Patterns con Vitest
+§ TESTING PATTERNS CON VITEST
 
-### Test di un componente React
+§ TEST DI UN COMPONENTE REACT
 
-```typescript
+typescript
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { MyComponent } from './MyComponent';
 
@@ -1659,11 +1635,10 @@ describe('MyComponent', () => {
     expect(getByText('Button clicked!')).toBeInTheDocument();
   });
 });
-```
 
-### Test di un hook React
+§ TEST DI UN HOOK REACT
 
-```typescript
+typescript
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useFetchData } from './useFetchData';
 
@@ -1680,29 +1655,28 @@ describe('useFetchData', () => {
     expect(result.current.error).toBeInstanceOf(Error);
   });
 });
-```
 
-## Best Practices
+§ BEST PRACTICES
 
-### ✅ DO
+§ ✅ DO
 
 * Utilizzare componenti funzionali invece di classici
 * Utilizzare hooks per gestire stato e effetti collaterali
 * Utilizzare librerie di testing come Vitest per testare i componenti
 
-### ❌ DON'T
+§ ❌ DON'T
 
 * Utilizzare componenti classici per nuove implementazioni
 * Utilizzare stato locale in componenti funzionali senza hooks
 * Non testare i componenti prima di deployarli
 
-## Common Pitfalls & Troubleshooting
+§ COMMON PITFALLS & TROUBLESHOOTING
 
 * **Stato non aggiornato**: Assicurarsi di utilizzare `useState` e `useEffect` correttamente per gestire lo stato dei componenti.
 * **Errori di rendering**: Verificare che i componenti siano correttamente importati e utilizzati nel codice.
 * **Problemi di performance**: Utilizzare strumenti di profiling per identificare le cause di problemi di performance e ottimizzare il codice di conseguenza.
 
-## Migration/Upgrade Patterns
+§ MIGRATION/UPGRADE PATTERNS
 
 * **Migrazione da React 17 a React 18**: Utilizzare la documentazione ufficiale di React per eseguire la migrazione e risolvere eventuali problemi.
 * **Aggiornamento di librerie**: Utilizzare npm o yarn per aggiornare le librerie e risolvere eventuali problemi di compatibilità.

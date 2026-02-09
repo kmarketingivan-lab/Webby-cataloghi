@@ -2,7 +2,7 @@
 # CATALOGO DEVOPS & CI/CD v1.0
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# GUIDA COMPLETA DEVOPS, CI/CD E DEPLOYMENT PER APPLICAZIONI WEB
+§ GUIDA COMPLETA DEVOPS, CI/CD E DEPLOYMENT PER APPLICAZIONI WEB
 # GitHub Actions, Docker, Kubernetes, Infrastructure as Code
 #
 # Data creazione: 2026-01-26
@@ -33,14 +33,13 @@ INDICE:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 1: DEVOPS FUNDAMENTALS
+§ SEZIONE 1: DEVOPS FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DEVOPS_FUNDAMENTALS = """
 
-## 1.1 Cos'è DevOps
+§ 1.1 COS'È DEVOPS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ DEVOPS: CULTURA, PRATICHE E STRUMENTI                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -75,11 +74,9 @@ DEVOPS_FUNDAMENTALS = """
 │         └──────────────────────────────────────────────────────────────────│
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.2 CI/CD Explained
+§ 1.2 CI/CD EXPLAINED
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CONTINUOUS INTEGRATION / CONTINUOUS DEPLOYMENT                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -114,11 +111,9 @@ DEVOPS_FUNDAMENTALS = """
 │   PR           lint         security    rollback    logs                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.3 DevOps Tools Ecosystem
+§ 1.3 DEVOPS TOOLS ECOSYSTEM
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ STRUMENTI DEVOPS PER CATEGORIA                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -160,11 +155,10 @@ DEVOPS_FUNDAMENTALS = """
 │ └── Datadog / New Relic    - Commercial APM                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.4 DevOps Metrics (DORA)
+§ 1.4 DEVOPS METRICS (DORA)
 
-```typescript
+typescript
 // Le 4 metriche DORA (DevOps Research and Assessment)
 
 const DORA_METRICS = {
@@ -210,20 +204,18 @@ const DORA_METRICS = {
 // - Lead time < 1 day
 // - MTTR < 1 hour
 // - Change failure rate < 15%
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 2: GIT WORKFLOW & BRANCHING STRATEGY
+§ SEZIONE 2: GIT WORKFLOW & BRANCHING STRATEGY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 GIT_WORKFLOW = """
 
-## 2.1 Git Flow vs Trunk-Based Development
+§ 2.1 GIT FLOW VS TRUNK-BASED DEVELOPMENT
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ BRANCHING STRATEGIES                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -260,11 +252,10 @@ GIT_WORKFLOW = """
 │  ⚠️ Richiede: Buoni test automatici, code review rapide                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 2.2 Branch Naming Conventions
+§ 2.2 BRANCH NAMING CONVENTIONS
 
-```bash
+bash
 # Convenzioni di naming per branch
 
 # Feature branches
@@ -295,11 +286,10 @@ release/2024-q1
 # test/     - aggiunta/modifica test
 # ci/       - modifiche CI/CD
 # perf/     - ottimizzazioni performance
-```
 
-## 2.3 Conventional Commits
+§ 2.3 CONVENTIONAL COMMITS
 
-```bash
+bash
 # Conventional Commits Specification
 # https://www.conventionalcommits.org/
 
@@ -364,11 +354,10 @@ module.exports = {
     'subject-max-length': [2, 'always', 72],
   },
 };
-```
 
-## 2.4 Pull Request Best Practices
+§ 2.4 PULL REQUEST BEST PRACTICES
 
-```markdown
+markdown
 # .github/PULL_REQUEST_TEMPLATE.md
 
 ## Description
@@ -404,11 +393,10 @@ Closes #
 
 ## Additional Notes
 <!-- Note aggiuntive per i reviewer -->
-```
 
-## 2.5 Branch Protection Rules
+§ 2.5 BRANCH PROTECTION RULES
 
-```yaml
+yaml
 # Configurazione branch protection (GitHub)
 # Settings > Branches > Branch protection rules
 
@@ -462,20 +450,18 @@ Closes #
 # Security-sensitive files
 /src/lib/auth/ @security-team
 *.env.example @security-team @devops-team
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 3: GITHUB ACTIONS - CI PIPELINES
+§ SEZIONE 3: GITHUB ACTIONS - CI PIPELINES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 GITHUB_ACTIONS_CI = """
 
-## 3.1 GitHub Actions Overview
+§ 3.1 GITHUB ACTIONS OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ GITHUB ACTIONS STRUCTURE                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -508,11 +494,10 @@ GITHUB_ACTIONS_CI = """
 │ └── self-hosted    - Custom runners                                        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 3.2 Basic CI Workflow
+§ 3.2 BASIC CI WORKFLOW
 
-```yaml
+yaml
 # .github/workflows/ci.yml
 name: CI
 
@@ -657,11 +642,10 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-```
 
-## 3.3 Matrix Strategy for Multiple Versions
+§ 3.3 MATRIX STRATEGY FOR MULTIPLE VERSIONS
 
-```yaml
+yaml
 # .github/workflows/ci-matrix.yml
 name: CI Matrix
 
@@ -712,11 +696,10 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-```
 
-## 3.4 Caching Strategies
+§ 3.4 CACHING STRATEGIES
 
-```yaml
+yaml
 # Caching per velocizzare le build
 
 jobs:
@@ -773,11 +756,10 @@ jobs:
           tags: myapp:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-```
 
-## 3.5 Reusable Workflows
+§ 3.5 REUSABLE WORKFLOWS
 
-```yaml
+yaml
 # .github/workflows/reusable-test.yml
 name: Reusable Test Workflow
 
@@ -840,11 +822,10 @@ jobs:
       coverage: true
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-```
 
-## 3.6 Composite Actions
+§ 3.6 COMPOSITE ACTIONS
 
-```yaml
+yaml
 # .github/actions/setup-project/action.yml
 name: 'Setup Project'
 description: 'Setup Node.js, pnpm, and install dependencies'
@@ -906,20 +887,19 @@ jobs:
           node-version: '20'
       
       - run: pnpm build
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 4: GITHUB ACTIONS - CD PIPELINES
+§ SEZIONE 4: GITHUB ACTIONS - CD PIPELINES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 GITHUB_ACTIONS_CD = """
 
-## 4.1 Deployment to Vercel
+§ 4.1 DEPLOYMENT TO VERCEL
 
-```yaml
+yaml
 # .github/workflows/deploy-vercel.yml
 name: Deploy to Vercel
 
@@ -962,11 +942,10 @@ jobs:
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-```
 
-## 4.2 Deployment to AWS (Docker + ECR + ECS)
+§ 4.2 DEPLOYMENT TO AWS (DOCKER + ECR + ECS)
 
-```yaml
+yaml
 # .github/workflows/deploy-aws.yml
 name: Deploy to AWS ECS
 
@@ -1031,11 +1010,10 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-```
 
-## 4.3 Deployment with Docker to VPS
+§ 4.3 DEPLOYMENT WITH DOCKER TO VPS
 
-```yaml
+yaml
 # .github/workflows/deploy-vps.yml
 name: Deploy to VPS
 
@@ -1128,11 +1106,10 @@ jobs:
         run: |
           sleep 10
           curl -f https://${{ secrets.VPS_HOST }} || exit 1
-```
 
-## 4.4 Blue-Green Deployment
+§ 4.4 BLUE-GREEN DEPLOYMENT
 
-```yaml
+yaml
 # .github/workflows/blue-green-deploy.yml
 name: Blue-Green Deployment
 
@@ -1212,11 +1189,10 @@ jobs:
             # Stop green
             docker stop app-green || true
             docker rm app-green || true
-```
 
-## 4.5 Release Workflow with Changelog
+§ 4.5 RELEASE WORKFLOW WITH CHANGELOG
 
-```yaml
+yaml
 # .github/workflows/release.yml
 name: Release
 
@@ -1288,20 +1264,18 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 5: DOCKER FUNDAMENTALS
+§ SEZIONE 5: DOCKER FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DOCKER_FUNDAMENTALS = """
 
-## 5.1 Docker Concepts
+§ 5.1 DOCKER CONCEPTS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ DOCKER ARCHITECTURE                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1342,11 +1316,10 @@ DOCKER_FUNDAMENTALS = """
 │     └── tmpfs: in-memory storage                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 5.2 Essential Docker Commands
+§ 5.2 ESSENTIAL DOCKER COMMANDS
 
-```bash
+bash
 # ═══════════════════════════════════════════════════════════════════════════════
 # DOCKER COMMANDS REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1464,11 +1437,10 @@ docker system prune -a --volumes
 
 # Show disk usage
 docker system df
-```
 
-## 5.3 Dockerfile Best Practices
+§ 5.3 DOCKERFILE BEST PRACTICES
 
-```dockerfile
+dockerfile
 # ═══════════════════════════════════════════════════════════════════════════════
 # DOCKERFILE BEST PRACTICES
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1556,11 +1528,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start the application
 CMD ["node", "server.js"]
-```
 
-## 5.4 .dockerignore
+§ 5.4 .DOCKERIGNORE
 
-```gitignore
+gitignore
 # .dockerignore
 
 # Dependencies
@@ -1622,20 +1593,19 @@ docker-compose*.yml
 .DS_Store
 Thumbs.db
 *.tgz
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 6: DOCKER PER NEXT.JS
+§ SEZIONE 6: DOCKER PER NEXT.JS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DOCKER_NEXTJS = """
 
-## 6.1 Next.js Standalone Output
+§ 6.1 NEXT.JS STANDALONE OUTPUT
 
-```javascript
+javascript
 // next.config.mjs
 // Abilita standalone output per Docker
 
@@ -1670,11 +1640,10 @@ const nextConfig = {
 };
 
 export default nextConfig;
-```
 
-## 6.2 Production Dockerfile per Next.js
+§ 6.2 PRODUCTION DOCKERFILE PER NEXT.JS
 
-```dockerfile
+dockerfile
 # ═══════════════════════════════════════════════════════════════════════════════
 # PRODUCTION DOCKERFILE PER NEXT.JS (2025)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1763,11 +1732,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Start the application
 CMD ["node", "server.js"]
-```
 
-## 6.3 Development Dockerfile
+§ 6.3 DEVELOPMENT DOCKERFILE
 
-```dockerfile
+dockerfile
 # Dockerfile.dev
 # Per sviluppo locale con hot-reloading
 
@@ -1794,11 +1762,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV WATCHPACK_POLLING=true
 
 CMD ["pnpm", "dev"]
-```
 
-## 6.4 Multi-Environment Dockerfile
+§ 6.4 MULTI-ENVIRONMENT DOCKERFILE
 
-```dockerfile
+dockerfile
 # Dockerfile con target multipli
 # syntax=docker/dockerfile:1
 
@@ -1865,11 +1832,10 @@ COPY . .
 ENV NODE_ENV=test
 RUN corepack enable pnpm
 CMD ["pnpm", "test"]
-```
 
-## 6.5 Building with Different Targets
+§ 6.5 BUILDING WITH DIFFERENT TARGETS
 
-```bash
+bash
 # Build per development
 docker build --target development -t myapp:dev .
 
@@ -1891,11 +1857,10 @@ docker build \
   --target production \
   --cache-from myapp:latest \
   -t myapp:$(git rev-parse --short HEAD) .
-```
 
-## 6.6 Next.js con Sharp (Image Optimization)
+§ 6.6 NEXT.JS CON SHARP (IMAGE OPTIMIZATION)
 
-```dockerfile
+dockerfile
 # Dockerfile con Sharp per image optimization
 # syntax=docker/dockerfile:1
 
@@ -1947,20 +1912,19 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 7: DOCKER COMPOSE
+§ SEZIONE 7: DOCKER COMPOSE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DOCKER_COMPOSE = """
 
-## 7.1 Docker Compose Basics
+§ 7.1 DOCKER COMPOSE BASICS
 
-```yaml
+yaml
 # docker-compose.yml
 # Configurazione base per Next.js app
 
@@ -1997,11 +1961,10 @@ services:
 networks:
   app-network:
     driver: bridge
-```
 
-## 7.2 Full Stack Docker Compose
+§ 7.2 FULL STACK DOCKER COMPOSE
 
-```yaml
+yaml
 # docker-compose.yml
 # Stack completo: Next.js + PostgreSQL + Redis + Nginx
 
@@ -2108,11 +2071,10 @@ volumes:
 networks:
   app-network:
     driver: bridge
-```
 
-## 7.3 Development Docker Compose
+§ 7.3 DEVELOPMENT DOCKER COMPOSE
 
-```yaml
+yaml
 # docker-compose.dev.yml
 # Per sviluppo locale con hot-reloading
 
@@ -2180,11 +2142,10 @@ volumes:
 networks:
   dev-network:
     driver: bridge
-```
 
-## 7.4 Docker Compose Commands
+§ 7.4 DOCKER COMPOSE COMMANDS
 
-```bash
+bash
 # ═══════════════════════════════════════════════════════════════════════════════
 # DOCKER COMPOSE COMMANDS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2232,11 +2193,10 @@ docker compose top                      # Show processes
 # Restart services
 docker compose restart
 docker compose restart app              # Specific service
-```
 
-## 7.5 Nginx Configuration
+§ 7.5 NGINX CONFIGURATION
 
-```nginx
+nginx
 # nginx/nginx.conf
 
 events {
@@ -2365,20 +2325,18 @@ http {
     # Cache configuration
     proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=STATIC:10m inactive=7d use_temp_path=off;
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 8: CONTAINER REGISTRY & IMAGE MANAGEMENT
+§ SEZIONE 8: CONTAINER REGISTRY & IMAGE MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CONTAINER_REGISTRY = """
 
-## 8.1 Container Registries Overview
+§ 8.1 CONTAINER REGISTRIES OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CONTAINER REGISTRIES                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2417,11 +2375,10 @@ CONTAINER_REGISTRY = """
 │ └── GitLab Container Registry - Integrato con GitLab                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 8.2 GitHub Container Registry (GHCR)
+§ 8.2 GITHUB CONTAINER REGISTRY (GHCR)
 
-```bash
+bash
 # ═══════════════════════════════════════════════════════════════════════════════
 # GITHUB CONTAINER REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2446,11 +2403,10 @@ docker pull ghcr.io/username/myapp:1.0.0
 
 # Tag esistente con nuovo tag
 docker tag ghcr.io/username/myapp:1.0.0 ghcr.io/username/myapp:stable
-```
 
-## 8.3 GitHub Actions per GHCR
+§ 8.3 GITHUB ACTIONS PER GHCR
 
-```yaml
+yaml
 # .github/workflows/docker-publish.yml
 name: Build and Push Docker Image
 
@@ -2521,11 +2477,10 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
-```
 
-## 8.4 AWS ECR
+§ 8.4 AWS ECR
 
-```yaml
+yaml
 # .github/workflows/deploy-ecr.yml
 name: Deploy to AWS ECR
 
@@ -2567,11 +2522,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-```
 
-## 8.5 Image Tagging Strategy
+§ 8.5 IMAGE TAGGING STRATEGY
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ IMAGE TAGGING BEST PRACTICES                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2611,11 +2564,10 @@ jobs:
 │ └── ❌ Sovrascrivere tag esistenti - Perde tracciabilità                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 8.6 Image Security Scanning
+§ 8.6 IMAGE SECURITY SCANNING
 
-```yaml
+yaml
 # .github/workflows/security-scan.yml
 name: Container Security Scan
 
@@ -2657,20 +2609,18 @@ jobs:
           image: 'myapp:scan'
           fail-build: true
           severity-cutoff: high
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 9: KUBERNETES FUNDAMENTALS
+§ SEZIONE 9: KUBERNETES FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 KUBERNETES_FUNDAMENTALS = """
 
-## 9.1 Kubernetes Architecture
+§ 9.1 KUBERNETES ARCHITECTURE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ KUBERNETES ARCHITECTURE                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2708,11 +2658,10 @@ KUBERNETES_FUNDAMENTALS = """
 │ └── PersistentVolume- Storage persistente                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 9.2 Essential kubectl Commands
+§ 9.2 ESSENTIAL KUBECTL COMMANDS
 
-```bash
+bash
 # ═══════════════════════════════════════════════════════════════════════════════
 # KUBECTL COMMANDS REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2803,11 +2752,10 @@ kubectl get events --sort-by='.lastTimestamp'
 kubectl top nodes
 kubectl top pods
 kubectl run debug --image=busybox -it --rm -- /bin/sh
-```
 
-## 9.3 Kubernetes Manifests Structure
+§ 9.3 KUBERNETES MANIFESTS STRUCTURE
 
-```yaml
+yaml
 # Struttura base di un manifest Kubernetes
 
 apiVersion: v1|apps/v1|networking.k8s.io/v1  # API version
@@ -2823,20 +2771,19 @@ metadata:
 spec:
   # Resource-specific configuration
   ...
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 10: KUBERNETES DEPLOYMENT
+§ SEZIONE 10: KUBERNETES DEPLOYMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 KUBERNETES_DEPLOYMENT = """
 
-## 10.1 Next.js Deployment Manifest
+§ 10.1 NEXT.JS DEPLOYMENT MANIFEST
 
-```yaml
+yaml
 # k8s/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -2971,11 +2918,10 @@ spec:
                       values:
                         - nextjs-app
                 topologyKey: kubernetes.io/hostname
-```
 
-## 10.2 Service Manifest
+§ 10.2 SERVICE MANIFEST
 
-```yaml
+yaml
 # k8s/service.yaml
 apiVersion: v1
 kind: Service
@@ -2993,11 +2939,10 @@ spec:
       port: 80
       targetPort: http
       protocol: TCP
-```
 
-## 10.3 Ingress Manifest
+§ 10.3 INGRESS MANIFEST
 
-```yaml
+yaml
 # k8s/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -3046,11 +2991,10 @@ spec:
                 name: nextjs-app
                 port:
                   name: http
-```
 
-## 10.4 ConfigMap e Secrets
+§ 10.4 CONFIGMAP E SECRETS
 
-```yaml
+yaml
 # k8s/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -3087,11 +3031,10 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: <base64-encoded-docker-config>
-```
 
-## 10.5 Horizontal Pod Autoscaler
+§ 10.5 HORIZONTAL POD AUTOSCALER
 
-```yaml
+yaml
 # k8s/hpa.yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -3135,11 +3078,10 @@ spec:
           value: 4
           periodSeconds: 15
       selectPolicy: Max
-```
 
-## 10.6 Kustomization
+§ 10.6 KUSTOMIZATION
 
-```yaml
+yaml
 # k8s/base/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -3213,11 +3155,10 @@ configMapGenerator:
     literals:
       - NEXT_PUBLIC_API_URL=https://api-staging.example.com
       - LOG_LEVEL=debug
-```
 
-## 10.7 GitHub Actions per Kubernetes Deploy
+§ 10.7 GITHUB ACTIONS PER KUBERNETES DEPLOY
 
-```yaml
+yaml
 # .github/workflows/deploy-k8s.yml
 name: Deploy to Kubernetes
 
@@ -3317,20 +3258,18 @@ jobs:
           kustomize edit set image ghcr.io/${{ env.IMAGE_NAME }}=ghcr.io/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-tag }}
           kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/nextjs-app -n production
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 11: INFRASTRUCTURE AS CODE (TERRAFORM)
+§ SEZIONE 11: INFRASTRUCTURE AS CODE (TERRAFORM)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 TERRAFORM_IAC = """
 
-## 11.1 Terraform Basics
+§ 11.1 TERRAFORM BASICS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TERRAFORM FUNDAMENTALS                                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3355,11 +3294,10 @@ TERRAFORM_IAC = """
 │ └── State locking      - Previene modifiche concorrenti                    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 11.2 AWS Infrastructure Example
+§ 11.2 AWS INFRASTRUCTURE EXAMPLE
 
-```hcl
+hcl
 # terraform/providers.tf
 terraform {
   required_version = ">= 1.5.0"
@@ -3571,11 +3509,10 @@ output "ecs_cluster_name" {
   description = "ECS cluster name"
   value       = aws_ecs_cluster.main.name
 }
-```
 
-## 11.3 Terraform in CI/CD
+§ 11.3 TERRAFORM IN CI/CD
 
-```yaml
+yaml
 # .github/workflows/terraform.yml
 name: Terraform
 
@@ -3669,20 +3606,18 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 12: ENVIRONMENT MANAGEMENT
+§ SEZIONE 12: ENVIRONMENT MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ENVIRONMENT_MANAGEMENT = """
 
-## 12.1 Environment Strategy
+§ 12.1 ENVIRONMENT STRATEGY
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ ENVIRONMENT STRATEGY                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3715,11 +3650,10 @@ ENVIRONMENT_MANAGEMENT = """
 │ └── Facilita code review                                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 12.2 Environment Variables Management
+§ 12.2 ENVIRONMENT VARIABLES MANAGEMENT
 
-```typescript
+typescript
 // lib/env.ts
 // Validazione environment variables con Zod
 
@@ -3758,11 +3692,10 @@ export const env = parsed.data;
 // Type-safe access
 // env.DATABASE_URL  ✅ TypeScript knows this is a string
 // env.INVALID_KEY   ❌ TypeScript error
-```
 
-## 12.3 Environment Files Structure
+§ 12.3 ENVIRONMENT FILES STRUCTURE
 
-```bash
+bash
 # Struttura file .env
 
 # .env                    # Default values (committed, no secrets!)
@@ -3779,9 +3712,8 @@ export const env = parsed.data;
 # 2. .env.local (not loaded in test)
 # 3. .env.{environment}
 # 4. .env
-```
 
-```bash
+bash
 # .env.example (committed, template for developers)
 # Copy this file to .env.local and fill in the values
 
@@ -3803,11 +3735,10 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-```
 
-## 12.4 GitHub Environments Configuration
+§ 12.4 GITHUB ENVIRONMENTS CONFIGURATION
 
-```yaml
+yaml
 # .github/workflows/deploy.yml
 name: Deploy
 
@@ -3861,11 +3792,10 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.PRODUCTION_NEXTAUTH_SECRET }}
         run: |
           echo "Deploying to production..."
-```
 
-## 12.5 Feature Flags per Environment
+§ 12.5 FEATURE FLAGS PER ENVIRONMENT
 
-```typescript
+typescript
 // lib/feature-flags.ts
 // Feature flags per environment
 
@@ -3921,20 +3851,18 @@ export function isFeatureEnabled(flagName: string): boolean {
 if (isFeatureEnabled('NEW_CHECKOUT')) {
   // New checkout flow
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 13: SECRETS MANAGEMENT
+§ SEZIONE 13: SECRETS MANAGEMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SECRETS_MANAGEMENT = """
 
-## 13.1 Secrets Management Overview
+§ 13.1 SECRETS MANAGEMENT OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SECRETS MANAGEMENT BEST PRACTICES                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3970,11 +3898,10 @@ SECRETS_MANAGEMENT = """
 │ └── SOPS                  - Encrypted secrets in git                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 13.2 GitHub Secrets
+§ 13.2 GITHUB SECRETS
 
-```yaml
+yaml
 # Repository Secrets
 # Settings > Secrets and variables > Actions
 
@@ -4009,11 +3936,10 @@ jobs:
       API_KEY: ${{ secrets.API_KEY }}
     # Oppure passa tutti i secrets
     secrets: inherit
-```
 
-## 13.3 AWS Secrets Manager
+§ 13.3 AWS SECRETS MANAGER
 
-```typescript
+typescript
 // lib/secrets.ts
 // Caricamento secrets da AWS Secrets Manager
 
@@ -4068,11 +3994,10 @@ export async function POST(request: Request) {
   
   // Use secrets.STRIPE_SECRET_KEY
 }
-```
 
-## 13.4 Kubernetes External Secrets
+§ 13.4 KUBERNETES EXTERNAL SECRETS
 
-```yaml
+yaml
 # External Secrets Operator
 # https://external-secrets.io/
 
@@ -4125,11 +4050,10 @@ spec:
       remoteRef:
         key: production/myapp/stripe
         property: secret_key
-```
 
-## 13.5 SOPS (Secrets OPerationS)
+§ 13.5 SOPS (SECRETS OPERATIONS)
 
-```bash
+bash
 # SOPS permette di committare secrets criptati nel repository
 
 # 1. Install SOPS
@@ -4168,11 +4092,10 @@ sops -d secrets/production.yaml > .env.production
   run: |
     echo "$SOPS_AGE_KEY" > keys.txt
     sops -d secrets/production.yaml > .env.production
-```
 
-## 13.6 Secrets Rotation
+§ 13.6 SECRETS ROTATION
 
-```typescript
+typescript
 // scripts/rotate-secrets.ts
 // Script per rotazione secrets
 
@@ -4209,20 +4132,18 @@ async function rotateAllSecrets(): Promise<void> {
 }
 
 rotateAllSecrets().catch(console.error);
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 14: MONITORING & LOGGING IN CI/CD
+§ SEZIONE 14: MONITORING & LOGGING IN CI/CD
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MONITORING_CICD = """
 
-## 14.1 CI/CD Monitoring Overview
+§ 14.1 CI/CD MONITORING OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CI/CD MONITORING & OBSERVABILITY                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4249,11 +4170,10 @@ MONITORING_CICD = """
 │ └── Deployment issues   - Problemi in deploy                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.2 GitHub Actions Monitoring
+§ 14.2 GITHUB ACTIONS MONITORING
 
-```yaml
+yaml
 # .github/workflows/ci.yml
 name: CI with Monitoring
 
@@ -4337,11 +4257,10 @@ jobs:
             *URL:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-```
 
-## 14.3 Deployment Notifications
+§ 14.3 DEPLOYMENT NOTIFICATIONS
 
-```yaml
+yaml
 # .github/workflows/deploy-notify.yml
 name: Deploy with Notifications
 
@@ -4414,11 +4333,10 @@ jobs:
           status: ${{ job.status }}
           env: production
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-```
 
-## 14.4 Structured Logging
+§ 14.4 STRUCTURED LOGGING
 
-```typescript
+typescript
 // lib/logger.ts
 // Structured logging per CI/CD e production
 
@@ -4464,11 +4382,10 @@ logger.info({
   commit: process.env.COMMIT_SHA,
   environment: process.env.NODE_ENV,
 }, 'Application started');
-```
 
-## 14.5 Health Check Endpoint
+§ 14.5 HEALTH CHECK ENDPOINT
 
-```typescript
+typescript
 // app/api/health/route.ts
 // Health check per monitoring e load balancers
 
@@ -4539,20 +4456,18 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
   
   return NextResponse.json(healthStatus, { status: httpStatus });
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 15: DEPLOYMENT STRATEGIES
+§ SEZIONE 15: DEPLOYMENT STRATEGIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DEPLOYMENT_STRATEGIES = """
 
-## 15.1 Deployment Strategies Overview
+§ 15.1 DEPLOYMENT STRATEGIES OVERVIEW
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ DEPLOYMENT STRATEGIES                                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4595,11 +4510,10 @@ DEPLOYMENT_STRATEGIES = """
 │ └── ✅ Decouples deploy da release                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 15.2 Rolling Update (Kubernetes)
+§ 15.2 ROLLING UPDATE (KUBERNETES)
 
-```yaml
+yaml
 # k8s/deployment-rolling.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -4641,9 +4555,8 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 3
-```
 
-```bash
+bash
 # Rolling update commands
 kubectl set image deployment/nextjs-app nextjs=ghcr.io/myorg/nextjs-app:2.0.0
 
@@ -4662,11 +4575,10 @@ kubectl rollout undo deployment/nextjs-app --to-revision=2
 # Pause/resume rollout
 kubectl rollout pause deployment/nextjs-app
 kubectl rollout resume deployment/nextjs-app
-```
 
-## 15.3 Blue-Green Deployment
+§ 15.3 BLUE-GREEN DEPLOYMENT
 
-```yaml
+yaml
 # k8s/blue-green/deployment-blue.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -4730,9 +4642,8 @@ spec:
   ports:
     - port: 80
       targetPort: 3000
-```
 
-```bash
+bash
 # Blue-Green switch script
 #!/bin/bash
 
@@ -4754,11 +4665,10 @@ kubectl patch svc nextjs-app -p "{\"spec\":{\"selector\":{\"version\":\"$NEW_VER
 kubectl get svc nextjs-app -o jsonpath='{.spec.selector.version}'
 echo ""
 echo "✅ Traffic now pointing to $NEW_VERSION"
-```
 
-## 15.4 Canary Deployment
+§ 15.4 CANARY DEPLOYMENT
 
-```yaml
+yaml
 # k8s/canary/canary-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -4822,11 +4732,10 @@ spec:
     - name: canary
       labels:
         version: canary
-```
 
-## 15.5 Feature Flags Implementation
+§ 15.5 FEATURE FLAGS IMPLEMENTATION
 
-```typescript
+typescript
 // lib/feature-flags.ts
 // Feature flags con LaunchDarkly o Unleash
 
@@ -4877,11 +4786,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   };
 }
-```
 
-## 15.6 Automated Rollback
+§ 15.6 AUTOMATED ROLLBACK
 
-```yaml
+yaml
 # .github/workflows/deploy-with-rollback.yml
 name: Deploy with Automated Rollback
 
@@ -4945,20 +4853,18 @@ jobs:
             @channel Please investigate!
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# APPENDICE: QUICK REFERENCE
+§ APPENDICE: QUICK REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 APPENDIX_QUICK_REFERENCE = """
 
-## A.1 CI/CD Checklist
+§ A.1 CI/CD CHECKLIST
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CI/CD CHECKLIST                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4996,11 +4902,10 @@ APPENDIX_QUICK_REFERENCE = """
 │ ☐ Performance monitoring                                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## A.2 Docker Quick Reference
+§ A.2 DOCKER QUICK REFERENCE
 
-```bash
+bash
 # BUILD
 docker build -t image:tag .
 docker build -t image:tag -f Dockerfile.prod .
@@ -5029,11 +4934,10 @@ docker compose up -d
 docker compose down
 docker compose logs -f
 docker compose exec service sh
-```
 
-## A.3 Kubernetes Quick Reference
+§ A.3 KUBERNETES QUICK REFERENCE
 
-```bash
+bash
 # RESOURCES
 kubectl get pods/deployments/services
 kubectl describe pod <name>
@@ -5055,11 +4959,10 @@ kubectl port-forward <pod> 3000:3000
 kubectl get configmaps/secrets
 kubectl create secret generic name --from-literal=key=value
 kubectl create configmap name --from-file=config.yaml
-```
 
-## A.4 GitHub Actions Quick Reference
+§ A.4 GITHUB ACTIONS QUICK REFERENCE
 
-```yaml
+yaml
 # Triggers
 on:
   push:
@@ -5093,11 +4996,10 @@ if: github.event_name == 'pull_request'
 if: success()
 if: failure()
 if: always()
-```
 
-## A.5 Common Dockerfile Patterns
+§ A.5 COMMON DOCKERFILE PATTERNS
 
-```dockerfile
+dockerfile
 # Multi-stage build
 FROM node:22-alpine AS deps
 WORKDIR /app
@@ -5118,11 +5020,9 @@ COPY --from=builder /app/.next/standalone ./
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
-```
 
-## A.6 DevOps Tools Comparison
+§ A.6 DEVOPS TOOLS COMPARISON
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TOOL COMPARISON                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -5149,11 +5049,10 @@ CMD ["node", "server.js"]
 │ └── HashiCorp Vault  Enterprise, self-hosted                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## A.7 Useful Commands
+§ A.7 USEFUL COMMANDS
 
-```bash
+bash
 # Git
 git log --oneline -10
 git diff HEAD~1
@@ -5179,13 +5078,12 @@ terraform plan -out=tfplan
 terraform apply tfplan
 terraform state list
 terraform import <resource> <id>
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FINE CATALOGO
+§ FINE CATALOGO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 print("""
@@ -5226,9 +5124,9 @@ Assolutamente! Come esperto DevOps, sono lieto di fornirti le configurazioni com
 
 ---
 
-### FILE 1: Dockerfile (80 righe)
+§ FILE 1: DOCKERFILE (80 RIGHE)
 
-```dockerfile
+dockerfile
 # Multi-stage build for production
 # Stage 1: Base image for all subsequent stages
 FROM node:20-alpine AS base
@@ -5295,11 +5193,10 @@ ENV HOSTNAME "0.0.0.0"
 # Command to run the Next.js application in production mode
 # The standalone output generates a server.js file
 CMD ["node", "server.js"]
-```
 
-### FILE 2: docker-compose.yml (80 righe)
+§ FILE 2: DOCKER-COMPOSE.YML (80 RIGHE)
 
-```yaml
+yaml
 version: '3.8'
 
 # Define the services that make up your application
@@ -5379,11 +5276,10 @@ services:
 volumes:
   postgres_data:
   redis_data:
-```
 
-### FILE 3: docker-compose.dev.yml (60 righe)
+§ FILE 3: DOCKER-COMPOSE.DEV.YML (60 RIGHE)
 
-```yaml
+yaml
 version: '3.8'
 
 # This file overrides and extends docker-compose.yml for development purposes.
@@ -5434,11 +5330,9 @@ services:
 volumes:
   postgres_dev_data:
   redis_dev_data:
-```
 
-### FILE 4: .dockerignore (30 righe)
+§ FILE 4: .DOCKERIGNORE (30 RIGHE)
 
-```
 # Ignore node_modules as they are installed in a multi-stage build
 node_modules
 # Ignore Next.js build output, it's copied from builder stage
@@ -5464,11 +5358,10 @@ tests
 *.sublime-workspace
 # Ignore temporary files
 tmp/
-```
 
-### FILE 5: vercel.json (50 righe)
+§ FILE 5: VERCEL.JSON (50 RIGHE)
 
-```json
+json
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
@@ -5511,11 +5404,10 @@ tmp/
     }
   ]
 }
-```
 
-### FILE 6: .github/workflows/ci.yml (150 righe)
+§ FILE 6: .GITHUB/WORKFLOWS/CI.YML (150 RIGHE)
 
-```yaml
+yaml
 name: CI
 
 on:
@@ -5671,11 +5563,10 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }} # Required for Prisma generate during build
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-```
 
-### FILE 7: .github/workflows/deploy.yml (100 righe)
+§ FILE 7: .GITHUB/WORKFLOWS/DEPLOY.YML (100 RIGHE)
 
-```yaml
+yaml
 name: Deploy
 
 on:
@@ -5735,11 +5626,10 @@ jobs:
         run: pnpm db:migrate:status # Command to check migration status
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-```
 
-### FILE 8: .github/workflows/preview.yml (80 righe)
+§ FILE 8: .GITHUB/WORKFLOWS/PREVIEW.YML (80 RIGHE)
 
-```yaml
+yaml
 name: Deploy Preview
 
 on:
@@ -5801,11 +5691,10 @@ jobs:
   #     - run: pnpm db:migrate:deploy
   #       env:
   #         DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }} # Dedicated preview DB
-```
 
-### FILE 9: .github/dependabot.yml (30 righe)
+§ FILE 9: .GITHUB/DEPENDABOT.YML (30 RIGHE)
 
-```yaml
+yaml
 version: 2
 updates:
   # Configuration for npm dependencies
@@ -5844,11 +5733,10 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-```
 
-### FILE 10: scripts/setup.sh (60 righe)
+§ FILE 10: SCRIPTS/SETUP.SH (60 RIGHE)
 
-```bash
+bash
 #!/bin/bash
 # Setup script for local development environment
 
@@ -5926,11 +5814,10 @@ fi
 
 echo "🎉 Setup complete! You can now run 'pnpm dev' to start the application."
 echo "To stop Docker services: 'docker compose -f docker-compose.yml -f docker-compose.dev.yml down'"
-```
 
-### FILE 11: scripts/db-backup.sh (50 righe)
+§ FILE 11: SCRIPTS/DB-BACKUP.SH (50 RIGHE)
 
-```bash
+bash
 #!/bin/bash
 # Script to perform a PostgreSQL database backup
 
@@ -6002,11 +5889,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo "Backup script finished."
-```
 
-### FILE 12: scripts/deploy.sh (60 righe)
+§ FILE 12: SCRIPTS/DEPLOY.SH (60 RIGHE)
 
-```bash
+bash
 #!/bin/bash
 # Manual deployment script for Docker-based production environment
 
@@ -6094,11 +5980,9 @@ fi
 
 echo "🎉 Deployment of ${APP_NAME} complete!"
 echo "Access your application at http://localhost:3000 (or your configured host)."
-```
 
-### FILE 13: .env.production.example (50 righe)
+§ FILE 13: .ENV.PRODUCTION.EXAMPLE (50 RIGHE)
 
-```
 # --- Core Application Settings ---
 # The URL where your application will be publicly accessible.
 # Important for NextAuth callbacks and absolute URLs.
@@ -6144,11 +6028,10 @@ REDIS_URL=redis://:your_redis_password@redis.example.com:6379/0
 # STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxx
 # GOOGLE_ANALYTICS_ID=UA-XXXXXXXXX-Y
 # FEATURE_FLAG_NEW_DASHBOARD=true
-```
 
-### FILE 14: DEPLOYMENT.md (150 righe)
+§ FILE 14: DEPLOYMENT.MD (150 RIGHE)
 
-```markdown
+markdown
 # 🚀 Deployment Guide for My Next.js Application
 
 This document provides a comprehensive guide for deploying and managing the Next.js application, covering local development setup, CI/CD pipelines, Vercel deployment, and database management.
@@ -6189,30 +6072,22 @@ To get the application running locally with Dockerized services (PostgreSQL and 
     *   Docker Desktop (or Docker Engine + Docker Compose)
 
 2.  **Clone the repository**:
-    ```bash
     git clone <repository-url>
     cd <repository-name>
-    ```
 
 3.  **Run the setup script**:
     This script will install Node.js dependencies, create a `.env` file, start Docker services, and initialize the database.
-    ```bash
     chmod +x scripts/setup.sh
     ./scripts/setup.sh
-    ```
     *   Follow the prompts, especially for seeding the database.
 
 4.  **Start the application**:
-    ```bash
     pnpm dev
-    ```
     The application will be available at `http://localhost:3000`.
 
 5.  **Stop Docker services**:
     When you're done developing, stop the Docker containers:
-    ```bash
     docker compose -f docker-compose.yml -f docker-compose.dev.yml down
-    ```
 
 ## 2. CI/CD Overview (GitHub Actions)
 
@@ -6300,10 +6175,8 @@ Prisma is used for database schema management.
 The `scripts/db-backup.sh` script facilitates manual database backups.
 
 *   **Usage**:
-    ```bash
     chmod +x scripts/db-backup.sh
     ./scripts/db-backup.sh
-    ```
 *   This script uses `pg_dump` to create a SQL dump of your PostgreSQL database.
 *   It reads `DATABASE_URL` from your `.env` file.
 *   Backups are stored in the `./backups` directory.
@@ -6317,10 +6190,8 @@ For self-hosted deployments or environments where Vercel is not used, Docker Com
 
 1.  **Prepare `.env.production`**: Create this file at the root of your project with all necessary production environment variables (refer to `.env.production.example`).
 2.  **Run the deploy script**:
-    ```bash
     chmod +x scripts/deploy.sh
     ./scripts/deploy.sh
-    ```
     This script will:
     *   Build Docker images (`Dockerfile`).
     *   Stop and remove any existing containers.
@@ -6362,11 +6233,10 @@ For self-hosted deployments or environments where Vercel is not used, Docker Com
     *   Check file permissions.
 
 ---
-```
 
-### FILE 15: src/app/api/health/route.ts (30 righe)
+§ FILE 15: SRC/APP/API/HEALTH/ROUTE.TS (30 RIGHE)
 
-```typescript
+typescript
 import { NextResponse } from 'next/server';
 
 /**
@@ -6419,11 +6289,10 @@ export async function GET() {
     }, { status: 500 });
   }
 }
-```
 
-### FILE 16: src/app/api/cron/cleanup/route.ts (50 righe)
+§ FILE 16: SRC/APP/API/CRON/CLEANUP/ROUTE.TS (50 RIGHE)
 
-```typescript
+typescript
 import { NextResponse } from 'next/server';
 // Assuming you have a Prisma client setup
 // import { prisma } from '@/lib/prisma'; // Adjust path as needed
@@ -6526,7 +6395,6 @@ export async function GET() {
     }, { status: 500 });
   }
 }
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio)_

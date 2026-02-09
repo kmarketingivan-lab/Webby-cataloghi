@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -32,9 +32,9 @@
 
 ---
 
-## 1. vitest.config.ts (60 righe)
+§ 1. VITEST.CONFIG.TS (60 RIGHE)
 
-```typescript
+typescript
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -85,13 +85,12 @@ export default defineConfig({
     // testTimeout: 10000,
   },
 });
-```
 
 ---
 
-## 2. tests/setup.ts (80 righe)
+§ 2. TESTS/SETUP.TS (80 RIGHE)
 
-```typescript
+typescript
 import '@testing-library/jest-dom'; // Estende le aspettative di Jest con matchers specifici per il DOM
 import { vi } from 'vitest'; // Importa l'oggetto vi per mocking da Vitest
 
@@ -191,13 +190,12 @@ Object.defineProperty(window, 'matchMedia', {
 //   }
 //   consoleError(...args);
 // };
-```
 
 ---
 
-## 3. tests/utils/test-utils.tsx (150 righe)
+§ 3. TESTS/UTILS/TEST-UTILS.TSX (150 RIGHE)
 
-```typescript
+typescript
 import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
@@ -357,13 +355,12 @@ export function createMockOrder(overrides?: any): any {
 
 // Helper per aspettare un certo numero di millisecondi
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-```
 
 ---
 
-## 4. tests/utils/mocks/prisma.ts (100 righe)
+§ 4. TESTS/UTILS/MOCKS/PRISMA.TS (100 RIGHE)
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 import { mockDeep, mockReset, DeepMockProxy } from 'vitest-mock-extended';
 import { beforeEach, vi } from 'vitest';
@@ -425,13 +422,12 @@ prismaMock.user.findUnique.mockResolvedValue({
 // o `prismaMock.product.findMany.mockResolvedValue(...)`.
 // La chiave è `mockReset` in `beforeEach` per evitare effetti collaterali tra i test.
 // Questo approccio è molto potente per i test unitari dei servizi backend.
-```
 
 ---
 
-## 5. tests/utils/mocks/trpc.ts (80 righe)
+§ 5. TESTS/UTILS/MOCKS/TRPC.TS (80 RIGHE)
 
-```typescript
+typescript
 import { vi } from 'vitest';
 import { TRPCClientError } from '@trpc/client'; // Assicurati di avere @trpc/client installato
 
@@ -511,13 +507,12 @@ export const resetTrpcMocks = () => {
 // Questo approccio è particolarmente utile per testare componenti React
 // o hook che interagiscono con il backend tramite tRPC, permettendo
 // di controllare completamente le risposte del "server".
-```
 
 ---
 
-## 6. tests/utils/mocks/stripe.ts (80 righe)
+§ 6. TESTS/UTILS/MOCKS/STRIPE.TS (80 RIGHE)
 
-```typescript
+typescript
 import { vi } from 'vitest';
 
 // Questo file fornisce un mock per l'SDK di Stripe.
@@ -609,13 +604,12 @@ export const resetStripeMocks = () => {
 
 // Questo mock è fondamentale per testare la logica di business legata ai pagamenti
 // senza incorrere in costi reali o ritardi di rete.
-```
 
 ---
 
-## 7. tests/utils/mocks/api.ts (100 righe)
+§ 7. TESTS/UTILS/MOCKS/API.TS (100 RIGHE)
 
-```typescript
+typescript
 import { setupServer } from 'msw/node'; // Importa setupServer per Node.js
 import { rest } from 'msw'; // Importa rest per definire i request handlers
 import { beforeAll, afterEach, afterAll } from 'vitest'; // Importa i lifecycle hooks di Vitest
@@ -719,13 +713,12 @@ afterAll(() => server.close());
 // const response = await fetch('/api/products');
 // const data = await response.json();
 // expect(data[0].name).toBe('Custom Mock Product');
-```
 
 ---
 
-## 8. tests/unit/services/auth-service.test.ts (200 righe)
+§ 8. TESTS/UNIT/SERVICES/AUTH-SERVICE.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthService } from '@/server/services/auth-service'; // Assicurati che il percorso sia corretto
 import { prismaMock } from '../../utils/mocks/prisma'; // Importa il mock di Prisma
@@ -1004,13 +997,12 @@ describe('AuthService', () => {
     });
   });
 });
-```
 
 ---
 
-## 9. tests/unit/services/product-service.test.ts (200 righe)
+§ 9. TESTS/UNIT/SERVICES/PRODUCT-SERVICE.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ProductService } from '@/server/services/product-service'; // Assicurati che il percorso sia corretto
 import { prismaMock } from '../../utils/mocks/prisma'; // Importa il mock di Prisma
@@ -1207,13 +1199,12 @@ describe('ProductService', () => {
     });
   });
 });
-```
 
 ---
 
-## 10. tests/unit/services/cart-service.test.ts (200 righe)
+§ 10. TESTS/UNIT/SERVICES/CART-SERVICE.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CartService } from '@/server/services/cart-service'; // Assicurati che il percorso sia corretto
 import { prismaMock } from '../../utils/mocks/prisma'; // Importa il mock di Prisma
@@ -1430,13 +1421,12 @@ describe('CartService', () => {
     });
   });
 });
-```
 
 ---
 
-## 11. tests/unit/services/order-service.test.ts (200 righe)
+§ 11. TESTS/UNIT/SERVICES/ORDER-SERVICE.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OrderService } from '@/server/services/order-service'; // Assicurati che il percorso sia corretto
 import { prismaMock } from '../../utils/mocks/prisma'; // Importa il mock di Prisma
@@ -1639,13 +1629,12 @@ describe('OrderService', () => {
     });
   });
 });
-```
 
 ---
 
-## 12. tests/unit/hooks/use-cart.test.tsx (150 righe)
+§ 12. TESTS/UNIT/HOOKS/USE-CART.TEST.TSX (150 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCart } from '@/hooks/use-cart'; // Assicurati che il percorso sia corretto
@@ -1865,13 +1854,12 @@ describe('useCart', () => {
     });
   });
 });
-```
 
 ---
 
-## 13. tests/unit/components/button.test.tsx (100 righe)
+§ 13. TESTS/UNIT/COMPONENTS/BUTTON.TEST.TSX (100 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Button } from '@/components/ui/button'; // Assicurati che il percorso sia corretto
@@ -1963,13 +1951,12 @@ describe('Button', () => {
     expect(button).toHaveAttribute('aria-label', 'Custom');
   });
 });
-```
 
 ---
 
-## 14. tests/unit/components/form.test.tsx (150 righe)
+§ 14. TESTS/UNIT/COMPONENTS/FORM.TEST.TSX (150 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -2130,13 +2117,12 @@ describe('LoginForm', () => {
     });
   });
 });
-```
 
 ---
 
-## 15. tests/unit/components/product-card.test.tsx (100 righe)
+§ 15. TESTS/UNIT/COMPONENTS/PRODUCT-CARD.TEST.TSX (100 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProductCard } from '@/components/product-card'; // Assicurati che il percorso sia corretto
@@ -2248,13 +2234,12 @@ describe('ProductCard', () => {
     expect(screen.getByText('$50.00')).toBeInTheDocument();
   });
 });
-```
 
 ---
 
-## 16. tests/integration/auth-flow.test.ts (200 righe)
+§ 16. TESTS/INTEGRATION/AUTH-FLOW.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { createTestContext, TestContext } from '../utils/test-context'; // Utility per il contesto di test
 import { AuthService } from '@/server/services/auth-service'; // Il servizio reale
@@ -2453,13 +2438,12 @@ describe('Auth Flow Integration', () => {
     await expect(authService.register(userData)).rejects.toThrow('Email already registered');
   });
 });
-```
 
 ---
 
-## 17. tests/integration/checkout-flow.test.ts (250 righe)
+§ 17. TESTS/INTEGRATION/CHECKOUT-FLOW.TEST.TS (250 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { createTestContext, TestContext } from '../utils/test-context';
 import { AuthService } from '@/server/services/auth-service';
@@ -2680,13 +2664,12 @@ describe('Full Checkout Flow Integration', () => {
     expect(userOrders[0].status).toBe('PAID');
   });
 });
-```
 
 ---
 
-## 18. tests/integration/api-routes.test.ts (200 righe)
+§ 18. TESTS/INTEGRATION/API-ROUTES.TEST.TS (200 RIGHE)
 
-```typescript
+typescript
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { createTestContext, TestContext } from '../utils/test-context';
 import { server } from '../utils/mocks/api'; // MSW server per mockare API esterne se necessario

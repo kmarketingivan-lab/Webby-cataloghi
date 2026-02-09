@@ -7,7 +7,7 @@
 
 ---
 
-## 1. VALIDATION LIBRARY COMPARISON
+§ 1. VALIDATION LIBRARY COMPARISON
 
 | Library | Size | TypeScript | Async | Composition | Performance | Best For |
 |---------|------|------------|-------|-------------|-------------|----------|
@@ -21,11 +21,11 @@
 
 ---
 
-## 2. ZOD FUNDAMENTALS
+§ 2. ZOD FUNDAMENTALS
 
-### 2.1 Primitive Types
+§ 2.1 PRIMITIVE TYPES
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // ===== STRINGS =====
@@ -72,11 +72,10 @@ const defaultSchema = z.string().default('default value');
 const coerceNumber = z.coerce.number(); // "123" → 123
 const coerceBoolean = z.coerce.boolean(); // "true" → true
 const coerceDate = z.coerce.date(); // "2024-01-01" → Date
-```
 
-### 2.2 Object Schemas
+§ 2.2 OBJECT SCHEMAS
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // Basic object
@@ -127,11 +126,10 @@ if (result.success) {
 } else {
   console.log(result.error.flatten());
 }
-```
 
-### 2.3 Advanced Patterns
+§ 2.3 ADVANCED PATTERNS
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // ===== DISCRIMINATED UNIONS =====
@@ -200,16 +198,15 @@ const uniqueEmailSchema = z.string().email().refine(
   },
   { message: 'Email already registered' }
 );
-```
 
 
 ---
 
-## 3. REACT HOOK FORM INTEGRATION
+§ 3. REACT HOOK FORM INTEGRATION
 
-### 3.1 Basic Setup
+§ 3.1 BASIC SETUP
 
-```typescript
+typescript
 // lib/form.ts
 import { useForm, UseFormReturn, DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -246,11 +243,10 @@ function LoginForm() {
 
   return <form onSubmit={onSubmit}>...</form>;
 }
-```
 
-### 3.2 Form Field Component
+§ 3.2 FORM FIELD COMPONENT
 
-```typescript
+typescript
 // components/ui/form-field.tsx
 'use client';
 
@@ -290,11 +286,10 @@ export function FormField<T extends FieldValues>({
     </div>
   );
 }
-```
 
-### 3.3 Complete Form Example
+§ 3.3 COMPLETE FORM EXAMPLE
 
-```typescript
+typescript
 // components/contact-form.tsx
 'use client';
 
@@ -370,13 +365,12 @@ export function ContactForm() {
     </FormProvider>
   );
 }
-```
 
 ---
 
-## 4. COMMON VALIDATION PATTERNS
+§ 4. COMMON VALIDATION PATTERNS
 
-### 4.1 Pattern Reference Table
+§ 4.1 PATTERN REFERENCE TABLE
 
 | Pattern | Schema | Example Valid | Example Invalid |
 |---------|--------|---------------|-----------------|
@@ -391,9 +385,9 @@ export function ContactForm() {
 | Date (ISO) | `z.string().datetime()` | 2024-01-15T00:00:00Z | 01/15/2024 |
 | UUID | `z.string().uuid()` | 550e8400-e29b-41d4... | not-uuid |
 
-### 4.2 Reusable Schema Library
+§ 4.2 REUSABLE SCHEMA LIBRARY
 
-```typescript
+typescript
 // lib/schemas/common.ts
 import { z } from 'zod';
 
@@ -436,17 +430,16 @@ const userSchema = z.object({
   password: schemas.password,
   username: schemas.username,
 });
-```
 
 
 
 ---
 
-## 5. ERROR DISPLAY PATTERNS
+§ 5. ERROR DISPLAY PATTERNS
 
-### 5.1 Error Message Component
+§ 5.1 ERROR MESSAGE COMPONENT
 
-```typescript
+typescript
 // components/ui/field-error.tsx
 import { cn } from '@/lib/utils';
 import { AlertCircle } from 'lucide-react';
@@ -472,11 +465,10 @@ export function FieldError({ message, className }: FieldErrorProps) {
     </div>
   );
 }
-```
 
-### 5.2 Form Error Summary
+§ 5.2 FORM ERROR SUMMARY
 
-```typescript
+typescript
 // components/ui/form-error-summary.tsx
 import { FieldErrors, FieldValues } from 'react-hook-form';
 import { AlertCircle } from 'lucide-react';
@@ -523,9 +515,8 @@ export function FormErrorSummary<T extends FieldValues>({
     </div>
   );
 }
-```
 
-### 5.3 Inline vs Summary Display
+§ 5.3 INLINE VS SUMMARY DISPLAY
 
 | Strategy | Best For | UX Impact |
 |----------|----------|-----------|
@@ -536,11 +527,11 @@ export function FormErrorSummary<T extends FieldValues>({
 
 ---
 
-## 6. CONDITIONAL VALIDATION
+§ 6. CONDITIONAL VALIDATION
 
-### 6.1 Dependent Field Validation
+§ 6.1 DEPENDENT FIELD VALIDATION
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // Shipping address required only if "ship to different address" is checked
@@ -571,11 +562,10 @@ const accountSchema = z.discriminatedUnion('accountType', [
     vatNumber: z.string().regex(/^[A-Z]{2}\d{8,12}$/),
   }),
 ]);
-```
 
-### 6.2 Dynamic Schema Selection
+§ 6.2 DYNAMIC SCHEMA SELECTION
 
-```typescript
+typescript
 // hooks/use-dynamic-schema.ts
 import { useMemo } from 'react';
 import { z } from 'zod';
@@ -606,15 +596,14 @@ function AccountForm() {
   const form = useZodForm(schema);
   // ...
 }
-```
 
 ---
 
-## 7. MULTI-STEP FORM VALIDATION
+§ 7. MULTI-STEP FORM VALIDATION
 
-### 7.1 Step Schema Pattern
+§ 7.1 STEP SCHEMA PATTERN
 
-```typescript
+typescript
 import { z } from 'zod';
 
 // Step 1: Personal Info
@@ -648,11 +637,10 @@ const completeSchema = personalInfoSchema
 const stepSchemas = [personalInfoSchema, addressSchema, paymentSchema] as const;
 
 type FormData = z.infer<typeof completeSchema>;
-```
 
-### 7.2 Multi-Step Form Hook
+§ 7.2 MULTI-STEP FORM HOOK
 
-```typescript
+typescript
 // hooks/use-multi-step-form.ts
 import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -711,15 +699,14 @@ export function useMultiStepForm<T extends z.ZodType[]>({
     formData,
   };
 }
-```
 
 ---
 
-## 8. SERVER-SIDE VALIDATION
+§ 8. SERVER-SIDE VALIDATION
 
-### 8.1 API Route Validation
+§ 8.1 API ROUTE VALIDATION
 
-```typescript
+typescript
 // app/api/users/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -756,11 +743,10 @@ export async function POST(req: NextRequest) {
     throw error;
   }
 }
-```
 
-### 8.2 Server Action Validation
+§ 8.2 SERVER ACTION VALIDATION
 
-```typescript
+typescript
 // app/actions/user.ts
 'use server';
 
@@ -793,15 +779,14 @@ export async function updateProfile(formData: FormData) {
 
   return { success: true };
 }
-```
 
 
 
 ---
 
-## 9. FORM ACCESSIBILITY
+§ 9. FORM ACCESSIBILITY
 
-### 9.1 A11y Requirements Table
+§ 9.1 A11Y REQUIREMENTS TABLE
 
 | Requirement | Implementation | WCAG |
 |-------------|----------------|------|
@@ -814,9 +799,9 @@ export async function updateProfile(formData: FormData) {
 | Keyboard navigation | Tab order, Enter to submit | 2.1.1 |
 | Instructions | Visible format hints before input | 3.3.2 |
 
-### 9.2 Accessible Input Component
+§ 9.2 ACCESSIBLE INPUT COMPONENT
 
-```typescript
+typescript
 // components/ui/accessible-input.tsx
 import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -879,11 +864,10 @@ export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps
 );
 
 AccessibleInput.displayName = 'AccessibleInput';
-```
 
-### 9.3 Focus Error Field on Submit
+§ 9.3 FOCUS ERROR FIELD ON SUBMIT
 
-```typescript
+typescript
 // hooks/use-focus-error.ts
 import { useEffect } from 'react';
 import { FieldErrors, FieldValues } from 'react-hook-form';
@@ -915,13 +899,11 @@ function MyForm() {
   useFocusError(errors, isSubmitted);
   // ...
 }
-```
 
 ---
 
-## 10. FORM VALIDATION CHECKLIST
+§ 10. FORM VALIDATION CHECKLIST
 
-```
 SCHEMA DESIGN
 □ Zod schemas defined for all forms
 □ Type inference with z.infer<typeof schema>
@@ -986,14 +968,13 @@ TESTING
 □ Error display tests
 □ Accessibility audit passed
 □ E2E form submission tests
-```
 
 
-## 11. ADVANCED VALIDATION PATTERNS
+§ 11. ADVANCED VALIDATION PATTERNS
 
-### 11.1 Conditional Validation
+§ 11.1 CONDITIONAL VALIDATION
 
-```typescript
+typescript
 import { z } from 'zod';
 
 const conditionalSchema = z.object({
@@ -1007,11 +988,10 @@ const conditionalSchema = z.object({
     message: 'Must be 18 or older to be considered an adult',
   }),
 });
-```
 
-### 11.2 Dynamic Validation
+§ 11.2 DYNAMIC VALIDATION
 
-```typescript
+typescript
 import { z } from 'zod';
 
 const dynamicSchema = z.object({
@@ -1025,23 +1005,21 @@ const dynamicSchema = z.object({
     message: 'Invalid value for selected type',
   }),
 });
-```
 
-## 12. ERROR HANDLING AND DISPLAY
+§ 12. ERROR HANDLING AND DISPLAY
 
-### 12.1 Custom Error Messages
+§ 12.1 CUSTOM ERROR MESSAGES
 
-```typescript
+typescript
 import { z } from 'zod';
 
 const customErrorSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
 });
-```
 
-### 12.2 Error Handling with React Hook Form
+§ 12.2 ERROR HANDLING WITH REACT HOOK FORM
 
-```typescript
+typescript
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -1061,13 +1039,12 @@ const MyForm = () => {
     </form>
   );
 };
-```
 
-## 13. PERFORMANCE CONSIDERATIONS
+§ 13. PERFORMANCE CONSIDERATIONS
 
-### 13.1 Memoization
+§ 13.1 MEMOIZATION
 
-```typescript
+typescript
 import { useMemo } from 'react';
 import { z } from 'zod';
 
@@ -1082,11 +1059,10 @@ const MyComponent = () => {
     </div>
   );
 };
-```
 
-### 13.2 Lazy Loading
+§ 13.2 LAZY LOADING
 
-```typescript
+typescript
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 
@@ -1107,13 +1083,12 @@ const MyComponent = () => {
     </div>
   );
 };
-```
 
-## 14. TESTING PATTERNS WITH VITEST
+§ 14. TESTING PATTERNS WITH VITEST
 
-### 14.1 Unit Testing
+§ 14.1 UNIT TESTING
 
-```typescript
+typescript
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 
@@ -1130,11 +1105,10 @@ describe('MySchema', () => {
     expect(() => schema.parse(invalidData)).toThrowError();
   });
 });
-```
 
-### 14.2 Integration Testing
+§ 14.2 INTEGRATION TESTING
 
-```typescript
+typescript
 import { describe, it, expect } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { MyForm } from './MyForm';
@@ -1158,11 +1132,10 @@ describe('MyForm', () => {
     await waitFor(() => expect(getByText('Form submitted successfully')).toBeInTheDocument());
   });
 });
-```
 
-## 15. BEST PRACTICES
+§ 15. BEST PRACTICES
 
-### 15.1 Validation Strategy
+§ 15.1 VALIDATION STRATEGY
 
 | Strategy | Description | ✅ DO | ❌ DON'T |
 | --- | --- | --- | --- |
@@ -1170,39 +1143,39 @@ describe('MyForm', () => {
 | Server-side validation | Validate user input on the server-side | Use for security-critical validation and data consistency | Use for client-side validation only |
 | Dual validation | Validate user input on both client-side and server-side | Use for robust validation and security | Use for simple applications with minimal validation requirements |
 
-### 15.2 Code Organization
+§ 15.2 CODE ORGANIZATION
 
 | Pattern | Description | ✅ DO | ❌ DON'T |
 | --- | --- | --- | --- |
 | Separate validation logic | Keep validation logic separate from business logic | Use for maintainability and reusability | Mix validation logic with business logic |
 | Use validation libraries | Use established validation libraries like Zod or Joi | Use for consistency and community support | Roll your own validation library |
 
-## 16. COMMON PITFALLS AND TROUBLESHOOTING
+§ 16. COMMON PITFALLS AND TROUBLESHOOTING
 
-### 16.1 Common Pitfalls
+§ 16.1 COMMON PITFALLS
 
 * Not validating user input on the server-side
 * Not handling validation errors correctly
 * Not using established validation libraries
 * Not testing validation logic thoroughly
 
-### 16.2 Troubleshooting
+§ 16.2 TROUBLESHOOTING
 
 * Check the validation library documentation for common issues and solutions
 * Use debugging tools like console logs or debuggers to identify issues
 * Test validation logic thoroughly to catch errors early
 * Use code reviews and pair programming to catch errors and improve code quality
 
-## 17. MIGRATION AND UPGRADE PATTERNS
+§ 17. MIGRATION AND UPGRADE PATTERNS
 
-### 17.1 Upgrading Validation Libraries
+§ 17.1 UPGRADING VALIDATION LIBRARIES
 
 * Research the new library version and its changes
 * Update the library version in your project
 * Test your application thoroughly to catch any breaking changes
 * Update your code to use new features and best practices
 
-### 17.2 Migrating to a New Validation Strategy
+§ 17.2 MIGRATING TO A NEW VALIDATION STRATEGY
 
 * Research the new validation strategy and its benefits
 * Plan the migration and create a roadmap

@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | Sezione | Descrizione |
 |---------|-------------|
@@ -22,14 +22,13 @@
 
 ---
 
-## 1. PANORAMICA
+§ 1. PANORAMICA
 
-### 1.1 Obiettivo
+§ 1.1 OBIETTIVO
 Struttura completa di file per un progetto Next.js 14 con App Router, pronta per lo sviluppo.
 
-### 1.2 Architettura Directory
+§ 1.2 ARCHITETTURA DIRECTORY
 
-```
 src/
 ├── app/                    # Next.js App Router
 │   ├── layout.tsx          # Root layout
@@ -54,9 +53,8 @@ src/
 │   └── trpc/               # tRPC routers
 └── prisma/
     └── schema.prisma       # Database schema
-```
 
-### 1.3 Convenzioni Naming
+§ 1.3 CONVENZIONI NAMING
 
 | Tipo | Convenzione | Esempio |
 |------|-------------|---------|
@@ -69,9 +67,9 @@ src/
 
 ---
 
-## 2. APP LAYER
+§ 2. APP LAYER
 
-### 2.1 Mappa File App Router
+§ 2.1 MAPPA FILE APP ROUTER
 
 | File | Path | Descrizione |
 |------|------|-------------|
@@ -83,7 +81,7 @@ src/
 | Globals | `src/app/globals.css` | Tailwind base |
 | tRPC Route | `src/app/api/trpc/[trpc]/route.ts` | API handler |
 
-### 2.2 Root Layout
+§ 2.2 ROOT LAYOUT
 
 **File**: `src/app/layout.tsx`
 
@@ -96,7 +94,7 @@ src/
 | Analytics | Tracking component |
 | Toast | Notification container |
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import { Metadata } from 'next';
@@ -127,13 +125,12 @@ export default function RootLayout({ children }: LayoutProps) {
     </html>
   );
 }
-```
 
-### 2.3 Homepage
+§ 2.3 HOMEPAGE
 
 **File**: `src/app/page.tsx`
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -153,13 +150,12 @@ export default function HomePage() {
     </div>
   );
 }
-```
 
-### 2.4 Loading State
+§ 2.4 LOADING STATE
 
 **File**: `src/app/loading.tsx`
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 
 export default function Loading() {
@@ -169,9 +165,8 @@ export default function Loading() {
     </div>
   );
 }
-```
 
-### 2.5 Error Boundary
+§ 2.5 ERROR BOUNDARY
 
 **File**: `src/app/error.tsx`
 
@@ -181,7 +176,7 @@ export default function Loading() {
 | `componentDidCatch` | Log errore |
 | `render` | UI fallback |
 
-```typescript
+typescript
 import type { ReactNode, ErrorInfo } from 'react';
 import { useState } from 'react';
 
@@ -222,13 +217,12 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     return this.props.children;
   }
 }
-```
 
-### 2.6 Not Found Page
+§ 2.6 NOT FOUND PAGE
 
 **File**: `src/app/not-found.tsx`
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 
 export default function NotFoundPage() {
@@ -238,9 +232,8 @@ export default function NotFoundPage() {
     </div>
   );
 }
-```
 
-### 2.7 Global Styles
+§ 2.7 GLOBAL STYLES
 
 **File**: `src/app/globals.css`
 
@@ -251,7 +244,7 @@ export default function NotFoundPage() {
 | `@layer utilities` | Utility custom |
 | `:root` | CSS variables |
 
-```css
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -280,13 +273,12 @@ export default function NotFoundPage() {
 body {
   font-family: 'Inter', sans-serif;
 }
-```
 
 ---
 
-## 3. LIB LAYER
+§ 3. LIB LAYER
 
-### 3.1 Mappa File Lib
+§ 3.1 MAPPA FILE LIB
 
 | File | Path | Descrizione |
 |------|------|-------------|
@@ -295,7 +287,7 @@ body {
 | Prisma | `src/lib/prisma.ts` | DB client |
 | Env | `src/lib/env.ts` | Env validation |
 
-### 3.2 Utils
+§ 3.2 UTILS
 
 **File**: `src/lib/utils.ts`
 
@@ -313,7 +305,7 @@ body {
 | `isValidEmail` | `email` | `boolean` | Email validation |
 | `parseJSON` | `json` | `any \| null` | Safe JSON parse |
 
-```typescript
+typescript
 export function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
@@ -366,9 +358,8 @@ export function parseJSON(json: string) {
     return null;
   }
 }
-```
 
-### 3.3 Constants
+§ 3.3 CONSTANTS
 
 **File**: `src/lib/constants.ts`
 
@@ -380,7 +371,7 @@ export function parseJSON(json: string) {
 | `PAGINATION` | object | Config paginazione |
 | `ROUTES` | object | Route principali |
 
-```typescript
+typescript
 export const APP_NAME = 'Platform';
 export const APP_DESCRIPTION = 'Descrizione dell\'applicazione';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -396,13 +387,12 @@ export const ROUTES = {
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
 } as const;
-```
 
-### 3.4 Prisma Client
+§ 3.4 PRISMA CLIENT
 
 **File**: `src/lib/prisma.ts`
 
-```typescript
+typescript
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -414,9 +404,8 @@ prisma.$use(async (params, next) => {
 });
 
 export default prisma;
-```
 
-### 3.5 Env Validation
+§ 3.5 ENV VALIDATION
 
 **File**: `src/lib/env.ts`
 
@@ -426,7 +415,7 @@ export default prisma;
 | `NEXTAUTH_URL` | `z.string().url()` | Yes |
 | `NEXTAUTH_SECRET` | `z.string().min(32)` | Yes |
 
-```typescript
+typescript
 import { z } from 'zod';
 
 const envSchema = z.object({
@@ -436,13 +425,12 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
-```
 
 ---
 
-## 4. COMPONENTS LAYER
+§ 4. COMPONENTS LAYER
 
-### 4.1 Mappa Componenti
+§ 4.1 MAPPA COMPONENTI
 
 | File | Path | Descrizione |
 |------|------|-------------|
@@ -453,7 +441,7 @@ export const env = envSchema.parse(process.env);
 | Card | `src/components/ui/card.tsx` | Card components |
 | Toast | `src/components/ui/toast.tsx` | Toast system |
 
-### 4.2 Providers
+§ 4.2 PROVIDERS
 
 **File**: `src/components/providers.tsx`
 
@@ -464,7 +452,7 @@ export const env = envSchema.parse(process.env);
 | `ThemeProvider` | next-themes | Dark mode |
 | `ToastProvider` | react-toastify | Notifications |
 
-```typescript
+typescript
 import { QueryClientProvider } from 'react-query';
 import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from 'next-themes';
@@ -483,9 +471,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </QueryClientProvider>
   );
 }
-```
 
-### 4.3 Button Component
+§ 4.3 BUTTON COMPONENT
 
 **File**: `src/components/ui/button.tsx`
 
@@ -506,7 +493,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 | `ghost` | Transparent |
 | `link` | Text link |
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 
 interface ButtonProps {
@@ -544,13 +531,12 @@ export function Button({ children, variant, size, loading, disabled, asChild }: 
     </button>
   );
 }
-```
 
-### 4.4 Input Component
+§ 4.4 INPUT COMPONENT
 
 **File**: `src/components/ui/input.tsx`
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 import { forwardRef } from 'react';
 
@@ -576,9 +562,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     );
   }
 );
-```
 
-### 4.5 Card Components
+§ 4.5 CARD COMPONENTS
 
 **File**: `src/components/ui/card.tsx`
 
@@ -591,7 +576,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 | `CardContent` | Contenuto principale |
 | `CardFooter` | Footer area |
 
-```typescript
+typescript
 import type { ReactNode } from 'react';
 
 interface CardProps {
@@ -621,24 +606,22 @@ export function CardContent({ children }: { children: ReactNode }) {
 export function CardFooter({ children }: { children: ReactNode }) {
   return <div className="card-footer">{children}</div>;
 }
-```
 
-### 4.6 UI Barrel Export
+§ 4.6 UI BARREL EXPORT
 
 **File**: `src/components/ui/index.ts`
 
-```typescript
+typescript
 export * from './button';
 export * from './input';
 export * from './card';
 export * from './toast';
-```
 
 ---
 
-## 5. TYPES LAYER
+§ 5. TYPES LAYER
 
-### 5.1 Types Principali
+§ 5.1 TYPES PRINCIPALI
 
 **File**: `src/types/index.ts`
 
@@ -649,7 +632,7 @@ export * from './toast';
 | `ApiError` | Error structure |
 | `AsyncFunction<T>` | Async function type |
 
-```typescript
+typescript
 export interface ApiResponse<T> {
   data: T;
   error: null | string;
@@ -671,13 +654,12 @@ export interface ApiError {
 }
 
 export type AsyncFunction<T> = () => Promise<T>;
-```
 
 ---
 
-## 6. HOOKS LAYER
+§ 6. HOOKS LAYER
 
-### 6.1 Mappa Hooks
+§ 6.1 MAPPA HOOKS
 
 | Hook | File | Descrizione |
 |------|------|-------------|
@@ -685,7 +667,7 @@ export type AsyncFunction<T> = () => Promise<T>;
 | `useLocalStorage` | `use-local-storage.ts` | Persist to localStorage |
 | `useMediaQuery` | `use-media-query.ts` | Responsive queries |
 
-### 6.2 useDebounce
+§ 6.2 USEDEBOUNCE
 
 **File**: `src/hooks/use-debounce.ts`
 
@@ -695,7 +677,7 @@ export type AsyncFunction<T> = () => Promise<T>;
 | `delay` | `number` | Delay in ms |
 | **Return** | `T` | Valore debouncato |
 
-```typescript
+typescript
 import { useState, useEffect } from 'react';
 
 export function useDebounce<T>(value: T, delay: number) {
@@ -713,9 +695,8 @@ export function useDebounce<T>(value: T, delay: number) {
 
   return debouncedValue;
 }
-```
 
-### 6.3 useLocalStorage
+§ 6.3 USELOCALSTORAGE
 
 **File**: `src/hooks/use-local-storage.ts`
 
@@ -725,7 +706,7 @@ export function useDebounce<T>(value: T, delay: number) {
 | `initialValue` | `T` | Valore default |
 | **Return** | `[T, SetState<T>]` | Value e setter |
 
-```typescript
+typescript
 import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
@@ -740,9 +721,8 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   return [value, setValue] as const;
 }
-```
 
-### 6.4 useMediaQuery
+§ 6.4 USEMEDIAQUERY
 
 **File**: `src/hooks/use-media-query.ts`
 
@@ -751,7 +731,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 | `query` | `string` | Media query CSS |
 | **Return** | `boolean` | Match result |
 
-```typescript
+typescript
 import { useState, useEffect } from 'react';
 
 export function useMediaQuery(query: string) {
@@ -774,13 +754,12 @@ export function useMediaQuery(query: string) {
 
   return matches;
 }
-```
 
 ---
 
-## 7. SERVER LAYER
+§ 7. SERVER LAYER
 
-### 7.1 tRPC Setup
+§ 7.1 TRPC SETUP
 
 | File | Path | Descrizione |
 |------|------|-------------|
@@ -788,11 +767,11 @@ export function useMediaQuery(query: string) {
 | App Router | `src/server/trpc/routers/_app.ts` | Root router |
 | API Route | `src/app/api/trpc/[trpc]/route.ts` | Next.js handler |
 
-### 7.2 tRPC Main
+§ 7.2 TRPC MAIN
 
 **File**: `src/server/trpc/trpc.ts`
 
-```typescript
+typescript
 import * as trpc from '@trpc/server';
 import * as trpcNext from '@trpc/server/adapters/next';
 import { z } from 'zod';
@@ -818,13 +797,12 @@ export default trpcNext.createNextApiHandler({
   router: appRouter,
   createContext: () => null,
 });
-```
 
-### 7.3 App Router
+§ 7.3 APP ROUTER
 
 **File**: `src/server/trpc/routers/_app.ts`
 
-```typescript
+typescript
 import * as trpc from '@trpc/server';
 import { z } from 'zod';
 
@@ -835,13 +813,12 @@ export const appRouter = trpc.router()
       return { id: 1, name: 'John Doe', email: 'john.doe@example.com' };
     },
   });
-```
 
-### 7.4 API Route Handler
+§ 7.4 API ROUTE HANDLER
 
 **File**: `src/app/api/trpc/[trpc]/route.ts`
 
-```typescript
+typescript
 import * as trpcNext from '@trpc/server/adapters/next';
 import { appRouter } from '../../../server/trpc/trpc';
 
@@ -849,13 +826,12 @@ export default trpcNext.createNextApiHandler({
   router: appRouter,
   createContext: () => null,
 });
-```
 
 ---
 
-## 8. DATABASE LAYER
+§ 8. DATABASE LAYER
 
-### 8.1 Schema Prisma
+§ 8.1 SCHEMA PRISMA
 
 **File**: `prisma/schema.prisma`
 
@@ -866,7 +842,7 @@ export default trpcNext.createNextApiHandler({
 | `Account` | id, userId, provider, accessToken | User |
 | `VerificationToken` | id, identifier, token, expires | - |
 
-```prisma
+prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -907,11 +883,10 @@ model VerificationToken {
   token      String   @unique
   expires    DateTime
 }
-```
 
 ---
 
-## 10. CHECKLIST SETUP
+§ 10. CHECKLIST SETUP
 
 | Step | File | Status |
 |------|------|--------|

@@ -1,13 +1,13 @@
 # CATALOGO ADMIN-BACKOFFICE v1
-## Documentazione Tecnica Completa per Pannelli Amministrativi Professionali
+§ DOCUMENTAZIONE TECNICA COMPLETA PER PANNELLI AMMINISTRATIVI PROFESSIONALI
 
 ---
 
-## §1. ADMIN LAYOUT & NAVIGATION
+§ §1. ADMIN LAYOUT & NAVIGATION
 
-### 1.1 Admin Layout Structure
+§ 1.1 ADMIN LAYOUT STRUCTURE
 
-```typescript
+typescript
 // app/admin/layout.tsx
 import { AdminSidebar } from '@/components/admin/sidebar';
 import { AdminHeader } from '@/components/admin/header';
@@ -99,11 +99,10 @@ export default function AdminLayout({
     </AdminProvider>
   );
 }
-```
 
-### 1.2 Navigation Configuration
+§ 1.2 NAVIGATION CONFIGURATION
 
-```typescript
+typescript
 // lib/admin/navigation.ts
 import { 
   LayoutDashboard, 
@@ -328,11 +327,10 @@ export function getBreadcrumbItems(pathname: string): NavItem[] {
   
   return items;
 }
-```
 
-### 1.3 Admin Shell Components
+§ 1.3 ADMIN SHELL COMPONENTS
 
-```typescript
+typescript
 // components/admin/sidebar.tsx
 'use client';
 
@@ -519,9 +517,8 @@ export function AdminSidebar({ mobile = false }: AdminSidebarProps) {
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/header.tsx
 'use client';
 
@@ -629,9 +626,8 @@ export function AdminHeader() {
     </header>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/breadcrumbs.tsx
 'use client';
 
@@ -686,9 +682,8 @@ export function AdminBreadcrumbs() {
     </nav>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/page-header.tsx
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
@@ -729,9 +724,8 @@ export function AdminPageHeader({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/card.tsx
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
@@ -800,13 +794,12 @@ export function AdminCard({
     </div>
   );
 }
-```
 
 ---
 
-## §2. DATA TABLE SYSTEM (CRITICO)
+§ §2. DATA TABLE SYSTEM (CRITICO)
 
-### 2.1 Server-Side Data Table Architecture
+§ 2.1 SERVER-SIDE DATA TABLE ARCHITECTURE
 
 | Feature | Client-side | Server-side | Hybrid | Raccomandazione |
 |---------|-------------|-------------|--------|-----------------|
@@ -819,9 +812,9 @@ export function AdminCard({
 | **Cache** | Easy | Manual/CDN | Hybrid | **Server-side** con Redis cache |
 | **Best for** | <100 righe statiche | Dati reali | App complesse | **Server-side per admin panels** |
 
-### 2.2 DataTable Component Completo
+§ 2.2 DATATABLE COMPONENT COMPLETO
 
-```typescript
+typescript
 // components/admin/data-table/data-table.tsx
 'use client';
 
@@ -1048,9 +1041,8 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-pagination.tsx
 'use client';
 
@@ -1175,9 +1167,8 @@ export function DataTablePagination<TData>({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-toolbar.tsx
 'use client';
 
@@ -1294,9 +1285,8 @@ export function DataTableToolbar<TData>({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-column-header.tsx
 'use client';
 
@@ -1340,9 +1330,8 @@ export function DataTableColumnHeader<TData, TValue>({
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-row-actions.tsx
 'use client';
 
@@ -1441,9 +1430,8 @@ export function DataTableRowActions<TData>({
     </DropdownMenu>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-faceted-filter.tsx
 'use client';
 
@@ -1564,9 +1552,8 @@ export function DataTableFacetedFilter<TData, TValue>({
     </Popover>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-view-options.tsx
 'use client';
 
@@ -1622,9 +1609,8 @@ export function DataTableViewOptions<TData>({
     </DropdownMenu>
   );
 }
-```
 
-```typescript
+typescript
 // components/admin/data-table/data-table-skeleton.tsx
 export function DataTableSkeleton() {
   return (
@@ -1682,11 +1668,10 @@ export function DataTableSkeleton() {
     </div>
   );
 }
-```
 
-### 2.3 Server Action per Data Fetching
+§ 2.3 SERVER ACTION PER DATA FETCHING
 
-```typescript
+typescript
 // lib/actions/data-table.ts
 'use server';
 
@@ -1934,11 +1919,10 @@ export async function UsersTable() {
   );
 }
 */
-```
 
-### 2.4 Column Definition Pattern
+§ 2.4 COLUMN DEFINITION PATTERN
 
-```typescript
+typescript
 // lib/utils/table-columns.ts
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/admin/data-table/data-table-column-header';
@@ -2240,11 +2224,10 @@ export const productColumns: ColumnDef<Product>[] = [
     ),
   },
 ];
-```
 
-### 2.5 Filterable Columns Pattern
+§ 2.5 FILTERABLE COLUMNS PATTERN
 
-```typescript
+typescript
 // components/admin/data-table/filter-types.tsx
 'use client';
 
@@ -2520,11 +2503,10 @@ export function FilterPresets({
     </div>
   );
 }
-```
 
-### 2.6 URL State Persistence
+§ 2.6 URL STATE PERSISTENCE
 
-```typescript
+typescript
 // hooks/use-table-state.ts
 'use client';
 
@@ -2764,7 +2746,6 @@ export function UsersTable() {
   );
 }
 */
-```
 
 ---
 

@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -37,8 +37,8 @@
 
 ---
 
-## 1. prisma/schema-social.prisma (250 righe)
-```prisma
+§ 1. PRISMA/SCHEMA-SOCIAL.PRISMA (250 RIGHE)
+prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -244,12 +244,11 @@ model Notification {
   @@index([postId])
   @@index([createdAt])
 }
-```
 
 ---
 
-## 2. src/server/services/profile-service.ts (250 righe)
-```typescript
+§ 2. SRC/SERVER/SERVICES/PROFILE-SERVICE.TS (250 RIGHE)
+typescript
 import { PrismaClient, Profile, User } from '@prisma/client';
 import { CreateProfileInput, SearchParams, UpdateProfileInput } from '~/lib/validations/social';
 
@@ -392,12 +391,11 @@ export class ProfileService {
     });
   }
 }
-```
 
 ---
 
-## 3. src/server/services/post-service.ts (300 righe)
-```typescript
+§ 3. SRC/SERVER/SERVICES/POST-SERVICE.TS (300 RIGHE)
+typescript
 import { PrismaClient, Post, Profile, PostVisibility } from '@prisma/client';
 import { CreatePostInput, ListParams, PaginatedResult, UpdatePostInput } from '~/lib/validations/social';
 import { ProfileService } from './profile-service';
@@ -701,12 +699,11 @@ class NotificationService {
     });
   }
 }
-```
 
 ---
 
-## 4. src/server/services/feed-service.ts (200 righe)
-```typescript
+§ 4. SRC/SERVER/SERVICES/FEED-SERVICE.TS (200 RIGHE)
+typescript
 import { PrismaClient, Post, Profile, PostVisibility, FollowStatus } from '@prisma/client';
 import { FeedParams, PaginatedResult } from '~/lib/validations/social';
 import { ProfileService } from './profile-service';
@@ -867,12 +864,11 @@ export class FeedService {
     // await redis.set(`feed:${profileId}`, JSON.stringify(feed), 'EX', 3600);
   }
 }
-```
 
 ---
 
-## 5. src/server/services/follow-service.ts (150 righe)
-```typescript
+§ 5. SRC/SERVER/SERVICES/FOLLOW-SERVICE.TS (150 RIGHE)
+typescript
 import { PrismaClient, Follow, FollowStatus, Profile } from '@prisma/client';
 import { ListParams, PaginatedResult } from '~/lib/validations/social';
 import { ProfileService } from './profile-service';
@@ -1041,12 +1037,11 @@ class NotificationService {
     });
   }
 }
-```
 
 ---
 
-## 6. src/server/trpc/routers/social.ts (250 righe)
-```typescript
+§ 6. SRC/SERVER/TRPC/ROUTERS/SOCIAL.TS (250 RIGHE)
+typescript
 import { z } from 'zod';
 import { publicProcedure, router, protectedProcedure } from '../trpc';
 import { ProfileService } from '~/server/services/profile-service';
@@ -1202,12 +1197,11 @@ type Session = { user: { id: string; profileId: string; email: string } };
 const createContext = () => ({ session: { user: { id: 'user123', profileId: 'profile123', email: 'test@example.com' } } as Session });
 const publicProcedure = publicProcedure; // Replace with actual publicProcedure
 const protectedProcedure = protectedProcedure; // Replace with actual protectedProcedure
-```
 
 ---
 
-## 7. src/lib/validations/social.ts (100 righe)
-```typescript
+§ 7. SRC/LIB/VALIDATIONS/SOCIAL.TS (100 RIGHE)
+typescript
 import { z } from 'zod';
 import { PostVisibility } from '@prisma/client';
 
@@ -1274,12 +1268,11 @@ export const feedParamsSchema = listParamsSchema.extend({
 }).optional();
 
 export type FeedParams = z.infer<typeof feedParamsSchema>;
-```
 
 ---
 
-## 8. src/hooks/use-profile.ts (80 righe)
-```typescript
+§ 8. SRC/HOOKS/USE-PROFILE.TS (80 RIGHE)
+typescript
 import { trpc } from '~/utils/trpc';
 import { CreateProfileInput, UpdateProfileInput } from '~/lib/validations/social';
 import { Profile } from '@prisma/client';
@@ -1350,12 +1343,11 @@ export const useProfile = (username?: string, profileId?: string, userId?: strin
     getSuggestedProfilesQuery,
   };
 };
-```
 
 ---
 
-## 9. src/hooks/use-posts.ts (100 righe)
-```typescript
+§ 9. SRC/HOOKS/USE-POSTS.TS (100 RIGHE)
+typescript
 import { trpc } from '~/utils/trpc';
 import { CreatePostInput, UpdatePostInput } from '~/lib/validations/social';
 import { Post } from '@prisma/client';
@@ -1490,12 +1482,11 @@ export const usePosts = () => {
     unpinPost: (postId: string) => unpinPostMutation.mutate({ postId }),
   };
 };
-```
 
 ---
 
-## 10. src/hooks/use-feed.ts (80 righe)
-```typescript
+§ 10. SRC/HOOKS/USE-FEED.TS (80 RIGHE)
+typescript
 import { trpc } from '~/utils/trpc';
 import { FeedParams } from '~/lib/validations/social';
 
@@ -1521,12 +1512,11 @@ export const useFeed = () => {
     useProfileFeed,
   };
 };
-```
 
 ---
 
-## 11. src/hooks/use-follow.ts (60 righe)
-```typescript
+§ 11. SRC/HOOKS/USE-FOLLOW.TS (60 RIGHE)
+typescript
 import { trpc } from '~/utils/trpc';
 import { useQueryClient } from '@tanstack/react-query';
 import { FollowStatus } from '@prisma/client';
@@ -1600,12 +1590,11 @@ export const useFollow = (followerId: string, followingId: string) => {
     rejectFollowRequest: (followId: string) => rejectFollowRequestMutation.mutate({ followId }),
   };
 };
-```
 
 ---
 
-## 12. src/components/social/profile-card.tsx (100 righe)
-```typescript
+§ 12. SRC/COMPONENTS/SOCIAL/PROFILE-CARD.TSX (100 RIGHE)
+typescript
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -1668,12 +1657,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, showFollowBut
     </div>
   );
 };
-```
 
 ---
 
-## 13. src/components/social/profile-header.tsx (150 righe)
-```typescript
+§ 13. SRC/COMPONENTS/SOCIAL/PROFILE-HEADER.TSX (150 RIGHE)
+typescript
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -1789,12 +1777,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, onEdit })
     </div>
   );
 };
-```
 
 ---
 
-## 14. src/components/social/post-card.tsx (200 righe)
-```typescript
+§ 14. SRC/COMPONENTS/SOCIAL/POST-CARD.TSX (200 RIGHE)
+typescript
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -1978,12 +1965,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, viewerProfileId }) => 
     </div>
   );
 };
-```
 
 ---
 
-## 15. src/components/social/post-composer.tsx (200 righe)
-```typescript
+§ 15. SRC/COMPONENTS/SOCIAL/POST-COMPOSER.TSX (200 RIGHE)
+typescript
 import React, { useState, useRef, ChangeEvent, FormEvent } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
@@ -2146,12 +2132,11 @@ export const PostComposer: React.FC<PostComposerProps> = ({ onPostSuccess, initi
     </div>
   );
 };
-```
 
 ---
 
-## 16. src/components/social/feed.tsx (100 righe)
-```typescript
+§ 16. SRC/COMPONENTS/SOCIAL/FEED.TSX (100 RIGHE)
+typescript
 import React, { useEffect, useRef, useCallback } from 'react';
 import { Post } from '@prisma/client';
 import { PostCard } from './post-card';
@@ -2255,12 +2240,11 @@ type InfiniteQueryHookResult<T> = {
   isError: boolean;
   error: any;
 };
-```
 
 ---
 
-## 17. src/components/social/follow-button.tsx (80 righe)
-```typescript
+§ 17. SRC/COMPONENTS/SOCIAL/FOLLOW-BUTTON.TSX (80 RIGHE)
+typescript
 import React from 'react';
 import { Button } from '../ui/button'; // Assuming a UI button component
 import { useFollow } from '~/hooks/use-follow';
@@ -2325,12 +2309,11 @@ export const FollowButton: React.FC<FollowButtonProps> = ({ followerId, followin
     </Button>
   );
 };
-```
 
 ---
 
-## 18. src/components/social/user-list.tsx (80 righe)
-```typescript
+§ 18. SRC/COMPONENTS/SOCIAL/USER-LIST.TSX (80 RIGHE)
+typescript
 import React from 'react';
 import { Profile } from '@prisma/client';
 import { ProfileCard } from './profile-card';
@@ -2410,12 +2393,11 @@ type InfiniteQueryHookResult<T> = {
   isError: boolean;
   error: any;
 };
-```
 
 ---
 
-## 19. src/app/(social)/feed/page.tsx (60 righe)
-```typescript
+§ 19. SRC/APP/(SOCIAL)/FEED/PAGE.TSX (60 RIGHE)
+typescript
 'use client';
 
 import React from 'react';
@@ -2459,12 +2441,11 @@ export default function HomePage() {
     </div>
   );
 }
-```
 
 ---
 
-## 20. src/app/(social)/explore/page.tsx (60 righe)
-```typescript
+§ 20. SRC/APP/(SOCIAL)/EXPLORE/PAGE.TSX (60 RIGHE)
+typescript
 'use client';
 
 import React from 'react';
@@ -2500,12 +2481,11 @@ export default function ExplorePage() {
     </div>
   );
 }
-```
 
 ---
 
-## 21. src/app/(social)/[username]/page.tsx (100 righe)
-```typescript
+§ 21. SRC/APP/(SOCIAL)/[USERNAME]/PAGE.TSX (100 RIGHE)
+typescript
 'use client';
 
 import React from 'react';
@@ -2559,12 +2539,11 @@ export default function ProfilePage() {
     </div>
   );
 }
-```
 
 ---
 
-## 22. src/app/(social)/post/[id]/page.tsx (80 righe)
-```typescript
+§ 22. SRC/APP/(SOCIAL)/POST/[ID]/PAGE.TSX (80 RIGHE)
+typescript
 'use client';
 
 import React from 'react';
@@ -2617,12 +2596,11 @@ export default function SinglePostPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 23. tests/social.test.ts (200 righe)
-```typescript
+§ 23. TESTS/SOCIAL.TEST.TS (200 RIGHE)
+typescript
 import { PrismaClient, Profile, Post, Follow, FollowStatus } from '@prisma/client';
 import { ProfileService } from '~/server/services/profile-service';
 import { PostService } from '~/server/services/post-service';
@@ -2819,7 +2797,6 @@ describe('Social Services Integration Tests', () => {
     });
   });
 });
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 33582_

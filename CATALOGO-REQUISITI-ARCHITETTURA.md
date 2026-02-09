@@ -1,6 +1,6 @@
 # CATALOGO REQUISITI → ARCHITETTURA AWS
 
-## META
+§ META
 - **Versione**: 1.0
 - **Data**: 2026-01-25
 - **Autore**: Ivan (AWS Blueprint Automation)
@@ -8,7 +8,7 @@
 
 ---
 
-## 1. INDICE DEI PATTERN ARCHITETTURALI
+§ 1. INDICE DEI PATTERN ARCHITETTURALI
 
 | ID | Pattern | Requisiti Chiave | RTO/RPO | Costo Relativo |
 |----|---------|------------------|---------|----------------|
@@ -29,9 +29,9 @@
 
 ---
 
-## 2. CATALOGO SERVIZI AWS PER CATEGORIA
+§ 2. CATALOGO SERVIZI AWS PER CATEGORIA
 
-### 2.1 COMPUTE
+§ 2.1 COMPUTE
 | Servizio | Caso d'Uso | Pricing Model |
 |----------|------------|---------------|
 | **EC2** | Workloads tradizionali, full control | On-Demand, Reserved, Spot |
@@ -44,7 +44,7 @@
 | **Batch** | Batch computing jobs | Underlying resources |
 | **App Runner** | Container web apps | Per vCPU + memory |
 
-### 2.2 STORAGE
+§ 2.2 STORAGE
 | Servizio | Caso d'Uso | Durability |
 |----------|------------|------------|
 | **S3** | Object storage, data lake | 99.999999999% (11 9s) |
@@ -54,7 +54,7 @@
 | **FSx** | Windows/Lustre/NetApp/OpenZFS | 99.999999999% |
 | **Storage Gateway** | Hybrid cloud storage | Underlying |
 
-### 2.3 DATABASE
+§ 2.3 DATABASE
 | Servizio | Tipo | Caso d'Uso |
 |----------|------|------------|
 | **RDS** | Relational (MySQL, PostgreSQL, Oracle, SQL Server) | OLTP, transactional |
@@ -72,7 +72,7 @@
 | **Redshift** | Data warehouse | OLAP, analytics |
 | **OpenSearch** | Search & analytics | Full-text search, logs |
 
-### 2.4 NETWORKING
+§ 2.4 NETWORKING
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **VPC** | Isolated virtual network |
@@ -87,7 +87,7 @@
 | **App Mesh** | Service mesh |
 | **Cloud Map** | Service discovery |
 
-### 2.5 SECURITY & IDENTITY
+§ 2.5 SECURITY & IDENTITY
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **IAM** | Identity, access control |
@@ -103,7 +103,7 @@
 | **CloudHSM** | Hardware security module |
 | **Certificate Manager** | SSL/TLS certificates |
 
-### 2.6 MESSAGING & INTEGRATION
+§ 2.6 MESSAGING & INTEGRATION
 | Servizio | Pattern |
 |----------|---------|
 | **SQS** | Queue (decoupling, async) |
@@ -116,7 +116,7 @@
 | **Step Functions** | Workflow orchestration |
 | **AppSync** | GraphQL managed |
 
-### 2.7 ANALYTICS
+§ 2.7 ANALYTICS
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **Athena** | SQL queries on S3 (serverless) |
@@ -128,7 +128,7 @@
 | **Data Exchange** | Third-party data marketplace |
 | **Kinesis Analytics** | Real-time stream processing |
 
-### 2.8 AI/ML
+§ 2.8 AI/ML
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **SageMaker** | ML platform (train, deploy, monitor) |
@@ -146,7 +146,7 @@
 | **Lex** | Chatbots |
 | **Kendra** | Enterprise search |
 
-### 2.9 IoT
+§ 2.9 IOT
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **IoT Core** | Device connectivity, MQTT |
@@ -158,7 +158,7 @@
 | **IoT Device Management** | Fleet management |
 | **IoT TwinMaker** | Digital twins |
 
-### 2.10 DEVELOPER TOOLS
+§ 2.10 DEVELOPER TOOLS
 | Servizio | Caso d'Uso |
 |----------|------------|
 | **CodeCommit** | Git repository |
@@ -175,10 +175,9 @@
 
 ---
 
-## 3. PATTERN ARCHITETTURALI DETTAGLIATI
+§ 3. PATTERN ARCHITETTURALI DETTAGLIATI
 
-### ARCH-001: E-COMMERCE SERVERLESS
-```
+§ ARCH-001: E-COMMERCE SERVERLESS
 REQUISITI:
 - Scalabilità automatica
 - Pagamenti sicuri (PCI-DSS se carte)
@@ -241,12 +240,10 @@ COSTI STIMATI (100K users/month):
 - CloudFront: ~$50-100/month
 - API Gateway: ~$35-70/month
 - Totale: ~$200-500/month
-```
 
 ---
 
-### ARCH-002: SOCIAL MEDIA / CHAT APPLICATION
-```
+§ ARCH-002: SOCIAL MEDIA / CHAT APPLICATION
 REQUISITI:
 - Real-time messaging (WebSocket)
 - Offline support
@@ -300,12 +297,10 @@ SERVIZI CHIAVE:
 - Neptune: Graph per relazioni sociali
 - SNS: Push notifications multi-platform
 - Kinesis: Streaming analytics
-```
 
 ---
 
-### ARCH-003: VIDEO STREAMING (Netflix-scale)
-```
+§ ARCH-003: VIDEO STREAMING (NETFLIX-SCALE)
 REQUISITI:
 - Global delivery (CDN)
 - Adaptive bitrate streaming (ABR)
@@ -362,14 +357,12 @@ SCALA NETFLIX:
 - Petabytes of multimedia assets
 - 65M concurrent streams (peak)
 - Cost: ~$27.78M/month (2023 estimate)
-```
 
 
 
 ---
 
-### ARCH-004: GAMING MULTIPLAYER
-```
+§ ARCH-004: GAMING MULTIPLAYER
 REQUISITI:
 - Session-based multiplayer
 - Low latency (< 50ms)
@@ -414,12 +407,10 @@ SERVIZI CHIAVE:
 - FlexMatch: Smart matchmaking
 - Global Accelerator: Low latency routing
 - DynamoDB: Player state
-```
 
 ---
 
-### ARCH-005: HEALTHCARE HIPAA COMPLIANT
-```
+§ ARCH-005: HEALTHCARE HIPAA COMPLIANT
 REQUISITI:
 - HIPAA compliance (BAA con AWS)
 - PHI protection (encryption at rest + in transit)
@@ -493,12 +484,10 @@ COMPLIANCE FRAMEWORKS:
 - HITRUST CSF
 - FedRAMP, GDPR, ENS High, HDS, C5
 - GxP (life sciences)
-```
 
 ---
 
-### ARCH-006: FINTECH PCI-DSS
-```
+§ ARCH-006: FINTECH PCI-DSS
 REQUISITI:
 - PCI DSS Level 1 compliance
 - Cardholder data protection
@@ -560,14 +549,12 @@ CASE STUDY (FinTech Company):
 - Network Load Balancer + PrivateLink
 - 99.95% availability guarantee
 - DevSecOps via AWS ECR scanning
-```
 
 
 
 ---
 
-### ARCH-007: IoT INDUSTRIAL (IIoT)
-```
+§ ARCH-007: IOT INDUSTRIAL (IIOT)
 REQUISITI:
 - Secure device connectivity
 - Edge computing
@@ -628,12 +615,10 @@ USE CASES:
 - Energy optimization
 - Quality control
 - Smart grid integration
-```
 
 ---
 
-### ARCH-008: IoT SMART HOME
-```
+§ ARCH-008: IOT SMART HOME
 REQUISITI:
 - Device onboarding scalabile
 - OTA updates
@@ -685,12 +670,10 @@ FEATURES:
 - Fleet-wide OTA updates
 - Centralized data lakehouse (S3 + Glue + Athena + Redshift)
 - ML personalization per device
-```
 
 ---
 
-### ARCH-009: SaaS MULTI-TENANT
-```
+§ ARCH-009: SAAS MULTI-TENANT
 REQUISITI:
 - Tenant isolation
 - Cost attribution per tenant
@@ -764,14 +747,12 @@ EKS MULTI-TENANT:
 - Network policies for isolation
 - IRSA (IAM Roles for Service Accounts)
 - Karpenter: Auto-scaling (40% cost savings)
-```
 
 
 
 ---
 
-### ARCH-010: DATA LAKE / LAKEHOUSE
-```
+§ ARCH-010: DATA LAKE / LAKEHOUSE
 REQUISITI:
 - Unified data repository
 - Multiple data sources
@@ -847,12 +828,10 @@ SAGEMAKER LAKEHOUSE (2024+):
 - Apache Iceberg native
 - Federated sources (BigQuery, Snowflake)
 - SageMaker Unified Studio
-```
 
 ---
 
-### ARCH-011: MLOps PIPELINE
-```
+§ ARCH-011: MLOPS PIPELINE
 REQUISITI:
 - End-to-end ML lifecycle
 - CI/CD/CT (Continuous Training)
@@ -928,12 +907,10 @@ INFERENCE PATTERNS:
 ML GATEWAY PATTERN:
 API Gateway → Lambda → SageMaker Endpoint
 Benefits: Caching, throttling, monitoring
-```
 
 ---
 
-### ARCH-012: DISASTER RECOVERY
-```
+§ ARCH-012: DISASTER RECOVERY
 4 STRATEGIE DR (da meno a più costoso):
 
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -1006,14 +983,12 @@ IF RTO < 1 min AND RPO near-zero → Active/Active
 ELSE IF RTO < 30 min AND RPO < 5 min → Warm Standby
 ELSE IF RTO < 4 hours AND RPO < 15 min → Pilot Light
 ELSE → Backup & Restore
-```
 
 
 
 ---
 
-### ARCH-013: SERVERLESS MICROSERVICES
-```
+§ ARCH-013: SERVERLESS MICROSERVICES
 REQUISITI:
 - Event-driven
 - Auto-scaling
@@ -1092,12 +1067,10 @@ BEST PRACTICES:
 ✅ Idempotent functions (DynamoDB conditional writes)
 ✅ Dead Letter Queues (DLQ) for failures
 ✅ X-Ray for distributed tracing
-```
 
 ---
 
-### ARCH-014: CONTAINER ORCHESTRATION (EKS)
-```
+§ ARCH-014: CONTAINER ORCHESTRATION (EKS)
 REQUISITI:
 - Kubernetes workloads
 - Microservices at scale
@@ -1206,15 +1179,14 @@ CHOOSE ECS IF:
 - Simpler requirements
 - Lower operational overhead
 - Smaller teams
-```
 
 
 
 ---
 
-## 4. MAPPATURA REQUISITI NON-FUNZIONALI → SERVIZI
+§ 4. MAPPATURA REQUISITI NON-FUNZIONALI → SERVIZI
 
-### 4.1 SCALABILITÀ
+§ 4.1 SCALABILITÀ
 | Requisito | Servizi AWS |
 |-----------|-------------|
 | Auto-scaling compute | Lambda, Fargate, EC2 Auto Scaling, Karpenter |
@@ -1222,7 +1194,7 @@ CHOOSE ECS IF:
 | Auto-scaling storage | S3 (unlimited), EFS |
 | Global scale | CloudFront, Global Accelerator, DynamoDB Global Tables |
 
-### 4.2 PERFORMANCE
+§ 4.2 PERFORMANCE
 | Requisito | Servizi AWS |
 |-----------|-------------|
 | Low latency (< 10ms) | ElastiCache, DAX, Global Accelerator |
@@ -1230,7 +1202,7 @@ CHOOSE ECS IF:
 | Edge computing | CloudFront, Lambda@Edge, Greengrass |
 | In-memory | ElastiCache Redis, MemoryDB |
 
-### 4.3 AVAILABILITY
+§ 4.3 AVAILABILITY
 | Requisito | Servizi AWS |
 |-----------|-------------|
 | Multi-AZ | RDS Multi-AZ, EKS multi-AZ, Aurora |
@@ -1238,7 +1210,7 @@ CHOOSE ECS IF:
 | 99.99%+ SLA | S3, DynamoDB, Lambda |
 | Self-healing | Auto Scaling, ECS, EKS |
 
-### 4.4 SECURITY
+§ 4.4 SECURITY
 | Requisito | Servizi AWS |
 |-----------|-------------|
 | Encryption at rest | KMS, S3 SSE, RDS encryption |
@@ -1249,7 +1221,7 @@ CHOOSE ECS IF:
 | Secrets | Secrets Manager, Parameter Store |
 | Audit | CloudTrail, Config, Security Hub |
 
-### 4.5 COMPLIANCE
+§ 4.5 COMPLIANCE
 | Standard | Servizi Chiave |
 |----------|----------------|
 | HIPAA | 166+ eligible services, HealthLake, Comprehend Medical |
@@ -1258,7 +1230,7 @@ CHOOSE ECS IF:
 | GDPR | Macie, Lake Formation, Cognito |
 | FedRAMP | GovCloud services |
 
-### 4.6 COST OPTIMIZATION
+§ 4.6 COST OPTIMIZATION
 | Requisito | Servizi/Strategie |
 |-----------|-------------------|
 | Pay-per-use | Lambda, Fargate, S3, DynamoDB on-demand |
@@ -1269,7 +1241,7 @@ CHOOSE ECS IF:
 
 ---
 
-## 5. WELL-ARCHITECTED FRAMEWORK - 6 PILASTRI
+§ 5. WELL-ARCHITECTED FRAMEWORK - 6 PILASTRI
 
 | Pilastro | Focus | Servizi Chiave |
 |----------|-------|----------------|
@@ -1280,7 +1252,7 @@ CHOOSE ECS IF:
 | **Cost Optimization** | Avoid unnecessary costs | Spot, Reserved, Savings Plans |
 | **Sustainability** | Minimize environmental impact | Graviton, Serverless |
 
-### WELL-ARCHITECTED LENSES (Domain-Specific)
+§ WELL-ARCHITECTED LENSES (DOMAIN-SPECIFIC)
 - Machine Learning Lens
 - Generative AI Lens (new 2025)
 - Responsible AI Lens (new 2025)
@@ -1295,9 +1267,8 @@ CHOOSE ECS IF:
 
 ---
 
-## 6. DECISION TREE: REQUISITI → ARCHITETTURA
+§ 6. DECISION TREE: REQUISITI → ARCHITETTURA
 
-```
 START
 │
 ├─ È un'applicazione web/API?
@@ -1335,19 +1306,18 @@ START
 │
 └─ Business Continuity prioritario?
     └─ Sì → ARCH-012 (Disaster Recovery) + altro pattern
-```
 
 ---
 
-## 7. RIFERIMENTI E FONTI
+§ 7. RIFERIMENTI E FONTI
 
-### AWS Official
+§ AWS OFFICIAL
 - AWS Architecture Center: https://aws.amazon.com/architecture/
 - AWS Well-Architected Framework: https://aws.amazon.com/architecture/well-architected/
 - AWS Solutions Library: https://aws.amazon.com/solutions/
 - AWS Prescriptive Guidance: https://docs.aws.amazon.com/prescriptive-guidance/
 
-### Reference Architectures Specifiche
+§ REFERENCE ARCHITECTURES SPECIFICHE
 - E-Commerce: https://aws.amazon.com/solutions/guidance/web-store-on-aws/
 - Healthcare: https://aws.amazon.com/health/
 - FinTech: https://aws.amazon.com/financial-services/
@@ -1356,13 +1326,13 @@ START
 - Gaming: https://aws.amazon.com/gametech/
 - Media: https://aws.amazon.com/media-services/
 
-### Case Studies
+§ CASE STUDIES
 - Netflix: https://aws.amazon.com/solutions/case-studies/innovators/netflix/
 - Twitch: https://aws.amazon.com/solutions/case-studies/twitch/
 
 ---
 
-## 8. VERSIONING
+§ 8. VERSIONING
 
 | Versione | Data | Note |
 |----------|------|------|

@@ -6,7 +6,7 @@
 
 ---
 
-## 1. PAYMENT PROVIDER COMPARISON
+§ 1. PAYMENT PROVIDER COMPARISON
 
 | Provider | Regions | Fees | Payout Speed | Subscriptions | Marketplace | Best For |
 |----------|---------|------|--------------|---------------|-------------|----------|
@@ -18,7 +18,7 @@
 | Braintree | 🟢 Global | 2.9% + $0.30 | 2-4 days | ✅ Good | ❌ No | Enterprise PayPal |
 | Adyen | 🟢 Global | €0.10 + % | 2-3 days | ✅ Excellent | ✅ Excellent | Enterprise global |
 
-### Merchant of Record (MoR) Comparison
+§ MERCHANT OF RECORD (MOR) COMPARISON
 
 | Feature | Stripe | Paddle | Lemon Squeezy |
 |---------|--------|--------|---------------|
@@ -39,11 +39,11 @@
 
 ---
 
-## 2. STRIPE SETUP
+§ 2. STRIPE SETUP
 
-### 2.1 Installation & Configuration
+§ 2.1 INSTALLATION & CONFIGURATION
 
-```typescript
+typescript
 // lib/stripe/client.ts
 import Stripe from 'stripe';
 import { z } from 'zod';
@@ -143,11 +143,10 @@ export function getPublishableKey(): string {
 export function isTestMode(): boolean {
   return env.STRIPE_SECRET_KEY.startsWith('sk_test_');
 }
-```
 
-### 2.2 Environment Variables
+§ 2.2 ENVIRONMENT VARIABLES
 
-```bash
+bash
 # .env.local
 # Development/Test
 STRIPE_SECRET_KEY=sk_test_...
@@ -160,11 +159,10 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 # STRIPE_WEBHOOK_SECRET=whsec_...
 # STRIPE_PUBLISHABLE_KEY=pk_live_...
 # NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-```
 
-### 2.3 Stripe Client Components
+§ 2.3 STRIPE CLIENT COMPONENTS
 
-```typescript
+typescript
 // lib/stripe/client-components.ts
 'use client';
 
@@ -229,15 +227,13 @@ export function useStripeJs() {
 
   return { stripeJs, loading, error };
 }
-```
 
 ---
 
-## 3. ONE-TIME PAYMENTS
+§ 3. ONE-TIME PAYMENTS
 
-### 3.1 Checkout Session Flow
+§ 3.1 CHECKOUT SESSION FLOW
 
-```
 1. User clicks "Buy Now" / "Checkout"
 2. Client → POST /api/checkout
 3. Server → stripe.checkout.sessions.create()
@@ -248,11 +244,10 @@ export function useStripeJs() {
 8. Webhook handler → Fulfill order
 9. User redirected → /success?session_id={CHECKOUT_SESSION_ID}
 10. Success page → Retrieve session → Show confirmation
-```
 
-### 3.2 Server-side Checkout Session
+§ 3.2 SERVER-SIDE CHECKOUT SESSION
 
-```typescript
+typescript
 // app/api/checkout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -423,11 +418,10 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-```
 
-### 3.3 Client-side Checkout Button
+§ 3.3 CLIENT-SIDE CHECKOUT BUTTON
 
-```typescript
+typescript
 // components/CheckoutButton.tsx
 'use client';
 
@@ -544,9 +538,8 @@ export function CheckoutButton({
 // >
 //   Purchase License
 // </CheckoutButton>
-```
 
-### 3.4 Checkout Configuration Table
+§ 3.4 CHECKOUT CONFIGURATION TABLE
 
 | Setting | Purpose | Example | Required |
 |---------|---------|---------|----------|
@@ -565,9 +558,9 @@ export function CheckoutButton({
 | `custom_text` | Custom messaging | `{ submit: { message: '...' } }` | ❌ |
 | `expires_at` | Session expiry | UNIX timestamp | ❌ |
 
-### 3.5 Embedded Checkout (Elements)
+§ 3.5 EMBEDDED CHECKOUT (ELEMENTS)
 
-```typescript
+typescript
 // components/EmbeddedCheckout.tsx
 'use client';
 
@@ -667,13 +660,12 @@ export function EmbeddedCheckout({
     </Card>
   );
 }
-```
 
 ---
 
-## 4. SUBSCRIPTIONS
+§ 4. SUBSCRIPTIONS
 
-### 4.1 Subscription Models Table
+§ 4.1 SUBSCRIPTION MODELS TABLE
 
 | Model | Billing | Use Case | Stripe Implementation | Complexity |
 |-------|---------|----------|----------------------|------------|
@@ -683,9 +675,9 @@ export function EmbeddedCheckout({
 | Metered | Pay-as-you-go | Compute, bandwidth | Metered `price` + usage records | 🔴 High |
 | Hybrid | Base + usage | Enterprise SaaS | Multiple `prices` | 🔴 High |
 
-### 4.2 Price Configuration
+§ 4.2 PRICE CONFIGURATION
 
-```typescript
+typescript
 // lib/stripe/prices.ts
 import { stripe, safeStripeCall } from './client';
 
@@ -743,11 +735,10 @@ export async function getActivePrices(productId?: string) {
     'price.list'
   );
 }
-```
 
-### 4.3 Subscription Lifecycle Management
+§ 4.3 SUBSCRIPTION LIFECYCLE MANAGEMENT
 
-```typescript
+typescript
 // lib/stripe/subscriptions.ts
 import { stripe, safeStripeCall } from './client';
 
@@ -878,9 +869,8 @@ export async function listSubscriptions(
     'subscription.list'
   );
 }
-```
 
-### 4.4 Subscription Lifecycle Events
+§ 4.4 SUBSCRIPTION LIFECYCLE EVENTS
 
 | Event | Webhook | Business Logic | Priority |
 |-------|---------|----------------|----------|
@@ -892,9 +882,9 @@ export async function listSubscriptions(
 | Payment succeeded | `invoice.payment_failed` | Update billing status, extend access | 🟢 Normal |
 | Subscription scheduled to cancel | `customer.subscription.updated` | Send cancellation confirmation | 🟡 Medium |
 
-### 4.5 Customer Portal
+§ 4.5 CUSTOMER PORTAL
 
-```typescript
+typescript
 // app/api/customer-portal/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, safeStripeCall } from '@/lib/stripe/client';
@@ -949,13 +939,12 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
 
 ---
 
-## 5. WEBHOOKS
+§ 5. WEBHOOKS
 
-### 5.1 Critical Webhook Events Table
+§ 5.1 CRITICAL WEBHOOK EVENTS TABLE
 
 | Event | Priority | Action Required | Idempotent Key |
 |-------|----------|-----------------|----------------|
@@ -973,9 +962,9 @@ export async function POST(request: NextRequest) {
 | `payment_intent.succeeded` | 🟢 Normal | Update payment status | ✅ |
 | `payment_intent.payment_failed` | 🟠 High | Notify user of payment failure | ✅ |
 
-### 5.2 Webhook Handler
+§ 5.2 WEBHOOK HANDLER
 
-```typescript
+typescript
 // app/api/webhooks/stripe/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, verifyWebhookSignature } from '@/lib/stripe/client';

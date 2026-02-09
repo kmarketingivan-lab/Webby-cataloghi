@@ -1,6 +1,6 @@
 # Catalogo Search per Next.js 14+ e Node.js
 
-## 1. SEARCH ENGINE COMPARISON
+§ 1. SEARCH ENGINE COMPARISON
 
 | Engine | Type | Hosting | Latency | Full-text | Facets | Typo Tolerance | Multi-Lang | Vector Search | Best For |
 |--------|------|---------|---------|-----------|--------|----------------|------------|---------------|----------|
@@ -12,7 +12,7 @@
 | SQLite FTS5 | Built-in | DB | <10ms | ✅ | ❌ Manual | ❌ | ❌ | Small datasets, local apps |
 | Orama | In-browser | Client | <5ms | ✅ | ✅ | ✅ | ✅ | ✅ (soon) | Static sites, edge functions |
 
-### Pricing Comparison
+§ PRICING COMPARISON
 
 | Engine | Free Tier | Paid Starting | Self-hosted | OSS License | Best For Budget |
 |--------|-----------|---------------|-------------|-------------|-----------------|
@@ -22,7 +22,7 @@
 | Elasticsearch | Unlimited (self) | $95/mo (cloud) | ✅ Elastic | ⚠️ SSPL | Complex needs, self-hosting |
 | PostgreSQL | Free with DB | Included | ✅ PostgreSQL | ✅ PostgreSQL | Already using Postgres |
 
-### Feature Matrix
+§ FEATURE MATRIX
 
 | Feature | Meilisearch | Typesense | Algolia | PostgreSQL FTS |
 |---------|-------------|-----------|---------|----------------|
@@ -38,10 +38,10 @@
 
 ---
 
-## 2. MEILISEARCH IMPLEMENTATION
+§ 2. MEILISEARCH IMPLEMENTATION
 
-### 2.1 Setup & Configuration
-```typescript
+§ 2.1 SETUP & CONFIGURATION
+typescript
 // lib/search/meilisearch.ts
 import { MeiliSearch } from 'meilisearch';
 import { env } from '@/env';
@@ -224,9 +224,8 @@ class SearchClient {
 }
 
 export { SearchClient };
-```
 
-### 2.2 Index Configuration Table
+§ 2.2 INDEX CONFIGURATION TABLE
 
 | Setting | Purpose | Example Value | Best Practice |
 |---------|---------|---------------|---------------|
@@ -241,8 +240,8 @@ export { SearchClient };
 | `faceting.maxValuesPerFacet` | Facet limit | 100 | Adjust based on data |
 | `pagination.maxTotalHits` | Max results | 10000 | Performance optimization |
 
-### 2.3 Document Indexing
-```typescript
+§ 2.3 DOCUMENT INDEXING
+typescript
 // lib/search/indexing.ts
 import { SearchClient } from './meilisearch';
 import { prisma } from '@/lib/prisma';
@@ -486,9 +485,8 @@ export class SearchIndexer {
 
 // Export singleton instance
 export const searchIndexer = SearchIndexer;
-```
 
-### 2.4 Sync Strategy
+§ 2.4 SYNC STRATEGY
 
 | Strategy | Latency | Consistency | Complexity | Use Case |
 |----------|---------|-------------|------------|----------|
@@ -498,7 +496,7 @@ export const searchIndexer = SearchIndexer;
 | **Change Data Capture** | <1s | Strong | High | Financial, audit trails |
 | **Hybrid** | Variable | Configurable | High | Complex systems |
 
-```typescript
+typescript
 // prisma/middleware/search-sync.ts
 import { prisma } from '@/lib/prisma';
 import { searchIndexer } from '@/lib/search/indexing';
@@ -630,14 +628,13 @@ async function getCreatedProductIds(args: any): Promise<string[]> {
   // In reality, you'd need to query the created products
   return [];
 }
-```
 
 ---
 
-## 3. TYPESENSE IMPLEMENTATION
+§ 3. TYPESENSE IMPLEMENTATION
 
-### 3.1 Setup & Configuration
-```typescript
+§ 3.1 SETUP & CONFIGURATION
+typescript
 // lib/search/typesense.ts
 import { Client as TypesenseClient } from 'typesense';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
@@ -790,10 +787,9 @@ export class TypesenseSearchClient {
 }
 
 export const typesense = TypesenseSearchClient;
-```
 
-### 3.2 Collection Schema Definition
-```typescript
+§ 3.2 COLLECTION SCHEMA DEFINITION
+typescript
 // lib/search/typesense-schema.ts
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 
@@ -843,9 +839,8 @@ export const ProductSchema: CollectionCreateSchema = {
   // Enable nested documents if needed
   enable_nested_fields: true,
 };
-```
 
-### 3.3 Typesense vs Meilisearch Decision Table
+§ 3.3 TYPESENSE VS MEILISEARCH DECISION TABLE
 
 | Aspect | Meilisearch | Typesense | Recommendation |
 |--------|-------------|-----------|----------------|
@@ -871,9 +866,9 @@ export const ProductSchema: CollectionCreateSchema = {
 
 ---
 
-## 4. POSTGRESQL FULL-TEXT SEARCH
+§ 4. POSTGRESQL FULL-TEXT SEARCH
 
-### 4.1 When to Use PostgreSQL FTS
+§ 4.1 WHEN TO USE POSTGRESQL FTS
 
 | Use Case | PostgreSQL FTS | Dedicated Engine | Recommendation |
 |----------|----------------|------------------|----------------|
@@ -886,8 +881,8 @@ export const ProductSchema: CollectionCreateSchema = {
 | **Already using Postgres** | ✅ Integrated | Additional infra | PostgreSQL FTS |
 | **Complex relevance scoring** | ❌ Limited | ✅ Advanced | Dedicated engine |
 
-### 4.2 Implementation
-```sql
+§ 4.2 IMPLEMENTATION
+sql
 -- SQL Schema for FTS
 -- products table with FTS support
 
@@ -932,9 +927,8 @@ CREATE TRIGGER products_search_vector_trigger
 
 -- Initialize search vector for existing rows
 UPDATE products SET search_vector = NULL;
-```
 
-```typescript
+typescript
 // lib/search/postgres-fts.ts
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
@@ -1180,10 +1174,9 @@ export class PostgresFTS {
     };
   }
 }
-```
 
-### 4.3 Search Vector Update Trigger
-```sql
+§ 4.3 SEARCH VECTOR UPDATE TRIGGER
+sql
 -- Enhanced trigger with better language support
 CREATE OR REPLACE FUNCTION products_search_vector_update() RETURNS trigger AS $$
 BEGIN
@@ -1238,14 +1231,13 @@ $$ LANGUAGE plpgsql;
 -- AFTER INSERT OR UPDATE OR DELETE ON products
 -- FOR EACH STATEMENT
 -- EXECUTE FUNCTION refresh_product_facets();
-```
 
 ---
 
-## 5. SEARCH API DESIGN
+§ 5. SEARCH API DESIGN
 
-### 5.1 Search Request Schema
-```typescript
+§ 5.1 SEARCH REQUEST SCHEMA
+typescript
 // lib/schemas/search.ts
 import { z } from 'zod';
 
@@ -1336,10 +1328,9 @@ export const AdvancedSearchRequestSchema = SearchRequestSchema.extend({
 });
 
 export type AdvancedSearchRequest = z.infer<typeof AdvancedSearchRequestSchema>;
-```
 
-### 5.2 Search Response Schema
-```typescript
+§ 5.2 SEARCH RESPONSE SCHEMA
+typescript
 // lib/schemas/search-response.ts
 import { z } from 'zod';
 
@@ -1419,10 +1410,9 @@ export function createSearchResponse<T>(
     })),
   };
 }
-```
 
-### 5.3 API Route Implementation
-```typescript
+§ 5.3 API ROUTE IMPLEMENTATION
+typescript
 // app/api/search/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -1699,13 +1689,12 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-```
 
 ---
 
-## 6. SEARCH UI COMPONENTS
+§ 6. SEARCH UI COMPONENTS
 
-### 6.1 Component Architecture
+§ 6.1 COMPONENT ARCHITECTURE
 
 | Component | Purpose | Key Props | State | Events |
 |-----------|---------|-----------|-------|--------|
@@ -1717,8 +1706,8 @@ export async function PUT(request: NextRequest) {
 | InstantSearch | All-in-one | config, children | internal | onStateChange |
 | SearchStats | Result stats | totalHits, time, query | none | none |
 
-### 6.2 Search Input with Debounce
-```typescript
+§ 6.2 SEARCH INPUT WITH DEBOUNCE
+typescript
 // components/search/SearchInput.tsx
 'use client';
 
@@ -1948,10 +1937,9 @@ export function useKeyboardShortcut(options: {
     return () => window.removeEventListener('keydown', handler);
   }, [key, ctrlKey, metaKey, shiftKey, altKey, callback]);
 }
-```
 
-### 6.3 Search Results Component
-```typescript
+§ 6.3 SEARCH RESULTS COMPONENT
+typescript
 // components/search/SearchResults.tsx
 'use client';
 
@@ -2233,10 +2221,9 @@ export function SearchResultsSkeleton({ count = 5 }: { count?: number }) {
     </div>
   );
 }
-```
 
-### 6.4 Faceted Search
-```typescript
+§ 6.4 FACETED SEARCH
+typescript
 // components/search/Facets.tsx
 'use client';
 
@@ -2645,10 +2632,9 @@ export function MobileFacetsDrawer({
     </>
   );
 }
-```
 
-### 6.5 Search Command Palette (Cmd+K)
-```typescript
+§ 6.5 SEARCH COMMAND PALETTE (CMD+K)
+typescript
 // components/search/CommandPalette.tsx
 'use client';
 
@@ -2998,13 +2984,12 @@ export function useCommandPalette() {
     openPalette,
   };
 }
-```
 
 ---
 
-## 7. AUTOCOMPLETE & SUGGESTIONS
+§ 7. AUTOCOMPLETE & SUGGESTIONS
 
-### 7.1 Autocomplete Types
+§ 7.1 AUTOCOMPLETE TYPES
 
 | Type | Source | Latency | Implementation | Use Case |
 |------|--------|---------|----------------|----------|
@@ -3015,8 +3000,8 @@ export function useCommandPalette() {
 | **Category suggestions** | Taxonomy | <10ms | Precomputed tree | Guided search |
 | **Product suggestions** | View history | <20ms | Collaborative filtering | Personalization |
 
-### 7.2 Implementation
-```typescript
+§ 7.2 IMPLEMENTATION
+typescript
 // hooks/useAutocomplete.ts
 'use client';
 
@@ -3406,10 +3391,9 @@ async function getPopularSearches(query: string, limit: number) {
     { query: 'tablet', count: 654, trend: 'down' },
   ].filter(item => item.query.includes(query)).slice(0, limit);
 }
-```
 
-### 7.3 Autocomplete UI
-```typescript
+§ 7.3 AUTOCOMPLETE UI
+typescript
 // components/search/Autocomplete.tsx
 'use client';
 
@@ -3601,13 +3585,12 @@ export function AutocompleteInput(props: Omit<AutocompleteProps,
     />
   );
 }
-```
 
 ---
 
-## 8. SEARCH ANALYTICS
+§ 8. SEARCH ANALYTICS
 
-### 8.1 Metrics to Track
+§ 8.1 METRICS TO TRACK
 
 | Metric | Description | Importance | Implementation |
 |--------|-------------|------------|----------------|
@@ -3622,8 +3605,8 @@ export function AutocompleteInput(props: Omit<AutocompleteProps,
 | **Popular queries** | Most common search terms | High | Term frequency |
 | **Failed queries** | Queries with zero results | Critical | Error logging |
 
-### 8.2 Analytics Implementation
-```typescript
+§ 8.2 ANALYTICS IMPLEMENTATION
+typescript
 // lib/search/analytics.ts
 import { env } from '@/env';
 import { prisma } from '@/lib/prisma';
@@ -4071,10 +4054,9 @@ export class SearchAnalytics {
 if (typeof window !== 'undefined') {
   SearchAnalytics.init();
 }
-```
 
-### 8.3 Zero Results Handling
-```typescript
+§ 8.3 ZERO RESULTS HANDLING
+typescript
 // components/search/ZeroResults.tsx
 'use client';
 
@@ -4314,13 +4296,12 @@ export function useSearchAnalytics() {
     trackZeroResults,
   };
 }
-```
 
 ---
 
-## 9. SEARCH OPTIMIZATION
+§ 9. SEARCH OPTIMIZATION
 
-### 9.1 Relevance Tuning
+§ 9.1 RELEVANCE TUNING
 
 | Technique | Effect | Implementation | Example |
 |-----------|--------|----------------|---------|
@@ -4333,7 +4314,7 @@ export function useSearchAnalytics() {
 | **Exactness bonus** | Boost exact matches | `rankingRules` | "words" before "typo" |
 | **Geo boosting** | Location relevance | Custom ranking | Near user location |
 
-```typescript
+typescript
 // lib/search/relevance-tuning.ts
 export class RelevanceTuner {
   // Field boosting configuration
@@ -4454,9 +4435,8 @@ export class RelevanceTuner {
     return 1;
   }
 }
-```
 
-### 9.2 Performance Optimization
+§ 9.2 PERFORMANCE OPTIMIZATION
 
 | Technique | Benefit | Implementation | Impact |
 |-----------|---------|----------------|--------|
@@ -4470,8 +4450,8 @@ export class RelevanceTuner {
 | **Batch indexing** | Efficient updates | Bulk operations | High |
 | **Lazy loading facets** | Faster initial load | Load on demand | Medium |
 
-### 9.3 Caching Strategy
-```typescript
+§ 9.3 CACHING STRATEGY
+typescript
 // lib/search/cache.ts
 import { Redis } from '@upstash/redis';
 import { env } from '@/env';
@@ -4601,13 +4581,12 @@ export class SearchCache {
 
 // Initialize cache
 SearchCache.init();
-```
 
 ---
 
-## 10. MULTI-TENANT SEARCH
+§ 10. MULTI-TENANT SEARCH
 
-### 10.1 Isolation Strategies
+§ 10.1 ISOLATION STRATEGIES
 
 | Strategy | Isolation | Cost | Complexity | Best For |
 |----------|-----------|------|------------|----------|
@@ -4617,8 +4596,8 @@ SearchCache.init();
 | **Separate instance** | Full | Very High | High | Banks, healthcare |
 | **Database per tenant** | Full | High | High | Regulated industries |
 
-### 10.2 Implementation
-```typescript
+§ 10.2 IMPLEMENTATION
+typescript
 // lib/search/multi-tenant.ts
 import { SearchClient } from './meilisearch';
 import { prisma } from '@/lib/prisma';
@@ -4857,13 +4836,12 @@ export class MultiTenantSearch {
     return '';
   }
 }
-```
 
 ---
 
-## 11. VECTOR/SEMANTIC SEARCH
+§ 11. VECTOR/SEMANTIC SEARCH
 
-### 11.1 When to Use Vector Search
+§ 11.1 WHEN TO USE VECTOR SEARCH
 
 | Use Case | Traditional Search | Vector Search | Hybrid | Recommendation |
 |----------|-------------------|---------------|--------|----------------|
@@ -4875,8 +4853,8 @@ export class MultiTenantSearch {
 | **Relevance** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Vector/Hybrid |
 | **Implementation complexity** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Traditional |
 
-### 11.2 Hybrid Search Implementation
-```typescript
+§ 11.2 HYBRID SEARCH IMPLEMENTATION
+typescript
 // lib/search/hybrid.ts
 import { SearchClient } from './meilisearch';
 import { env } from '@/env';
@@ -5075,13 +5053,11 @@ export class HybridSearch {
 
 // Initialize hybrid search
 HybridSearch.init();
-```
 
 ---
 
-## 12. SEARCH CHECKLIST
+§ 12. SEARCH CHECKLIST
 
-```
 ENGINE SELECTION
 ☑ Requirements analyzed (scale, features, budget)
 ☑ Engine selected (Meilisearch recommended)

@@ -1,8 +1,8 @@
 # CATALOGO BUSINESS-LOGIC-SAAS v1
 
-## §1. MULTI-TENANCY ARCHITECTURE
+§ §1. MULTI-TENANCY ARCHITECTURE
 
-### 1.1 Tenant Isolation Strategies
+§ 1.1 TENANT ISOLATION STRATEGIES
 
 | Strategy | Isolation | Cost | Complexity | Best For |
 |----------|-----------|------|------------|----------|
@@ -11,9 +11,9 @@
 | Shared DB, separate schema | High | $$ | High | Compliance needs |
 | Separate DB per tenant | Highest | $$$ | Highest | Enterprise, regulated |
 
-### 1.2 Tenant Data Model
+§ 1.2 TENANT DATA MODEL
 
-```prisma
+prisma
 // prisma/schema.prisma
 datasource db {
   provider = "postgresql"
@@ -211,11 +211,10 @@ model Product {
 }
 
 // Additional tenant-scoped models follow same pattern...
-```
 
-### 1.3 Tenant Context & Middleware
+§ 1.3 TENANT CONTEXT & MIDDLEWARE
 
-```typescript
+typescript
 // lib/tenant/context.ts
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -573,11 +572,10 @@ export function withTenant<T extends any[]>(
     }
   };
 }
-```
 
-### 1.4 Tenant Switching
+§ 1.4 TENANT SWITCHING
 
-```typescript
+typescript
 // lib/tenant/switch.ts
 'use server';
 
@@ -844,13 +842,12 @@ export function OrganizationSwitcher({ currentOrgId }: OrganizationSwitcherProps
     </DropdownMenu>
   );
 }
-```
 
-## §2. SUBSCRIPTION & BILLING LIFECYCLE
+§ §2. SUBSCRIPTION & BILLING LIFECYCLE
 
-### 2.1 Subscription Data Model
+§ 2.1 SUBSCRIPTION DATA MODEL
 
-```prisma
+prisma
 // Continuazione dello schema Prisma
 model Plan {
   id                String   @id @default(cuid())
@@ -1020,11 +1017,10 @@ enum InvoiceStatus {
   VOID
   UNCOLLECTIBLE
 }
-```
 
-### 2.2 Plan & Pricing Model
+§ 2.2 PLAN & PRICING MODEL
 
-```typescript
+typescript
 // lib/services/plan-service.ts
 import { prisma } from '@/lib/prisma';
 import { FeatureType, type Plan, type Feature } from '@prisma/client';
@@ -1385,11 +1381,10 @@ export class PlanService {
     };
   }
 }
-```
 
-### 2.3 Subscription Service COMPLETO
+§ 2.3 SUBSCRIPTION SERVICE COMPLETO
 
-```typescript
+typescript
 // lib/services/subscription-service.ts
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
@@ -2433,11 +2428,9 @@ export class SubscriptionService {
     };
   }
 }
-```
 
-### 2.4 Subscription Lifecycle State Machine
+§ 2.4 SUBSCRIPTION LIFECYCLE STATE MACHINE
 
-```
 STATES:
 - TRIALING → ACTIVE (payment success) | CANCELED (no payment)
 - ACTIVE → PAST_DUE (payment failed) | CANCELED | PAUSED
@@ -2487,11 +2480,10 @@ PRORATION RULES:
 - Mid-cycle changes: Immediate with proration
 - Yearly to monthly: Prorated refund
 - Monthly to yearly: Prorated charge
-```
 
-### 2.5 Billing Portal Integration
+§ 2.5 BILLING PORTAL INTEGRATION
 
-```typescript
+typescript
 // app/api/billing/portal/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantFromRequest } from '@/lib/tenant/context';
@@ -2934,7 +2926,6 @@ export function UsageDisplay({ seats, features, isLoading }: UsageDisplayProps) 
     </Card>
   );
 }
-```
 
 [Continua... Il catalogo completo è troppo lungo per una singola risposta. Continuerei con le sezioni §3-§12 includendo tutto il codice e la documentazione richiesta.]
 

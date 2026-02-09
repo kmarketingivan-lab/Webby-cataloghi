@@ -2,7 +2,7 @@
 # CATALOGO SEO v1.0
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# GUIDA COMPLETA ALL'OTTIMIZZAZIONE SEO PER APPLICAZIONI WEB
+§ GUIDA COMPLETA ALL'OTTIMIZZAZIONE SEO PER APPLICAZIONI WEB
 # Technical SEO, Metadata, Structured Data, Next.js Implementation
 #
 # Data creazione: 2026-01-26
@@ -33,14 +33,13 @@ INDICE:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 1: SEO FUNDAMENTALS
+§ SEZIONE 1: SEO FUNDAMENTALS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SEO_FUNDAMENTALS = """
 
-## 1.1 Come Funziona Google
+§ 1.1 COME FUNZIONA GOOGLE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ GOOGLE: CRAWLING → INDEXING → RANKING                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -73,11 +72,9 @@ SEO_FUNDAMENTALS = """
 │ └── E-E-A-T (Experience, Expertise, Authority, Trust)                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.2 SPAs e SEO: La Sfida
+§ 1.2 SPAS E SEO: LA SFIDA
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PROBLEMA: Single Page Applications                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -109,11 +106,9 @@ SEO_FUNDAMENTALS = """
 │ SOLUZIONE: Server-Side Rendering (SSR) o Static Generation (SSG)           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.3 Next.js: La Soluzione
+§ 1.3 NEXT.JS: LA SOLUZIONE
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ NEXT.JS RENDERING STRATEGIES                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -145,11 +140,10 @@ SEO_FUNDAMENTALS = """
 │ RACCOMANDAZIONE: Usa SSG/ISR per pagine pubbliche, CSR per aree private   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 1.4 SEO Checklist Essenziale
+§ 1.4 SEO CHECKLIST ESSENZIALE
 
-```typescript
+typescript
 // Checklist SEO per ogni pagina
 
 /*
@@ -180,20 +174,19 @@ SEO_FUNDAMENTALS = """
 ├── Redirect 301 per URL cambiate
 └── Trailing slash consistente
 */
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 2: NEXT.JS METADATA API
+§ SEZIONE 2: NEXT.JS METADATA API
 # ═══════════════════════════════════════════════════════════════════════════════
 
 NEXTJS_METADATA_API = """
 
-## 2.1 Static Metadata
+§ 2.1 STATIC METADATA
 
-```typescript
+typescript
 // app/layout.tsx - Root layout metadata
 import type { Metadata } from 'next';
 
@@ -299,11 +292,10 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-## 2.2 Page-Specific Metadata
+§ 2.2 PAGE-SPECIFIC METADATA
 
-```typescript
+typescript
 // app/products/page.tsx
 import type { Metadata } from 'next';
 
@@ -325,11 +317,10 @@ export const metadata: Metadata = {
 export default function ProductsPage() {
   return <ProductsList />;
 }
-```
 
-## 2.3 Dynamic Metadata
+§ 2.3 DYNAMIC METADATA
 
-```typescript
+typescript
 // app/products/[slug]/page.tsx
 import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -407,11 +398,10 @@ export default async function ProductPage({ params }: Props) {
   
   return <ProductDetails product={product} />;
 }
-```
 
-## 2.4 Metadata per Blog Posts
+§ 2.4 METADATA PER BLOG POSTS
 
-```typescript
+typescript
 // app/blog/[slug]/page.tsx
 import type { Metadata } from 'next';
 
@@ -476,11 +466,10 @@ export default async function BlogPost({ params }) {
     </article>
   );
 }
-```
 
-## 2.5 Title Best Practices
+§ 2.5 TITLE BEST PRACTICES
 
-```typescript
+typescript
 // Title tag optimization
 
 // ❌ BAD
@@ -513,20 +502,18 @@ export const metadata = {
 // - Description: 150-160 caratteri
 // - OG Title: può essere più lungo
 // - OG Description: 200-300 caratteri ok
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 3: STRUCTURED DATA (JSON-LD)
+§ SEZIONE 3: STRUCTURED DATA (JSON-LD)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 STRUCTURED_DATA = """
 
-## 3.1 Overview Structured Data
+§ 3.1 OVERVIEW STRUCTURED DATA
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ STRUCTURED DATA - SCHEMA.ORG                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -560,11 +547,10 @@ STRUCTURED_DATA = """
 │ └── Review           - Recensioni                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 3.2 JSON-LD Base Implementation
+§ 3.2 JSON-LD BASE IMPLEMENTATION
 
-```typescript
+typescript
 // lib/seo/structured-data.ts
 import { Organization, WebSite, WithContext } from 'schema-dts';
 
@@ -651,11 +637,10 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-## 3.3 Article Schema (Blog Posts)
+§ 3.3 ARTICLE SCHEMA (BLOG POSTS)
 
-```typescript
+typescript
 // lib/seo/article-schema.ts
 import { Article, WithContext } from 'schema-dts';
 
@@ -729,11 +714,10 @@ export default async function BlogPost({ params }) {
     </>
   );
 }
-```
 
-## 3.4 Product Schema (E-commerce)
+§ 3.4 PRODUCT SCHEMA (E-COMMERCE)
 
-```typescript
+typescript
 // lib/seo/product-schema.ts
 import { Product, WithContext } from 'schema-dts';
 
@@ -810,11 +794,10 @@ export default async function ProductPage({ params }) {
     </>
   );
 }
-```
 
-## 3.5 BreadcrumbList Schema
+§ 3.5 BREADCRUMBLIST SCHEMA
 
-```typescript
+typescript
 // lib/seo/breadcrumb-schema.ts
 import { BreadcrumbList, WithContext } from 'schema-dts';
 
@@ -874,11 +857,10 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
     { name: product.name, url: `https://www.example.com/products/${product.slug}` },
   ]}
 />
-```
 
-## 3.6 FAQPage Schema
+§ 3.6 FAQPAGE SCHEMA
 
-```typescript
+typescript
 // lib/seo/faq-schema.ts
 import { FAQPage, WithContext } from 'schema-dts';
 
@@ -923,11 +905,10 @@ export function FAQ({ faqs }: { faqs: FAQItem[] }) {
     </>
   );
 }
-```
 
-## 3.7 LocalBusiness Schema
+§ 3.7 LOCALBUSINESS SCHEMA
 
-```typescript
+typescript
 // lib/seo/local-business-schema.ts
 import { LocalBusiness, WithContext } from 'schema-dts';
 
@@ -975,11 +956,10 @@ export function getLocalBusinessSchema(): WithContext<LocalBusiness> {
     ],
   };
 }
-```
 
-## 3.8 Validazione Structured Data
+§ 3.8 VALIDAZIONE STRUCTURED DATA
 
-```typescript
+typescript
 // Tools per validare structured data:
 
 // 1. Google Rich Results Test
@@ -1029,20 +1009,19 @@ if (process.env.NODE_ENV === 'development') {
     }
   });
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 4: SITEMAP & ROBOTS.TXT
+§ SEZIONE 4: SITEMAP & ROBOTS.TXT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SITEMAP_AND_ROBOTS = """
 
-## 4.1 Sitemap.xml in Next.js
+§ 4.1 SITEMAP.XML IN NEXT.JS
 
-```typescript
+typescript
 // app/sitemap.ts - Static sitemap
 import type { MetadataRoute } from 'next';
 
@@ -1082,11 +1061,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
-```
 
-## 4.2 Dynamic Sitemap
+§ 4.2 DYNAMIC SITEMAP
 
-```typescript
+typescript
 // app/sitemap.ts - Dynamic sitemap con dati dal database
 import type { MetadataRoute } from 'next';
 import { prisma } from '@/lib/db';
@@ -1164,11 +1142,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...categoryPages,
   ];
 }
-```
 
-## 4.3 Sitemap Index per Siti Grandi
+§ 4.3 SITEMAP INDEX PER SITI GRANDI
 
-```typescript
+typescript
 // Per siti con >50,000 URL, usare sitemap index
 
 // app/sitemap.ts
@@ -1208,11 +1185,10 @@ export default async function sitemap({
 // /sitemap/0.xml
 // /sitemap/1.xml
 // etc.
-```
 
-## 4.4 Sitemap con Immagini e Video
+§ 4.4 SITEMAP CON IMMAGINI E VIDEO
 
-```typescript
+typescript
 // app/sitemap.ts - Con immagini
 import type { MetadataRoute } from 'next';
 
@@ -1236,11 +1212,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // }],
   }));
 }
-```
 
-## 4.5 Robots.txt
+§ 4.5 ROBOTS.TXT
 
-```typescript
+typescript
 // app/robots.ts
 import type { MetadataRoute } from 'next';
 
@@ -1286,11 +1261,10 @@ export default function robots(): MetadataRoute.Robots {
 //
 // Sitemap: https://www.example.com/sitemap.xml
 // Host: https://www.example.com
-```
 
-## 4.6 Environment-Based Robots
+§ 4.6 ENVIRONMENT-BASED ROBOTS
 
-```typescript
+typescript
 // app/robots.ts - Different rules per environment
 import type { MetadataRoute } from 'next';
 
@@ -1318,16 +1292,14 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
-```
 
-## 4.7 next-sitemap Package
+§ 4.7 NEXT-SITEMAP PACKAGE
 
-```bash
+bash
 # Alternative: usare next-sitemap per configurazione avanzata
 pnpm add next-sitemap
-```
 
-```javascript
+javascript
 // next-sitemap.config.js
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
@@ -1394,9 +1366,8 @@ module.exports = {
     }));
   },
 };
-```
 
-```json
+json
 // package.json
 {
   "scripts": {
@@ -1404,20 +1375,18 @@ module.exports = {
     "postbuild": "next-sitemap"
   }
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 5: URL STRUCTURE & ROUTING
+§ SEZIONE 5: URL STRUCTURE & ROUTING
 # ═══════════════════════════════════════════════════════════════════════════════
 
 URL_STRUCTURE_AND_ROUTING = """
 
-## 5.1 URL Best Practices
+§ 5.1 URL BEST PRACTICES
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ URL OPTIMIZATION                                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1447,11 +1416,10 @@ URL_STRUCTURE_AND_ROUTING = """
 │     /shop/all-products/bags/leather/handmade/italian-crafted-genuine-...   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 5.2 Next.js Routing SEO-Friendly
+§ 5.2 NEXT.JS ROUTING SEO-FRIENDLY
 
-```typescript
+typescript
 // app/products/[slug]/page.tsx
 // URL: /products/handmade-leather-bag
 
@@ -1470,11 +1438,10 @@ export function generateSlug(text: string): string {
 // Esempio di utilizzo
 const title = "Borsa in Pelle Artigianale Italiana";
 const slug = generateSlug(title); // "borsa-in-pelle-artigianale-italiana"
-```
 
-## 5.3 Canonical URLs
+§ 5.3 CANONICAL URLS
 
-```typescript
+typescript
 // app/products/[slug]/page.tsx
 import type { Metadata } from 'next';
 
@@ -1508,11 +1475,10 @@ export const metadata: Metadata = {
     canonical: './', // Relative to current path
   },
 };
-```
 
-## 5.4 Trailing Slash Consistency
+§ 5.4 TRAILING SLASH CONSISTENCY
 
-```javascript
+javascript
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -1522,11 +1488,10 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-```
 
-## 5.5 Redirects per URL Changes
+§ 5.5 REDIRECTS PER URL CHANGES
 
-```javascript
+javascript
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -1562,11 +1527,10 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-```
 
-## 5.6 Dynamic Redirects
+§ 5.6 DYNAMIC REDIRECTS
 
-```typescript
+typescript
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -1594,11 +1558,10 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
-```
 
-## 5.7 Pagination SEO
+§ 5.7 PAGINATION SEO
 
-```typescript
+typescript
 // app/blog/page.tsx
 import type { Metadata } from 'next';
 
@@ -1659,20 +1622,18 @@ function Pagination({ currentPage, totalPages }: { currentPage: number; totalPag
     </nav>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 6: OPEN GRAPH & SOCIAL MEDIA
+§ SEZIONE 6: OPEN GRAPH & SOCIAL MEDIA
 # ═══════════════════════════════════════════════════════════════════════════════
 
 OPEN_GRAPH_AND_SOCIAL = """
 
-## 6.1 Open Graph Protocol
+§ 6.1 OPEN GRAPH PROTOCOL
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ OPEN GRAPH META TAGS                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1702,11 +1663,10 @@ OPEN_GRAPH_AND_SOCIAL = """
 │ └── Importante: Testo leggibile anche se ridimensionato                    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 6.2 Open Graph in Next.js
+§ 6.2 OPEN GRAPH IN NEXT.JS
 
-```typescript
+typescript
 // app/layout.tsx - Default OG per tutto il sito
 import type { Metadata } from 'next';
 
@@ -1732,11 +1692,10 @@ export const metadata: Metadata = {
     ],
   },
 };
-```
 
-## 6.3 Page-Specific Open Graph
+§ 6.3 PAGE-SPECIFIC OPEN GRAPH
 
-```typescript
+typescript
 // app/blog/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
   const post = await getPost(params.slug);
@@ -1770,11 +1729,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
   };
 }
-```
 
-## 6.4 Twitter Cards
+§ 6.4 TWITTER CARDS
 
-```typescript
+typescript
 // app/layout.tsx
 export const metadata: Metadata = {
   twitter: {
@@ -1802,11 +1760,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
   };
 }
-```
 
-## 6.5 Dynamic OG Images
+§ 6.5 DYNAMIC OG IMAGES
 
-```typescript
+typescript
 // app/api/og/route.tsx
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
@@ -1905,11 +1862,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
   };
 }
-```
 
-## 6.6 Testing Social Previews
+§ 6.6 TESTING SOCIAL PREVIEWS
 
-```typescript
+typescript
 // Tools per testare le preview social:
 
 // 1. Facebook Sharing Debugger
@@ -1947,7 +1903,6 @@ async function checkOGTags(url: string) {
   
   return ogTags;
 }
-```
 
 """
 
@@ -1958,9 +1913,8 @@ async function checkOGTags(url: string) {
 
 INTERNATIONAL_SEO = """
 
-## 7.1 Strategie i18n
+§ 7.1 STRATEGIE I18N
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ STRATEGIE URL INTERNAZIONALI                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -1989,11 +1943,10 @@ INTERNATIONAL_SEO = """
 │    ✅ Forte segnale geografico                                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 7.2 Next.js i18n Configuration
+§ 7.2 NEXT.JS I18N CONFIGURATION
 
-```typescript
+typescript
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -2010,11 +1963,10 @@ module.exports = nextConfig;
 // app/[locale]/layout.tsx
 // app/[locale]/page.tsx
 // app/[locale]/products/page.tsx
-```
 
-## 7.3 App Router i18n Setup
+§ 7.3 APP ROUTER I18N SETUP
 
-```typescript
+typescript
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -2052,11 +2004,10 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 };
-```
 
-## 7.4 Hreflang Tags
+§ 7.4 HREFLANG TAGS
 
-```typescript
+typescript
 // app/[locale]/layout.tsx
 import type { Metadata } from 'next';
 
@@ -2089,11 +2040,10 @@ export async function generateMetadata({ params }: LocaleLayoutProps): Promise<M
 // <link rel="alternate" hreflang="en" href="https://www.example.com/en" />
 // <link rel="alternate" hreflang="de" href="https://www.example.com/de" />
 // <link rel="alternate" hreflang="x-default" href="https://www.example.com/it" />
-```
 
-## 7.5 Dynamic Hreflang per Pagine
+§ 7.5 DYNAMIC HREFLANG PER PAGINE
 
-```typescript
+typescript
 // app/[locale]/products/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -2122,11 +2072,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
   };
 }
-```
 
-## 7.6 Hreflang in Sitemap
+§ 7.6 HREFLANG IN SITEMAP
 
-```typescript
+typescript
 // app/sitemap.ts
 import type { MetadataRoute } from 'next';
 
@@ -2170,11 +2119,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   return [...staticEntries, ...productEntries];
 }
-```
 
-## 7.7 Language Switcher SEO-Friendly
+§ 7.7 LANGUAGE SWITCHER SEO-FRIENDLY
 
-```typescript
+typescript
 // components/LanguageSwitcher.tsx
 'use client';
 
@@ -2221,20 +2169,18 @@ export function LanguageSwitcher() {
     </nav>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 8: IMAGE SEO
+§ SEZIONE 8: IMAGE SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 IMAGE_SEO = """
 
-## 8.1 Image Optimization per SEO
+§ 8.1 IMAGE OPTIMIZATION PER SEO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ IMAGE SEO BEST PRACTICES                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2265,11 +2211,10 @@ IMAGE_SEO = """
 │ └── Next.js Image gestisce automaticamente                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 8.2 Next.js Image Component
+§ 8.2 NEXT.JS IMAGE COMPONENT
 
-```typescript
+typescript
 // components/ProductImage.tsx
 import Image from 'next/image';
 
@@ -2317,11 +2262,10 @@ export function ProductImage({ src, alt, productName, priority = false }: Produc
   height={300}
   loading="lazy"
 />
-```
 
-## 8.3 Alt Text Best Practices
+§ 8.3 ALT TEXT BEST PRACTICES
 
-```typescript
+typescript
 // ✅ BUONI esempi di alt text
 const goodAltExamples = {
   product: 'Brown leather messenger bag with brass buckles',
@@ -2374,11 +2318,10 @@ export function ImageWithSEO({
     />
   );
 }
-```
 
-## 8.4 Image Sitemap
+§ 8.4 IMAGE SITEMAP
 
-```typescript
+typescript
 // Sitemap con immagini per Google Images
 // app/sitemap.ts
 import type { MetadataRoute } from 'next';
@@ -2398,11 +2341,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // })),
   }));
 }
-```
 
-## 8.5 Structured Data per Immagini
+§ 8.5 STRUCTURED DATA PER IMMAGINI
 
-```typescript
+typescript
 // Product con immagini multiple per Google Images
 function getProductSchemaWithImages(product: Product) {
   return {
@@ -2420,20 +2362,18 @@ function getProductSchemaWithImages(product: Product) {
     // ... altri campi
   };
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 9: CORE WEB VITALS & PERFORMANCE SEO
+§ SEZIONE 9: CORE WEB VITALS & PERFORMANCE SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CORE_WEB_VITALS_SEO = """
 
-## 9.1 Performance come Ranking Factor
+§ 9.1 PERFORMANCE COME RANKING FACTOR
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ CORE WEB VITALS E SEO                                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2459,11 +2399,10 @@ CORE_WEB_VITALS_SEO = """
 │ └── Dati aggregati per 28 giorni                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 9.2 LCP Optimization per SEO
+§ 9.2 LCP OPTIMIZATION PER SEO
 
-```typescript
+typescript
 // Ottimizzazioni LCP critiche per SEO
 
 // 1. Preload hero image
@@ -2502,11 +2441,10 @@ module.exports = {
     optimizeCss: true, // Abilita ottimizzazione CSS
   },
 };
-```
 
-## 9.3 INP Optimization per SEO
+§ 9.3 INP OPTIMIZATION PER SEO
 
-```typescript
+typescript
 // INP = Interaction to Next Paint
 // Ottimizza la reattività della pagina
 
@@ -2553,11 +2491,10 @@ const ExpensiveComponent = memo(function ExpensiveComponent({ data }) {
   
   return <div onClick={handleClick}>{processedData}</div>;
 });
-```
 
-## 9.4 CLS Optimization per SEO
+§ 9.4 CLS OPTIMIZATION PER SEO
 
-```typescript
+typescript
 // CLS = Cumulative Layout Shift
 // Stabilità visiva della pagina
 
@@ -2609,11 +2546,10 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-```
 
-## 9.5 PageSpeed Insights Integration
+§ 9.5 PAGESPEED INSIGHTS INTEGRATION
 
-```typescript
+typescript
 // Script per monitoring PageSpeed in CI/CD
 // scripts/check-pagespeed.ts
 import psi from 'psi';
@@ -2676,21 +2612,19 @@ async function main() {
 }
 
 main().catch(console.error);
-```
 
 """
 
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 10: SEMANTIC HTML & ACCESSIBILITY
+§ SEZIONE 10: SEMANTIC HTML & ACCESSIBILITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SEMANTIC_HTML_ACCESSIBILITY = """
 
-## 10.1 HTML Semantico per SEO
+§ 10.1 HTML SEMANTICO PER SEO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SEMANTIC HTML E SEO                                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -2720,11 +2654,10 @@ SEMANTIC_HTML_ACCESSIBILITY = """
 │ └── <mark>, <strong>, <em> - Enfasi semantica                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 10.2 Page Structure Template
+§ 10.2 PAGE STRUCTURE TEMPLATE
 
-```tsx
+tsx
 // app/blog/[slug]/page.tsx - Struttura semantica corretta
 
 export default async function BlogPost({ params }) {
@@ -2808,11 +2741,10 @@ export default async function BlogPost({ params }) {
     </>
   );
 }
-```
 
-## 10.3 Heading Structure
+§ 10.3 HEADING STRUCTURE
 
-```tsx
+tsx
 // ✅ CORRETTA gerarchia headings
 function ProductPage({ product }) {
   return (
@@ -2854,11 +2786,10 @@ function BadProductPage({ product }) {
     </main>
   );
 }
-```
 
-## 10.4 Accessibility per SEO
+§ 10.4 ACCESSIBILITY PER SEO
 
-```tsx
+tsx
 // L'accessibilità migliora anche il SEO
 
 // 1. Skip links per navigazione
@@ -2944,11 +2875,10 @@ function DataTable({ data, caption }) {
     </table>
   );
 }
-```
 
-## 10.5 Rich Content Markup
+§ 10.5 RICH CONTENT MARKUP
 
-```tsx
+tsx
 // Markup per contenuti rich che aiutano SEO
 
 // 1. Citazioni
@@ -3013,20 +2943,18 @@ function CodeBlock({ code, language }) {
     </figure>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 11: INTERNAL LINKING & NAVIGATION
+§ SEZIONE 11: INTERNAL LINKING & NAVIGATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 INTERNAL_LINKING = """
 
-## 11.1 Strategia Internal Linking
+§ 11.1 STRATEGIA INTERNAL LINKING
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ INTERNAL LINKING PER SEO                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3056,11 +2984,10 @@ INTERNAL_LINKING = """
 │ Le pagine dello stesso silo si linkano tra loro.                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 11.2 Anchor Text Best Practices
+§ 11.2 ANCHOR TEXT BEST PRACTICES
 
-```tsx
+tsx
 // ✅ BUONI anchor text
 <Link href="/leather-bags">borse in pelle artigianali</Link>
 <Link href="/blog/leather-care">come curare la pelle</Link>
@@ -3088,11 +3015,10 @@ export function InternalLink({ href, children, title }: InternalLinkProps) {
     </Link>
   );
 }
-```
 
-## 11.3 Related Content Component
+§ 11.3 RELATED CONTENT COMPONENT
 
-```tsx
+tsx
 // components/RelatedContent.tsx
 import Link from 'next/link';
 
@@ -3145,11 +3071,10 @@ export function RelatedContent({ items, type, title = 'Potrebbe interessarti' }:
   type="products"
   title="Prodotti correlati"
 />
-```
 
-## 11.4 Breadcrumbs Navigation
+§ 11.4 BREADCRUMBS NAVIGATION
 
-```tsx
+tsx
 // components/Breadcrumbs.tsx
 import Link from 'next/link';
 import { getBreadcrumbSchema } from '@/lib/seo/breadcrumb-schema';
@@ -3214,11 +3139,10 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
     </>
   );
 }
-```
 
-## 11.5 Auto-Linking nel Content
+§ 11.5 AUTO-LINKING NEL CONTENT
 
-```tsx
+tsx
 // lib/utils/auto-link.ts
 // Automaticamente linka parole chiave nel contenuto
 
@@ -3262,11 +3186,10 @@ const keywordLinks: KeywordLink[] = [
 ];
 
 const linkedContent = autoLinkContent(post.content, keywordLinks);
-```
 
-## 11.6 Footer Links SEO
+§ 11.6 FOOTER LINKS SEO
 
-```tsx
+tsx
 // components/Footer.tsx
 export function Footer() {
   return (
@@ -3327,20 +3250,18 @@ export function Footer() {
     </footer>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 12: E-COMMERCE SEO
+§ SEZIONE 12: E-COMMERCE SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ECOMMERCE_SEO = """
 
-## 12.1 Product Page SEO
+§ 12.1 PRODUCT PAGE SEO
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ E-COMMERCE SEO ESSENTIALS                                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3369,11 +3290,10 @@ ECOMMERCE_SEO = """
 │ └── Thin content su pagine categoria                                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 12.2 Product Page Implementation
+§ 12.2 PRODUCT PAGE IMPLEMENTATION
 
-```tsx
+tsx
 // app/products/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { getProductSchema } from '@/lib/seo/product-schema';
@@ -3483,11 +3403,10 @@ export default async function ProductPage({ params }) {
     </>
   );
 }
-```
 
-## 12.3 Category Page SEO
+§ 12.3 CATEGORY PAGE SEO
 
-```tsx
+tsx
 // app/category/[slug]/page.tsx
 import type { Metadata } from 'next';
 
@@ -3597,11 +3516,10 @@ export default async function CategoryPage({ params, searchParams }) {
     </>
   );
 }
-```
 
-## 12.4 Handling Product Variants
+§ 12.4 HANDLING PRODUCT VARIANTS
 
-```tsx
+tsx
 // Gestione varianti prodotto per evitare duplicate content
 
 // Approccio 1: URL canonico alla variante principale
@@ -3667,11 +3585,10 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
     },
   };
 }
-```
 
-## 12.5 Out of Stock Products
+§ 12.5 OUT OF STOCK PRODUCTS
 
-```tsx
+tsx
 // Gestione prodotti esauriti per SEO
 
 export async function generateMetadata({ params }): Promise<Metadata> {
@@ -3722,11 +3639,10 @@ async function middleware(request: NextRequest) {
   
   return NextResponse.next();
 }
-```
 
-## 12.6 Review Schema Implementation
+§ 12.6 REVIEW SCHEMA IMPLEMENTATION
 
-```tsx
+tsx
 // components/ProductReviews.tsx
 import { JsonLd } from './JsonLd';
 
@@ -3820,20 +3736,18 @@ export function ProductReviews({ reviews, productName, productUrl }: ProductRevi
     </>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 13: BLOG & CONTENT SEO
+§ SEZIONE 13: BLOG & CONTENT SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 BLOG_CONTENT_SEO = """
 
-## 13.1 Blog Post SEO Checklist
+§ 13.1 BLOG POST SEO CHECKLIST
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ BLOG POST SEO CHECKLIST                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -3868,11 +3782,10 @@ BLOG_CONTENT_SEO = """
 │ └── ☐ Monitora rankings e CTR                                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 13.2 Complete Blog Post Template
+§ 13.2 COMPLETE BLOG POST TEMPLATE
 
-```tsx
+tsx
 // app/blog/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { getArticleSchema } from '@/lib/seo/article-schema';
@@ -4064,11 +3977,10 @@ export default async function BlogPost({ params }) {
     </>
   );
 }
-```
 
-## 13.3 Table of Contents Component
+§ 13.3 TABLE OF CONTENTS COMPONENT
 
-```tsx
+tsx
 // components/TableOfContents.tsx
 interface TOCItem {
   id: string;
@@ -4112,11 +4024,10 @@ export function generateTOC(htmlContent: string): TOCItem[] {
   
   return items;
 }
-```
 
-## 13.4 Blog Category & Tag Pages
+§ 13.4 BLOG CATEGORY & TAG PAGES
 
-```tsx
+tsx
 // app/blog/category/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
   const category = await getCategory(params.slug);
@@ -4170,11 +4081,10 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     },
   };
 }
-```
 
-## 13.5 Author Pages
+§ 13.5 AUTHOR PAGES
 
-```tsx
+tsx
 // app/authors/[slug]/page.tsx
 export async function generateMetadata({ params }): Promise<Metadata> {
   const author = await getAuthor(params.slug);
@@ -4257,21 +4167,19 @@ export default async function AuthorPage({ params }) {
     </>
   );
 }
-```
 
 """
 
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 14: LOCAL BUSINESS SEO
+§ SEZIONE 14: LOCAL BUSINESS SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 LOCAL_BUSINESS_SEO = """
 
-## 14.1 Local SEO Fundamentals
+§ 14.1 LOCAL SEO FUNDAMENTALS
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ LOCAL SEO OVERVIEW                                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4303,11 +4211,10 @@ LOCAL_BUSINESS_SEO = """
 │ └── LocalBusiness Schema sul sito                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 14.2 LocalBusiness Schema
+§ 14.2 LOCALBUSINESS SCHEMA
 
-```typescript
+typescript
 // lib/seo/local-business-schema.ts
 import { LocalBusiness, WithContext } from 'schema-dts';
 
@@ -4401,11 +4308,10 @@ export function getStoreSchema(props: LocalBusinessProps & {
     currenciesAccepted: props.currenciesAccepted,
   };
 }
-```
 
-## 14.3 NAP Consistency Component
+§ 14.3 NAP CONSISTENCY COMPONENT
 
-```tsx
+tsx
 // components/BusinessInfo.tsx
 // Mostra NAP in modo consistente su tutto il sito
 
@@ -4509,11 +4415,10 @@ export function BusinessInfo({ showMap = false, variant = 'full' }: BusinessInfo
     </div>
   );
 }
-```
 
-## 14.4 Contact Page SEO
+§ 14.4 CONTACT PAGE SEO
 
-```tsx
+tsx
 // app/contact/page.tsx
 import type { Metadata } from 'next';
 
@@ -4597,11 +4502,10 @@ export default function ContactPage() {
     </>
   );
 }
-```
 
-## 14.5 Multi-Location SEO
+§ 14.5 MULTI-LOCATION SEO
 
-```tsx
+tsx
 // Per business con più sedi
 // app/locations/page.tsx
 
@@ -4683,20 +4587,18 @@ export default async function LocationPage({ params }) {
     </>
   );
 }
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SEZIONE 15: SEO MONITORING & AUDIT
+§ SEZIONE 15: SEO MONITORING & AUDIT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SEO_MONITORING_AUDIT = """
 
-## 15.1 SEO Monitoring Tools Setup
+§ 15.1 SEO MONITORING TOOLS SETUP
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ SEO MONITORING STACK                                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4724,11 +4626,10 @@ SEO_MONITORING_AUDIT = """
 │     └── Enterprise SEO platforms                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-## 15.2 Google Search Console Integration
+§ 15.2 GOOGLE SEARCH CONSOLE INTEGRATION
 
-```typescript
+typescript
 // lib/seo/search-console.ts
 // API per estrarre dati da Google Search Console
 
@@ -4812,11 +4713,10 @@ export async function getPagePerformance(siteUrl: string, pageUrl: string, days:
   
   return response.data.rows;
 }
-```
 
-## 15.3 SEO Dashboard Component
+§ 15.3 SEO DASHBOARD COMPONENT
 
-```tsx
+tsx
 // app/admin/seo-dashboard/page.tsx
 import { getTopQueries, getPagePerformance } from '@/lib/seo/search-console';
 
@@ -4889,11 +4789,10 @@ export default async function SEODashboard() {
     </div>
   );
 }
-```
 
-## 15.4 Automated SEO Audit Script
+§ 15.4 AUTOMATED SEO AUDIT SCRIPT
 
-```typescript
+typescript
 // scripts/seo-audit.ts
 import { chromium } from 'playwright';
 
@@ -5058,11 +4957,10 @@ const pagesToAudit = [
 ];
 
 runFullAudit(pagesToAudit);
-```
 
-## 15.5 Lighthouse CI Integration
+§ 15.5 LIGHTHOUSE CI INTEGRATION
 
-```yaml
+yaml
 # .github/workflows/lighthouse-ci.yml
 name: Lighthouse CI
 
@@ -5105,9 +5003,8 @@ jobs:
           budgetPath: ./lighthouse-budget.json
           uploadArtifacts: true
           temporaryPublicStorage: true
-```
 
-```json
+json
 // lighthouse-budget.json
 [
   {
@@ -5129,9 +5026,8 @@ jobs:
     ]
   }
 ]
-```
 
-```javascript
+javascript
 // lighthouserc.js
 module.exports = {
   ci: {
@@ -5169,11 +5065,10 @@ module.exports = {
     },
   },
 };
-```
 
-## 15.6 SEO Checklist Pre-Deployment
+§ 15.6 SEO CHECKLIST PRE-DEPLOYMENT
 
-```typescript
+typescript
 // scripts/pre-deploy-seo-check.ts
 
 interface SEOCheckResult {
@@ -5278,20 +5173,19 @@ async function main() {
 }
 
 main();
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# APPENDICE: QUICK REFERENCE
+§ APPENDICE: QUICK REFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
 APPENDIX_QUICK_REFERENCE = """
 
-## A.1 SEO Metadata Quick Reference
+§ A.1 SEO METADATA QUICK REFERENCE
 
-```typescript
+typescript
 // Lunghezze raccomandate
 const SEO_LENGTHS = {
   title: { min: 30, max: 60 },      // 50-60 chars ideale
@@ -5322,11 +5216,10 @@ const ESSENTIAL_META_TAGS = `
   <meta name="twitter:description" content="Description" />
   <meta name="twitter:image" content="https://example.com/twitter.jpg" />
 `;
-```
 
-## A.2 Schema Types Quick Reference
+§ A.2 SCHEMA TYPES QUICK REFERENCE
 
-```typescript
+typescript
 // Schema types più comuni
 const COMMON_SCHEMA_TYPES = {
   website: {
@@ -5363,11 +5256,9 @@ const COMMON_SCHEMA_TYPES = {
     required: ['mainEntity (Question[])'],
   },
 };
-```
 
-## A.3 robots.txt Rules Quick Reference
+§ A.3 ROBOTS.TXT RULES QUICK REFERENCE
 
-```
 # Permettere tutto
 User-agent: *
 Allow: /
@@ -5394,11 +5285,9 @@ Sitemap: https://example.com/sitemap.xml
 
 # Crawl delay (non supportato da Google)
 Crawl-delay: 10
-```
 
-## A.4 Core Web Vitals Thresholds
+§ A.4 CORE WEB VITALS THRESHOLDS
 
-```
 ┌─────────────┬──────────┬───────────┬──────────┐
 │ Metric      │ Good     │ Needs Imp │ Poor     │
 ├─────────────┼──────────┼───────────┼──────────┤
@@ -5406,11 +5295,10 @@ Crawl-delay: 10
 │ INP         │ ≤200ms   │ 200-500ms │ >500ms   │
 │ CLS         │ ≤0.1     │ 0.1-0.25  │ >0.25    │
 └─────────────┴──────────┴───────────┴──────────┘
-```
 
-## A.5 Useful SEO Commands
+§ A.5 USEFUL SEO COMMANDS
 
-```bash
+bash
 # Test robots.txt
 curl -I https://example.com/robots.txt
 
@@ -5436,11 +5324,10 @@ npx schema-dts-gen validate ./schema.json
 curl "https://searchconsole.googleapis.com/v1/urlTestingTools/mobileFriendlyTest:run" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
-```
 
-## A.6 SEO Checklist Template
+§ A.6 SEO CHECKLIST TEMPLATE
 
-```markdown
+markdown
 # SEO Checklist - [Page Name]
 
 ## Technical SEO
@@ -5483,13 +5370,12 @@ curl "https://searchconsole.googleapis.com/v1/urlTestingTools/mobileFriendlyTest
 - [ ] Google Analytics installed
 - [ ] Sitemap submitted
 - [ ] Core Web Vitals passing
-```
 
 """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FINE CATALOGO SEO
+§ FINE CATALOGO SEO
 # ═══════════════════════════════════════════════════════════════════════════════
 
 print("""

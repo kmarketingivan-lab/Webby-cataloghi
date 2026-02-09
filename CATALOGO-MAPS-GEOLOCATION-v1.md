@@ -1,11 +1,11 @@
 # CATALOGO MAPS-GEOLOCATION v1
-## Documentazione Tecnica Completa per Maps e Geolocation in React/Next.js
+§ DOCUMENTAZIONE TECNICA COMPLETA PER MAPS E GEOLOCATION IN REACT/NEXT.JS
 
 ---
 
-## §1. MAP LIBRARY COMPARISON
+§ §1. MAP LIBRARY COMPARISON
 
-### **Tabella Comparativa Dettagliata**
+§ **TABELLA COMPARATIVA DETTAGLIATA**
 
 | Library | Cost | Features | Bundle Size | Performance | Customization | Best For | Worst For |
 |---------|------|----------|-------------|-------------|---------------|----------|-----------|
@@ -15,19 +15,17 @@
 | **MapLibre GL** | Free (BSD) | ⭐⭐⭐⭐<br>Fork of Mapbox GL 1.x, vector tiles | 200kB gzipped<br>Similar to Mapbox | Very good | High (Mapbox-like) | Mapbox alternative, OSS vector maps | Latest Mapbox features |
 | **react-map-gl** | Free (MIT) | ⭐⭐⭐⭐<br>React wrapper for Mapbox | Depends on Mapbox | Excellent | High (React native) | React + Mapbox integration | Non-React apps |
 
-### **Decision Tree**
+§ **DECISION TREE**
 
-```
 Need vector tiles & 3D? → Mapbox GL JS / MapLibre
 Need lightweight & simple? → Leaflet
 Already using Google services? → Google Maps
 React app with Mapbox? → react-map-gl
 Budget constraints? → Leaflet or MapLibre
-```
 
-### **Raccomandazione Finale**
+§ **RACCOMANDAZIONE FINALE**
 
-```typescript
+typescript
 // Per la maggior parte delle applicazioni Next.js:
 const RECOMMENDED_STACK = {
   primary: 'Mapbox GL JS', // Per bellezza e features
@@ -43,15 +41,14 @@ const RECOMMENDED_STACK = {
   dynamicImport: true, // Import dinamico per bundle splitting
   lazyLoading: true, // Lazy load maps
 }
-```
 
 ---
 
-## §2. MAPBOX SETUP
+§ §2. MAPBOX SETUP
 
-### 2.1 Installation & Configuration
+§ 2.1 INSTALLATION & CONFIGURATION
 
-```typescript
+typescript
 // lib/maps/mapbox-client.ts
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -168,9 +165,8 @@ export const MAP_STYLES = {
 } as const;
 
 export type MapStyle = keyof typeof MAP_STYLES;
-```
 
-```typescript
+typescript
 // components/maps/MapboxProvider.tsx - Per SSR/CSR handling
 'use client';
 
@@ -249,11 +245,10 @@ export function MapboxProviderClient({ children }: { children: ReactNode }) {
   
   return <>{children}</>;
 }
-```
 
-### 2.2 Basic Map Component
+§ 2.2 BASIC MAP COMPONENT
 
-```typescript
+typescript
 // components/maps/Map.tsx - Componente mappa principale
 'use client';
 
@@ -588,15 +583,14 @@ export function useMap() {
   
   return map;
 }
-```
 
 ---
 
-## §3. MAP FEATURES
+§ §3. MAP FEATURES
 
-### 3.1 Markers
+§ 3.1 MARKERS
 
-```typescript
+typescript
 // components/maps/MapMarker.tsx
 'use client';
 
@@ -820,11 +814,10 @@ export function MapMarker({
   
   return null;
 }
-```
 
-### 3.2 Marker Clustering
+§ 3.2 MARKER CLUSTERING
 
-```typescript
+typescript
 // components/maps/MarkerCluster.tsx
 'use client';
 
@@ -1070,11 +1063,10 @@ export function MarkerCluster({
   
   return null;
 }
-```
 
-### 3.3 Polygons & Shapes
+§ 3.3 POLYGONS & SHAPES
 
-```typescript
+typescript
 // components/maps/MapPolygon.tsx
 'use client';
 
@@ -1253,15 +1245,14 @@ export function MapPolygon({
   
   return null;
 }
-```
 
 ---
 
-## §4. GEOLOCATION API
+§ §4. GEOLOCATION API
 
-### 4.1 Geolocation Hook
+§ 4.1 GEOLOCATION HOOK
 
-```typescript
+typescript
 // hooks/use-geolocation.ts
 'use client';
 
@@ -1497,11 +1488,10 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     isWatching: watchId !== null,
   };
 }
-```
 
-### 4.2 Geolocation Component
+§ 4.2 GEOLOCATION COMPONENT
 
-```typescript
+typescript
 // components/maps/GeolocationButton.tsx
 'use client';
 
@@ -1681,15 +1671,14 @@ export function GeolocationButton({
     </div>
   );
 }
-```
 
 ---
 
-## §5. ADDRESS & GEOCODING
+§ §5. ADDRESS & GEOCODING
 
-### 5.1 Address Autocomplete (Google Places)
+§ 5.1 ADDRESS AUTOCOMPLETE (GOOGLE PLACES)
 
-```typescript
+typescript
 // lib/maps/geocoding.ts
 import { z } from 'zod';
 
@@ -2130,7 +2119,6 @@ export function createGeocodingService(provider: 'google' | 'mapbox') {
       throw new Error(`Unknown geocoding provider: ${provider}`);
   }
 }
-```
 
 ---
 

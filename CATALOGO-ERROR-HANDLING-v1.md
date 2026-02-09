@@ -1,6 +1,6 @@
 # CATALOGO ERROR-HANDLING v1
 
-## §1. ERROR TYPES TAXONOMY
+§ §1. ERROR TYPES TAXONOMY
 
 | Type | Example | Handling | User Message |
 |------|---------|----------|--------------|
@@ -13,11 +13,11 @@
 | Rate Limit | 429 | Wait + retry | "Too many requests" |
 | Business Logic | Out of stock | Show specific msg | "Item out of stock" |
 
-## §2. ERROR BOUNDARY SYSTEM
+§ §2. ERROR BOUNDARY SYSTEM
 
-### 2.1 Global Error Boundary
+§ 2.1 GLOBAL ERROR BOUNDARY
 
-```typescript
+typescript
 // app/error.tsx (Next.js App Router)
 'use client';
 
@@ -106,11 +106,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     </html>
   );
 }
-```
 
-### 2.2 Segment Error Boundaries
+§ 2.2 SEGMENT ERROR BOUNDARIES
 
-```typescript
+typescript
 // app/dashboard/error.tsx (Example per segment)
 'use client';
 
@@ -204,11 +203,10 @@ export default function ProductsError({ error, reset }: ProductsErrorProps) {
     </div>
   );
 }
-```
 
-### 2.3 Component Error Boundary
+§ 2.3 COMPONENT ERROR BOUNDARY
 
-```typescript
+typescript
 // components/ErrorBoundary.tsx
 'use client';
 
@@ -380,13 +378,12 @@ export function useErrorBoundary() {
     },
   };
 }
-```
 
-## §3. API ERROR HANDLING
+§ §3. API ERROR HANDLING
 
-### 3.1 Custom Error Classes
+§ 3.1 CUSTOM ERROR CLASSES
 
-```typescript
+typescript
 // lib/errors/index.ts
 export type ErrorCode = 
   | 'VALIDATION_ERROR'
@@ -525,11 +522,10 @@ export function fromZodError(zodError: ZodError): ValidationError {
 
   return new ValidationError('Validation failed', details);
 }
-```
 
-### 3.2 API Route Error Handler
+§ 3.2 API ROUTE ERROR HANDLER
 
-```typescript
+typescript
 // lib/api/error-handler.ts
 import { NextResponse } from 'next/server';
 import { captureException } from '@sentry/nextjs';
@@ -682,11 +678,10 @@ export function errorResponse(
     },
   }, { status });
 }
-```
 
-### 3.3 Error Response Format
+§ 3.3 ERROR RESPONSE FORMAT
 
-```typescript
+typescript
 // Example usage in API routes
 // app/api/users/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -734,13 +729,12 @@ export const POST = withErrorHandler(POST);
 //     "timestamp": "2024-01-15T10:30:00.000Z"
 //   }
 // }
-```
 
-## §4. CLIENT-SIDE ERROR HANDLING
+§ §4. CLIENT-SIDE ERROR HANDLING
 
-### 4.1 Fetch Error Wrapper
+§ 4.1 FETCH ERROR WRAPPER
 
-```typescript
+typescript
 // lib/fetch.ts
 import { AppError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError, RateLimitError } from '@/lib/errors';
 
@@ -1002,11 +996,10 @@ export function useFetch<T = any>() {
     reset,
   };
 }
-```
 
-### 4.2 React Query Error Handling
+§ 4.2 REACT QUERY ERROR HANDLING
 
-```typescript
+typescript
 // lib/react-query/error-handling.ts
 import { QueryClient, DefaultOptions } from '@tanstack/react-query';
 import { FetchError } from '@/lib/fetch';
@@ -1148,11 +1141,10 @@ export function QueryErrorBoundary({ children }: { children: React.ReactNode }) 
     </ErrorBoundary>
   );
 }
-```
 
-### 4.3 Form Error Handling
+§ 4.3 FORM ERROR HANDLING
 
-```typescript
+typescript
 // lib/form/error-handling.ts
 import { FetchError } from '@/lib/fetch';
 import { ZodError } from 'zod';
@@ -1328,13 +1320,12 @@ export function FormErrorDisplay({ error, className, variant = 'form' }: FormErr
     </div>
   );
 }
-```
 
-## §5. SENTRY INTEGRATION
+§ §5. SENTRY INTEGRATION
 
-### 5.1 Setup
+§ 5.1 SETUP
 
-```typescript
+typescript
 // sentry.client.config.ts
 import * as Sentry from "@sentry/nextjs";
 
@@ -1392,9 +1383,8 @@ Sentry.init({
     Sentry.browserTracingIntegration(),
   ],
 });
-```
 
-```typescript
+typescript
 // sentry.server.config.ts
 import * as Sentry from "@sentry/nextjs";
 
@@ -1416,9 +1406,8 @@ Sentry.init({
     return event;
   },
 });
-```
 
-```typescript
+typescript
 // sentry.edge.config.ts
 import * as Sentry from "@sentry/nextjs";
 
@@ -1429,11 +1418,10 @@ Sentry.init({
   
   tracesSampleRate: 0.1,
 });
-```
 
-### 5.2 Error Capturing
+§ 5.2 ERROR CAPTURING
 
-```typescript
+typescript
 // lib/sentry/client.ts
 import * as Sentry from '@sentry/nextjs';
 import { FetchError } from '@/lib/fetch';
@@ -1495,11 +1483,10 @@ export function withSentryContext<T extends (...args: any[]) => any>(
     });
   }) as T;
 }
-```
 
-### 5.3 Custom Context
+§ 5.3 CUSTOM CONTEXT
 
-```typescript
+typescript
 // lib/sentry/context.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1617,13 +1604,12 @@ export function withSentryContextMiddleware(
     }
   };
 }
-```
 
-## §6. USER-FRIENDLY ERROR MESSAGES
+§ §6. USER-FRIENDLY ERROR MESSAGES
 
-### 6.1 Message Mapping
+§ 6.1 MESSAGE MAPPING
 
-```typescript
+typescript
 // lib/errors/messages.ts
 import { ErrorCode } from '@/lib/errors';
 
@@ -1732,11 +1718,10 @@ export function translateError(error: unknown): ErrorMessage {
     action: 'Try again',
   };
 }
-```
 
-### 6.2 Error UI Components
+§ 6.2 ERROR UI COMPONENTS
 
-```typescript
+typescript
 // components/errors/ErrorCard.tsx
 import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -1840,9 +1825,8 @@ export function ErrorCard({
     </Card>
   );
 }
-```
 
-```typescript
+typescript
 // components/errors/ErrorToast.tsx
 'use client';
 
@@ -2000,13 +1984,12 @@ export function useToast() {
   }
   return context;
 }
-```
 
-## §7. NOT FOUND HANDLING
+§ §7. NOT FOUND HANDLING
 
-### 7.1 Next.js not-found
+§ 7.1 NEXT.JS NOT-FOUND
 
-```typescript
+typescript
 // app/not-found.tsx
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -2086,11 +2069,10 @@ export async function getUserAction(userId: string) {
   
   return user;
 }
-```
 
-## §8. OFFLINE ERROR HANDLING
+§ §8. OFFLINE ERROR HANDLING
 
-```typescript
+typescript
 // lib/offline/error-handling.ts
 import { useState, useEffect } from 'react';
 
@@ -2318,11 +2300,10 @@ export function OfflineIndicator() {
     </div>
   );
 }
-```
 
-## §9. ERROR LOGGING & ALERTING
+§ §9. ERROR LOGGING & ALERTING
 
-### 9.1 Logging Strategy
+§ 9.1 LOGGING STRATEGY
 
 | Environment | Log Level | Destination |
 |-------------|-----------|-------------|
@@ -2330,9 +2311,9 @@ export function OfflineIndicator() {
 | Staging | Info | Console + Sentry |
 | Production | Error | Sentry + Log service |
 
-### 9.2 Alert Thresholds
+§ 9.2 ALERT THRESHOLDS
 
-```typescript
+typescript
 // lib/monitoring/alerts.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -2468,11 +2449,9 @@ export function useErrorAlerting() {
 
   return { trackError };
 }
-```
 
-## §10. ERROR HANDLING CHECKLIST
+§ §10. ERROR HANDLING CHECKLIST
 
-```
 BOUNDARIES
 ✅ Global error.tsx
 ✅ Per-route error boundaries
@@ -2506,4 +2485,3 @@ TESTING
 □ Error boundary tests
 □ API error tests
 □ UI error state tests
-```

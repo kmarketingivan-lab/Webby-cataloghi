@@ -10,11 +10,11 @@ Il presente documento definisce la logica esatta per la selezione dei moduli sof
 
 # DECISION-TREE.md
 
-## 1. KEYWORDS DETECTION
+§ 1. KEYWORDS DETECTION
 
 Questa sezione definisce le tabelle di mapping tra le parole chiave rilevate nella richiesta dell'utente e i tipi di piattaforma associati, inclusi i moduli da caricare e un livello di confidenza. I moduli `CORE` sono sempre inclusi.
 
-### E-COMMERCE Keywords:
+§ E-COMMERCE KEYWORDS:
 | Keyword | Confidence | Moduli da caricare |
 |:--------|:-----------|:-------------------|
 | "e-commerce" | 100% | CORE + ECOMMERCE/* |
@@ -80,7 +80,7 @@ Questa sezione definisce le tabelle di mapping tra le parole chiave rilevate nel
 | "analisi vendite" | 80% | CORE + ECOMMERCE/ADMIN_REPORTS |
 | "reportistica" | 75% | CORE + ECOMMERCE/ADMIN_REPORTS |
 
-### SOCIAL Keywords:
+§ SOCIAL KEYWORDS:
 | Keyword | Confidence | Moduli da caricare |
 |:--------|:-----------|:-------------------|
 | "social" | 100% | CORE + SOCIAL/* |
@@ -134,7 +134,7 @@ Questa sezione definisce le tabelle di mapping tra le parole chiave rilevate nel
 | "segnalazioni" | 85% | CORE + SOCIAL/MODERATION |
 | "blocco" | 85% | CORE + SOCIAL/PRIVACY |
 
-### BLOG Keywords:
+§ BLOG KEYWORDS:
 | Keyword | Confidence | Moduli da caricare |
 |:--------|:-----------|:-------------------|
 | "blog" | 100% | CORE + BLOG/* |
@@ -178,7 +178,7 @@ Questa sezione definisce le tabelle di mapping tra le parole chiave rilevate nel
 | "case study" | 70% | CORE + BLOG/ARTICLES |
 | "whitepaper" | 70% | CORE + BLOG/ARTICLES |
 
-### WEBSITE Keywords:
+§ WEBSITE KEYWORDS:
 | Keyword | Confidence | Moduli da caricare |
 |:--------|:-----------|:-------------------|
 | "sito web" | 100% | CORE + WEBSITE/* |
@@ -213,11 +213,11 @@ Questa sezione definisce le tabelle di mapping tra le parole chiave rilevate nel
 | "hosting" | 60% | CORE |
 | "dominio" | 60% | CORE |
 
-## 2. DECISION ALGORITHM
+§ 2. DECISION ALGORITHM
 
 Questo pseudocodice definisce la logica esatta per analizzare la richiesta dell'utente, determinare il tipo di piattaforma principale e secondaria, e selezionare i moduli appropriati.
 
-```pseudocode
+pseudocode
 // Mappatura delle keyword ai loro tipi, confidenza e moduli associati.
 // Queste strutture dati sono generate dalle tabelle della Sezione 1.
 // Esempio: ECOMMERCE_KEYWORDS = { "e-commerce": { confidence: 100, modules: ["ECOMMERCE/*"] }, ... }
@@ -362,9 +362,8 @@ FUNCTION generate_db_schema(primary_type, secondary_types, features):
     schema_models = []
     // ... logica per popolare la lista schema_models ...
     RETURN schema_models
-```
 
-## 3. MODULE SELECTION MATRIX
+§ 3. MODULE SELECTION MATRIX
 
 Questa tabella elenca in modo completo quali moduli includere per ogni combinazione di tipo primario e secondario. I moduli `CORE` sono sempre inclusi e non sono ripetuti nella colonna "Moduli Core" per brevità, ma sono implicitamente presenti.
 
@@ -398,11 +397,11 @@ Questa tabella elenca in modo completo quali moduli includere per ogni combinazi
 | blog | social, website | (Impliciti) | BLOG/* (completo), SOCIAL/PROFILES (autori), SOCIAL/SHARING, WEBSITE/PAGES, WEBSITE/CONTACT, WEBSITE/MENU |
 | website | ecommerce, social, blog | (Impliciti) | WEBSITE/* (completo), ECOMMERCE/PRODUCTS (vetrina), SOCIAL/SHARING, BLOG/ARTICLES (lista) |
 
-## 4. FEATURE FLAGS
+§ 4. FEATURE FLAGS
 
 Questa sezione definisce le sotto-feature opzionali per ogni modulo principale, che possono essere attivate o disattivate in base alle keyword rilevate e alla complessità desiderata.
 
-```typescript
+typescript
 interface ModuleFeatures {
   ECOMMERCE: {
     PRODUCTS: {
@@ -538,14 +537,12 @@ interface ModuleFeatures {
     };
   };
 }
-```
 
-## 5. ROUTE GENERATION
+§ 5. ROUTE GENERATION
 
 Questa sezione definisce esattamente quali route generare per ogni tipo di piattaforma, basandosi sui moduli e le feature attivate.
 
 #### E-COMMERCE Routes:
-```
 /                               → Homepage con prodotti featured o categorie
 /products                       → Lista di tutti i prodotti
 /products/[slug]                → Dettaglio prodotto specifico
@@ -576,10 +573,8 @@ Questa sezione definisce esattamente quali route generare per ogni tipo di piatt
 /login                          → Pagina di login
 /register                       → Pagina di registrazione
 /forgot-password                → Recupero password
-```
 
 #### SOCIAL Routes:
-```
 /                               → Feed principale dell'utente
 /feed                           → Feed principale dell'utente
 /profile/[username]             → Profilo pubblico dell'utente
@@ -604,10 +599,8 @@ Questa sezione definisce esattamente quali route generare per ogni tipo di piatt
 /login                          → Pagina di login
 /register                       → Pagina di registrazione
 /forgot-password                → Recupero password
-```
 
 #### BLOG Routes:
-```
 /                               → Homepage del blog con articoli recenti o featured
 /blog                           → Homepage del blog
 /blog/[slug]                    → Dettaglio articolo
@@ -628,10 +621,8 @@ Questa sezione definisce esattamente quali route generare per ogni tipo di piatt
 /login                          → Pagina di login (per autori/admin)
 /register                       → Pagina di registrazione (per autori/lettori con commenti)
 /forgot-password                → Recupero password
-```
 
 #### WEBSITE Routes:
-```
 /                               → Homepage del sito
 /about                          → Pagina "Chi Siamo"
 /contact                        → Pagina "Contatti" con modulo
@@ -652,13 +643,12 @@ Questa sezione definisce esattamente quali route generare per ogni tipo di piatt
 /login                          → Pagina di login (per admin/editor)
 /register                       → Pagina di registrazione (se abilitata)
 /forgot-password                → Recupero password
-```
 
-## 6. DATABASE SCHEMA SELECTION
+§ 6. DATABASE SCHEMA SELECTION
 
 Questa sezione definisce quali tabelle Prisma includere nello schema del database per ogni tipo di piattaforma e i moduli attivati.
 
-```prisma
+prisma
 // CORE (sempre incluso)
 // Modelli base per autenticazione, autorizzazione e gestione utenti.
 model User {
@@ -1119,14 +1109,12 @@ model ContactFormSubmission {
   ipAddress String?
   createdAt DateTime @default(now())
 }
-```
 
-## 7. ESEMPI CONCRETI
+§ 7. ESEMPI CONCRETI
 
 Di seguito sono presentati 5 esempi di richieste utente e l'output generato dall'algoritmo decisionale.
 
 **Esempio 1:**
-```
 Input: "Voglio creare un negozio online per vendere scarpe con taglie e colori, e permettere ai clienti di lasciare recensioni."
 
 Output:
@@ -1162,10 +1150,8 @@ Output:
     "ShippingAddress", "BillingAddress", "Review"
   ]
 }
-```
 
 **Esempio 2:**
-```
 Input: "Vorrei una piattaforma social dove gli utenti possono creare profili, fare post, commentare e seguire altri utenti. Anche la messaggistica privata è importante."
 
 Output:
@@ -1202,10 +1188,8 @@ Output:
     "Comment", "Like", "Follow", "Message", "Conversation", "Notification"
   ]
 }
-```
 
 **Esempio 3:**
-```
 Input: "Ho bisogno di un sito web aziendale con una sezione blog per pubblicare articoli e notizie. Deve avere un modulo di contatto e una pagina 'Chi Siamo'."
 
 Output:
@@ -1242,10 +1226,8 @@ Output:
     "MenuItem", "ContactFormSubmission", "Article", "ArticleCategory", "Tag"
   ]
 }
-```
 
 **Esempio 4:**
-```
 Input: "Voglio un blog per condividere le mie ricette, con la possibilità per gli utenti di commentare e iscriversi a una newsletter. Vorrei anche una sezione per i miei prodotti di cucina."
 
 Output:
@@ -1279,10 +1261,8 @@ Output:
     "Order", "OrderItem", "Payment", "ShippingAddress", "BillingAddress"
   ]
 }
-```
 
 **Esempio 5:**
-```
 Input: "Crea un sito per la mia associazione, con pagine informative, un calendario eventi e la possibilità per i membri di interagire in un forum privato."
 
 Output:
@@ -1317,7 +1297,6 @@ Output:
     "Post", "Comment", "Message", "Conversation", "Notification" // Post/Comment per forum
   ]
 }
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 22792_

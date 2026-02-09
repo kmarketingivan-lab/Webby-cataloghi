@@ -5,7 +5,7 @@
 
 ---
 
-## Indice Cataloghi
+§ INDICE CATALOGHI
 
 | # | Catalogo | KB | Dominio | Descrizione |
 |---|----------|---:|---------|-------------|
@@ -72,14 +72,14 @@
 
 ---
 
-## Statistiche
+§ STATISTICHE
 
 - **Cataloghi attivi:** 60
 - **Dimensione totale:** 4893 KB (4.8 MB)
 - **Media per catalogo:** 81 KB
 - **Ultimo aggiornamento:** 2026-02-04
 
-### Top 5 più grandi
+§ TOP 5 PIÙ GRANDI
 
 | Catalogo | KB |
 |----------|---:|
@@ -89,7 +89,7 @@
 | CATALOGO-SEO-v1 | 179 |
 | CATALOGO-TESTING-QA-v1 | 169 |
 
-### Top 5 più piccoli
+§ TOP 5 PIÙ PICCOLI
 
 | Catalogo | KB |
 |----------|---:|

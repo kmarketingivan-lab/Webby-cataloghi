@@ -1,11 +1,11 @@
 # CATALOGO BACKGROUND-JOBS v1
-## Documentazione Tecnica Completa per Job Queues e Task Scheduling
+§ DOCUMENTAZIONE TECNICA COMPLETA PER JOB QUEUES E TASK SCHEDULING
 
 ---
 
-## §1. BACKGROUND JOB SOLUTIONS COMPARISON
+§ §1. BACKGROUND JOB SOLUTIONS COMPARISON
 
-### **Soluzioni Completa Comparazione**
+§ **SOLUZIONI COMPLETA COMPARAZIONE**
 
 | Solution | Type | Hosting | Persistence | Retries | Scheduling | Monitoring | Cost | Best For | Worst For |
 |----------|------|---------|-------------|---------|------------|------------|------|----------|-----------|
@@ -17,7 +17,7 @@
 | **node-cron** | In-process | N/A | ❌ Memory only | ❌ Manual | ✅ Cron | ❌ Custom | Free | Simple cron, no persistence | Production, critical jobs |
 | **Vercel Cron** | HTTP trigger | Vercel | ❌ Stateless | ❌ None | ✅ Cron | ✅ Vercel logs | Free | Basic scheduled tasks on Vercel | Retries, persistence |
 
-### **Raccomandazione Dettagliata**
+§ **RACCOMANDAZIONE DETTAGLIATA**
 
 **Per Serverless/Next.js su Vercel:**
 - **Prima scelta:** **Inngest** - Event-driven, ottimo DX, built-in retries, dashboard
@@ -36,11 +36,11 @@
 
 ---
 
-## §2. INNGEST COMPLETE SETUP
+§ §2. INNGEST COMPLETE SETUP
 
-### 2.1 Installation & Configuration
+§ 2.1 INSTALLATION & CONFIGURATION
 
-```typescript
+typescript
 // lib/inngest/client.ts
 import { Inngest } from 'inngest';
 
@@ -131,11 +131,10 @@ export async function sendEvents(events: Array<Parameters<typeof sendEvent>[0]>)
     throw error;
   }
 }
-```
 
-### 2.2 Event Types Definition
+§ 2.2 EVENT TYPES DEFINITION
 
-```typescript
+typescript
 // lib/inngest/events.ts
 /**
  * Centralized event type definitions for Inngest
@@ -466,11 +465,10 @@ export const EVENT_VERSIONS = {
   'email/send': '1.0.0',
   // ... other event versions
 } as const;
-```
 
-### 2.3 Function Definition Pattern
+§ 2.3 FUNCTION DEFINITION PATTERN
 
-```typescript
+typescript
 // lib/inngest/functions/function-definition.ts
 import { inngest } from '../client';
 import type { Events, EventName } from '../events';
@@ -617,11 +615,10 @@ export function defineStepFunction<T extends EventName>(
  *   }
  * });
  */
-```
 
-### 2.4 API Route Handler
+§ 2.4 API ROUTE HANDLER
 
-```typescript
+typescript
 // app/api/inngest/route.ts
 import { inngest } from '@/lib/inngest/client';
 import { serve } from 'inngest/next';
@@ -700,9 +697,8 @@ export async function POST(request: Request) {
   }
 }
 */
-```
 
-```typescript
+typescript
 // app/api/inngest/health/route.ts - Health check endpoint
 export async function GET() {
   try {
@@ -732,15 +728,14 @@ export async function GET() {
     );
   }
 }
-```
 
 ---
 
-## §3. INNGEST FUNCTION PATTERNS
+§ §3. INNGEST FUNCTION PATTERNS
 
-### 3.1 Simple Event Handler
+§ 3.1 SIMPLE EVENT HANDLER
 
-```typescript
+typescript
 // lib/inngest/functions/send-welcome-email.ts
 import { defineEventFunction } from './function-definition';
 import { sendEvent } from '../client';
@@ -808,11 +803,10 @@ export const sendWelcomeEmail = defineEventFunction({
     };
   },
 });
-```
 
-### 3.2 Scheduled/Cron Job
+§ 3.2 SCHEDULED/CRON JOB
 
-```typescript
+typescript
 // lib/inngest/functions/daily-report.ts
 import { defineCronFunction } from './function-definition';
 import { PrismaClient } from '@prisma/client';
@@ -1019,11 +1013,10 @@ export const dailyReport = defineCronFunction({
     };
   },
 });
-```
 
-### 3.3 Multi-Step Function
+§ 3.3 MULTI-STEP FUNCTION
 
-```typescript
+typescript
 // lib/inngest/functions/process-order.ts
 import { defineEventFunction } from './function-definition';
 import { sendEvent } from '../client';
@@ -1254,11 +1247,10 @@ export const processOrder = defineEventFunction({
     };
   },
 });
-```
 
-### 3.4 Fan-out Pattern
+§ 3.4 FAN-OUT PATTERN
 
-```typescript
+typescript
 // lib/inngest/functions/fan-out-example.ts
 import { defineEventFunction } from './function-definition';
 import { sendEvent } from '../client';
@@ -1320,11 +1312,10 @@ export const processUserSignup = defineEventFunction({
     };
   },
 });
-```
 
-### 3.5 Delayed Execution
+§ 3.5 DELAYED EXECUTION
 
-```typescript
+typescript
 // lib/inngest/functions/send-reminder.ts
 import { defineEventFunction } from './function-definition';
 import { format, addDays, isAfter } from 'date-fns';
@@ -1500,11 +1491,10 @@ export const sendTrialExpirationReminder = defineEventFunction({
     };
   },
 });
-```
 
-### 3.6 Batching Pattern
+§ 3.6 BATCHING PATTERN
 
-```typescript
+typescript
 // lib/inngest/functions/batch-email-sender.ts
 import { defineEventFunction } from './function-definition';
 import { Resend } from 'resend';
@@ -1684,7 +1674,6 @@ export const batchAnalyticsEvents = defineEventFunction({
     };
   },
 });
-```
 
 ---
 

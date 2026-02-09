@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -32,26 +32,25 @@
 
 ---
 
-## 0. Setup
+§ 0. SETUP
 
 Prima di iniziare con i file, è fondamentale che tu abbia configurato il tuo progetto Next.js con le seguenti librerie. Se non le hai, installale:
 
-```bash
+bash
 # Shadcn/ui (segui la guida per l'inizializzazione: npx shadcn-ui@latest init)
 npx shadcn-ui@latest add button card input dropdown-menu dialog table checkbox select textarea label toast sonner alert-dialog calendar date-picker form radio-group separator switch tabs badge avatar command tooltip
 # Altre dipendenze
 npm install clsx tailwind-merge lucide-react recharts react-hook-form zod @hookform/resolvers @tanstack/react-table @tanstack/react-query @trpc/client @trpc/react-query @trpc/server @trpc/next next-auth
 # Per drag-and-drop (se necessario, per le categorie)
 npm install @hello-pangea/dnd # (o react-beautiful-dnd, ma è meno mantenuto)
-```
 
 Assicurati di avere un file `globals.css` che importi i layer di Tailwind e i CSS di Shadcn/ui.
 
 ---
 
-## 1. src/app/admin/layout.tsx
+§ 1. SRC/APP/ADMIN/LAYOUT.TSX
 
-```typescript
+typescript
 // src/app/admin/layout.tsx
 'use client';
 
@@ -156,13 +155,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </SidebarContext.Provider>
   );
 }
-```
 
 ---
 
-## 2. src/app/admin/page.tsx
+§ 2. SRC/APP/ADMIN/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/page.tsx
 'use client';
 
@@ -396,13 +394,12 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 3. src/components/admin/sidebar.tsx
+§ 3. SRC/COMPONENTS/ADMIN/SIDEBAR.TSX
 
-```typescript
+typescript
 // src/components/admin/sidebar.tsx
 'use client';
 
@@ -518,13 +515,12 @@ export function Sidebar({ isCollapsed, onLinkClick }: SidebarProps) {
     </aside>
   );
 }
-```
 
 ---
 
-## 4. src/components/admin/header.tsx
+§ 4. SRC/COMPONENTS/ADMIN/HEADER.TSX
 
-```typescript
+typescript
 // src/components/admin/header.tsx
 'use client';
 
@@ -653,13 +649,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
     </header>
   );
 }
-```
 
 ---
 
-## 5. src/components/admin/data-table.tsx
+§ 5. SRC/COMPONENTS/ADMIN/DATA-TABLE.TSX
 
-```typescript
+typescript
 // src/components/admin/data-table.tsx
 'use client';
 
@@ -997,13 +992,12 @@ export const selectionColumn: ColumnDef<any> = {
   enableSorting: false,
   enableHiding: false,
 };
-```
 
 ---
 
-## 6. src/components/admin/stats-card.tsx
+§ 6. SRC/COMPONENTS/ADMIN/STATS-CARD.TSX
 
-```typescript
+typescript
 // src/components/admin/stats-card.tsx
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -1039,13 +1033,12 @@ export function StatsCard({ title, value, change, changeType, icon }: StatsCardP
     </Card>
   );
 }
-```
 
 ---
 
-## 7. src/components/admin/chart-card.tsx
+§ 7. SRC/COMPONENTS/ADMIN/CHART-CARD.TSX
 
-```typescript
+typescript
 // src/components/admin/chart-card.tsx
 'use client';
 
@@ -1146,13 +1139,12 @@ export function ChartCard({ title, data, dataKeyX, dataKeyY, chartType = 'line',
     </Card>
   );
 }
-```
 
 ---
 
-## 8. src/app/admin/products/page.tsx
+§ 8. SRC/APP/ADMIN/PRODUCTS/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/products/page.tsx
 'use client';
 
@@ -1305,13 +1297,12 @@ export default function ProductsPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 9. src/app/admin/products/new/page.tsx
+§ 9. SRC/APP/ADMIN/PRODUCTS/NEW/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/products/new/page.tsx
 import { ProductForm } from '@/components/admin/products/product-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1331,13 +1322,12 @@ export default function CreateProductPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 10. src/app/admin/products/[id]/page.tsx
+§ 10. SRC/APP/ADMIN/PRODUCTS/[ID]/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/products/[id]/page.tsx
 'use client';
 
@@ -1385,13 +1375,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-```
 
 ---
 
-## 11. src/components/admin/products/product-form.tsx
+§ 11. SRC/COMPONENTS/ADMIN/PRODUCTS/PRODUCT-FORM.TSX
 
-```typescript
+typescript
 // src/components/admin/products/product-form.tsx
 'use client';
 
@@ -2000,13 +1989,12 @@ export function ProductForm({ initialData }: ProductFormProps) {
     </Form>
   );
 }
-```
 
 ---
 
-## 12. src/app/admin/orders/page.tsx
+§ 12. SRC/APP/ADMIN/ORDERS/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/orders/page.tsx
 'use client';
 
@@ -2174,13 +2162,12 @@ export default function OrdersPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 13. src/app/admin/orders/[id]/page.tsx
+§ 13. SRC/APP/ADMIN/ORDERS/[ID]/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/orders/[id]/page.tsx
 'use client';
 
@@ -2392,13 +2379,12 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-```
 
 ---
 
-## 14. src/components/admin/orders/order-actions.tsx
+§ 14. SRC/COMPONENTS/ADMIN/ORDERS/ORDER-ACTIONS.TSX
 
-```typescript
+typescript
 // src/components/admin/orders/order-actions.tsx
 'use client';
 
@@ -2521,13 +2507,12 @@ export function OrderActions({ orderId, currentStatus, onActionSuccess }: OrderA
     </>
   );
 }
-```
 
 ---
 
-## 15. src/app/admin/customers/page.tsx
+§ 15. SRC/APP/ADMIN/CUSTOMERS/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/customers/page.tsx
 'use client';
 
@@ -2671,13 +2656,12 @@ export default function CustomersPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 16. src/app/admin/customers/[id]/page.tsx
+§ 16. SRC/APP/ADMIN/CUSTOMERS/[ID]/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/customers/[id]/page.tsx
 'use client';
 
@@ -2833,13 +2817,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
     </div>
   );
 }
-```
 
 ---
 
-## 17. src/app/admin/categories/page.tsx
+§ 17. SRC/APP/ADMIN/CATEGORIES/PAGE.TSX
 
-```typescript
+typescript
 // src/app/admin/categories/page.tsx
 'use client';
 

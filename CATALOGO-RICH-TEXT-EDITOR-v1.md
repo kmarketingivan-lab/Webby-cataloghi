@@ -1,6 +1,6 @@
 # CATALOGO RICH-TEXT-EDITOR v1
 
-## §1. EDITOR LIBRARY COMPARISON
+§ §1. EDITOR LIBRARY COMPARISON
 
 | Library | Bundle | Extensibility | Collab | Markdown | Mobile | Best For |
 |---------|--------|---------------|--------|----------|--------|----------|
@@ -14,11 +14,11 @@
 
 **Raccomandazione:** Tiptap per flessibilità e moderne features. Lexical per Facebook-style. Editor.js per block content come Notion.
 
-## §2. TIPTAP COMPLETE SETUP
+§ §2. TIPTAP COMPLETE SETUP
 
-### 2.1 Installation & Dependencies
+§ 2.1 INSTALLATION & DEPENDENCIES
 
-```bash
+bash
 # Package installation
 npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
 npm install @tiptap/extension-bold @tiptap/extension-italic @tiptap/extension-strike
@@ -48,11 +48,10 @@ npm install prosemirror-markdown
 npm install lucide-react clsx tailwind-merge
 npm install zod # For validation
 npm install dompurify # For XSS prevention
-```
 
-### 2.2 Basic Editor Component
+§ 2.2 BASIC EDITOR COMPONENT
 
-```typescript
+typescript
 // lib/editor/schema.ts
 import { z } from 'zod';
 
@@ -78,9 +77,8 @@ export interface EditorConfig {
   className?: string;
   shouldRerenderOnContentChange?: boolean;
 }
-```
 
-```typescript
+typescript
 // hooks/use-editor-config.ts
 import { EditorOptions, useEditor as useTiptapEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
@@ -276,9 +274,8 @@ export function useEditorConfig(config: EditorConfig) {
 
   return useTiptapEditor(editorOptions);
 }
-```
 
-```typescript
+typescript
 // components/editor/RichTextEditor.tsx
 'use client';
 
@@ -426,11 +423,10 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     );
   }
 );
-```
 
-### 2.3 Editor Provider Pattern
+§ 2.3 EDITOR PROVIDER PATTERN
 
-```typescript
+typescript
 // context/editor-context.tsx
 'use client';
 
@@ -500,13 +496,12 @@ export function useEditorInstance() {
   
   return editor;
 }
-```
 
-## §3. TOOLBAR IMPLEMENTATION
+§ §3. TOOLBAR IMPLEMENTATION
 
-### 3.1 Toolbar Component
+§ 3.1 TOOLBAR COMPONENT
 
-```typescript
+typescript
 // components/editor/Toolbar.tsx
 'use client';
 
@@ -570,11 +565,10 @@ export function Toolbar({ editor, className }: ToolbarProps) {
     </div>
   );
 }
-```
 
-### 3.2 Toolbar Buttons
+§ 3.2 TOOLBAR BUTTONS
 
-```typescript
+typescript
 // components/editor/toolbar/FormatButtons.tsx
 'use client';
 
@@ -661,9 +655,8 @@ export function FormatButtons({ editor }: FormatButtonsProps) {
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/HeadingSelect.tsx
 'use client';
 
@@ -746,9 +739,8 @@ export function HeadingSelect({ editor }: HeadingSelectProps) {
     </Select>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/ListButtons.tsx
 'use client';
 
@@ -800,9 +792,8 @@ export function ListButtons({ editor }: ListButtonsProps) {
     </div>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/AlignmentButtons.tsx
 'use client';
 
@@ -852,9 +843,8 @@ export function AlignmentButtons({ editor }: AlignmentButtonsProps) {
     </ToggleGroup>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/LinkButton.tsx
 'use client';
 
@@ -978,9 +968,8 @@ export function LinkButton({ editor }: LinkButtonProps) {
     </Popover>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/ImageButton.tsx
 'use client';
 
@@ -1063,9 +1052,8 @@ export function ImageButton({ editor }: ImageButtonProps) {
     </>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/TableButton.tsx
 'use client';
 
@@ -1186,9 +1174,8 @@ export function TableButton({ editor }: TableButtonProps) {
     </Popover>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/CodeBlockButton.tsx
 'use client';
 
@@ -1213,9 +1200,8 @@ export function CodeBlockButton({ editor }: CodeBlockButtonProps) {
     </Toggle>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/BlockquoteButton.tsx
 'use client';
 
@@ -1240,9 +1226,8 @@ export function BlockquoteButton({ editor }: BlockquoteButtonProps) {
     </Toggle>
   );
 }
-```
 
-```typescript
+typescript
 // components/editor/toolbar/UndoRedoButtons.tsx
 'use client';
 
@@ -1281,11 +1266,10 @@ export function UndoRedoButtons({ editor }: UndoRedoButtonsProps) {
     </div>
   );
 }
-```
 
-### 3.3 Bubble Menu
+§ 3.3 BUBBLE MENU
 
-```typescript
+typescript
 // components/editor/BubbleMenu.tsx
 'use client';
 
@@ -1393,11 +1377,10 @@ export function BubbleMenu({ editor, className }: BubbleMenuProps) {
     </TiptapBubbleMenu>
   );
 }
-```
 
-### 3.4 Floating Menu
+§ 3.4 FLOATING MENU
 
-```typescript
+typescript
 // components/editor/FloatingMenu.tsx
 'use client';
 
@@ -1551,11 +1534,10 @@ export function FloatingMenu({ editor, className }: FloatingMenuProps) {
     </TiptapFloatingMenu>
   );
 }
-```
 
-## §4. ESSENTIAL EXTENSIONS
+§ §4. ESSENTIAL EXTENSIONS
 
-### 4.1-4.6 Extensions (già implementate nelle sezioni precedenti)
+§ 4.1-4.6 EXTENSIONS (GIÀ IMPLEMENTATE NELLE SEZIONI PRECEDENTI)
 
 Le estensioni essenziali sono già state configurate nel file `use-editor-config.ts`:
 - Text formatting: Bold, Italic, Underline, Strike, Code, Highlight
@@ -1565,11 +1547,11 @@ Le estensioni essenziali sono già state configurate nel file `use-editor-config
 - Images: con upload handler
 - Tables: con operazioni add/remove row/column
 
-## §5. ADVANCED FEATURES
+§ §5. ADVANCED FEATURES
 
-### 5.1 Slash Commands
+§ 5.1 SLASH COMMANDS
 
-```typescript
+typescript
 // lib/editor/extensions/slash-commands.ts
 import { Extension } from '@tiptap/core';
 import Suggestion from '@tiptap/suggestion';
@@ -1823,9 +1805,8 @@ export const SlashCommand = Extension.create({
     ];
   },
 });
-```
 
-```typescript
+typescript
 // components/editor/CommandList.tsx
 'use client';
 
@@ -1937,11 +1918,10 @@ export const CommandList = forwardRef<any, CommandListProps>(
   }
 );
 CommandList.displayName = 'CommandList';
-```
 
-### 5.2 Mentions
+§ 5.2 MENTIONS
 
-```typescript
+typescript
 // lib/editor/extensions/mention.ts
 import { Mention as TiptapMention } from '@tiptap/extension-mention';
 import { ReactRenderer } from '@tiptap/react';
@@ -2014,9 +1994,8 @@ export const Mention = TiptapMention.configure({
     },
   },
 });
-```
 
-```typescript
+typescript
 // components/editor/MentionList.tsx
 'use client';
 
@@ -2144,11 +2123,10 @@ export const MentionList = forwardRef<any, MentionListProps>(
   }
 );
 MentionList.displayName = 'MentionList';
-```
 
-### 5.4 Code Block con Syntax Highlighting
+§ 5.4 CODE BLOCK CON SYNTAX HIGHLIGHTING
 
-```typescript
+typescript
 // lib/editor/extensions/code-block-highlight.ts
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
@@ -2253,11 +2231,10 @@ export const CodeBlockHighlight = CodeBlockLowlight.extend({
     };
   },
 });
-```
 
-### 5.5 Callout/Alert Boxes
+§ 5.5 CALLOUT/ALERT BOXES
 
-```typescript
+typescript
 // lib/editor/extensions/callout.ts
 import { Node, mergeAttributes } from '@tiptap/core';
 
@@ -2390,13 +2367,12 @@ export const Callout = Node.create<CalloutOptions>({
     return icons[type as keyof typeof icons] || icons.info;
   },
 });
-```
 
-## §6. IMAGE HANDLING
+§ §6. IMAGE HANDLING
 
-### 6.2 Image Upload Handler
+§ 6.2 IMAGE UPLOAD HANDLER
 
-```typescript
+typescript
 // lib/editor/image-upload.ts
 export interface UploadProgress {
   loaded: number;
@@ -2509,11 +2485,10 @@ export async function optimizeImage(file: File): Promise<Blob> {
     img.src = URL.createObjectURL(file);
   });
 }
-```
 
-### 6.3 Image Node Extension
+§ 6.3 IMAGE NODE EXTENSION
 
-```typescript
+typescript
 // lib/editor/extensions/image-resize.ts
 import { Image as BaseImage } from '@tiptap/extension-image';
 import { mergeAttributes } from '@tiptap/core';
@@ -2713,13 +2688,12 @@ export const ImageResize = BaseImage.extend({
     };
   },
 });
-```
 
-## §7. CONTENT SERIALIZATION
+§ §7. CONTENT SERIALIZATION
 
-### 7.2 HTML Serialization
+§ 7.2 HTML SERIALIZATION
 
-```typescript
+typescript
 // lib/editor/serialization.ts
 import DOMPurify from 'dompurify';
 import { ContentJSON } from './schema';
@@ -2794,11 +2768,10 @@ export function htmlToJSON(html: string): ContentJSON {
     ],
   };
 }
-```
 
-### 7.4 Markdown Conversion
+§ 7.4 MARKDOWN CONVERSION
 
-```typescript
+typescript
 // lib/editor/markdown.ts
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
@@ -2842,13 +2815,12 @@ export function htmlToMarkdown(html: string): string {
   
   return markdown;
 }
-```
 
-## §8. CONTENT STORAGE
+§ §8. CONTENT STORAGE
 
-### 8.1 Database Schema
+§ 8.1 DATABASE SCHEMA
 
-```prisma
+prisma
 // prisma/schema.prisma
 model Content {
   id           String   @id @default(cuid())
@@ -2904,33 +2876,32 @@ model ContentVersion {
   
   @@unique([contentId, version])
 }
-```
 
 [Continua... Il catalogo completo includerebbe le sezioni rimanenti:
 
-## §9. COLLABORATIVE EDITING
+§ §9. COLLABORATIVE EDITING
 - Y.js integration con WebSocket
 - Cursor awareness e presence indicators
 - Conflitto resolution strategies
 
-## §10. EDITOR VARIANTS
+§ §10. EDITOR VARIANTS
 - Minimal editor per commenti
 - Blog editor con tutte le features
 - Documentation editor con TOC
 - Email editor con template variables
 
-## §11. SECURITY
+§ §11. SECURITY
 - XSS prevention completa con DOMPurify
 - Content validation con Zod schemas
 - Rate limiting per uploads
 
-## §12. ACCESSIBILITY
+§ §12. ACCESSIBILITY
 - Keyboard shortcuts implementation
 - ARIA labels per tutti i controlli
 - Screen reader support
 - Focus management
 
-## §13. EDITOR CHECKLIST
+§ §13. EDITOR CHECKLIST
 - Checklist completa per deployment
 - Testing strategies
 - Performance optimization
@@ -2956,9 +2927,9 @@ Ecco il modulo BLOG completo, strutturato come richiesto, con un focus su editor
 
 ---
 
-### FILE 1: `prisma/schema-blog.prisma` (70 righe)
+§ FILE 1: `PRISMA/SCHEMA-BLOG.PRISMA` (70 RIGHE)
 
-```prisma
+prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -3114,13 +3085,12 @@ model Comment {
   @@index([articleId])
   @@index([parentId])
 }
-```
 
 ---
 
-### FILE 2: `src/server/services/article-service.ts` (350 righe)
+§ FILE 2: `SRC/SERVER/SERVICES/ARTICLE-SERVICE.TS` (350 RIGHE)
 
-```typescript
+typescript
 import { PrismaClient, Article, ArticleStatus, Visibility, User } from '@prisma/client';
 import { marked } from 'marked';
 import slugify from 'slugify';
@@ -3488,13 +3458,12 @@ export class ArticleService {
     return marked(markdown);
   }
 }
-```
 
 ---
 
-### FILE 3: `src/server/services/category-service.ts` (150 righe)
+§ FILE 3: `SRC/SERVER/SERVICES/CATEGORY-SERVICE.TS` (150 RIGHE)
 
-```typescript
+typescript
 import { PrismaClient, Category } from '@prisma/client';
 import slugify from 'slugify';
 import { CreateCategoryInput, UpdateCategoryInput, ListParams, PaginatedResult } from '@/lib/validations/blog'; // Adjust path
@@ -3643,13 +3612,12 @@ export class CategoryService {
     }
   }
 }
-```
 
 ---
 
-### FILE 4: `src/server/services/tag-service.ts` (100 righe)
+§ FILE 4: `SRC/SERVER/SERVICES/TAG-SERVICE.TS` (100 RIGHE)
 
-```typescript
+typescript
 import { PrismaClient, Tag } from '@prisma/client';
 import slugify from 'slugify';
 import { CreateTagInput, UpdateTagInput, ListParams, PaginatedResult } from '@/lib/validations/blog'; // Adjust path
@@ -3782,13 +3750,12 @@ export class TagService {
     }
   }
 }
-```
 
 ---
 
-### FILE 5: `src/server/trpc/routers/blog.ts` (200 righe)
+§ FILE 5: `SRC/SERVER/TRPC/ROUTERS/BLOG.TS` (200 RIGHE)
 
-```typescript
+typescript
 import { z } from 'zod';
 import { publicProcedure, protectedProcedure, createTRPCRouter } from '@/server/trpc/trpc'; // Adjust path
 import { ArticleService } from '@/server/services/article-service';
@@ -4076,13 +4043,12 @@ export const blogRouter = createTRPCRouter({
       }),
   }),
 });
-```
 
 ---
 
-### FILE 6: `src/lib/validations/blog.ts` (100 righe)
+§ FILE 6: `SRC/LIB/VALIDATIONS/BLOG.TS` (100 RIGHE)
 
-```typescript
+typescript
 import { z } from 'zod';
 import { ArticleStatus, Visibility } from '@prisma/client';
 
@@ -4189,13 +4155,12 @@ export const updateTagSchema = createTagSchema.extend({
 }).partial();
 
 export type UpdateTagInput = z.infer<typeof updateTagSchema>;
-```
 
 ---
 
-### FILE 7: `src/hooks/use-articles.ts` (100 righe)
+§ FILE 7: `SRC/HOOKS/USE-ARTICLES.TS` (100 RIGHE)
 
-```typescript
+typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Article } from '@prisma/client'; // Import Prisma Article type
 import { trpc } from '@/utils/trpc'; // Adjust path to your tRPC client
@@ -4358,13 +4323,12 @@ export const useArticles = (options?: UseArticlesOptions) => {
     incrementViews: incrementViewsMutation.mutateAsync,
   };
 };
-```
 
 ---
 
-### FILE 8: `src/hooks/use-editor.ts` (80 righe)
+§ FILE 8: `SRC/HOOKS/USE-EDITOR.TS` (80 RIGHE)
 
-```typescript
+typescript
 import { useEditor, EditorContent, EditorOptions } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -4424,13 +4388,12 @@ export const useRichTextEditor = ({ content, onUpdate, editable = true, placehol
 
   return editor;
 };
-```
 
 ---
 
-### FILE 9: `src/components/blog/article-card.tsx` (120 righe)
+§ FILE 9: `SRC/COMPONENTS/BLOG/ARTICLE-CARD.TSX` (120 RIGHE)
 
-```typescript
+typescript
 import Image from 'next/image';
 import Link from 'next/link';
 import { Article, Category, Tag, User } from '@prisma/client';

@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | # | Sezione | Path |
 |---|---------|------|
@@ -25,9 +25,9 @@
 
 ---
 
-## 1. src/lib/errors/base.ts
+§ 1. SRC/LIB/ERRORS/BASE.TS
 
-```typescript
+typescript
 // src/lib/errors/base.ts
 /**
  * @fileoverview Defines base and specific application error classes.
@@ -199,13 +199,12 @@ export class InternalServerError extends AppError {
     Object.setPrototypeOf(this, InternalServerError.prototype);
   }
 }
-```
 
 ---
 
-## 2. src/lib/errors/codes.ts
+§ 2. SRC/LIB/ERRORS/CODES.TS
 
-```typescript
+typescript
 // src/lib/errors/codes.ts
 /**
  * @fileoverview Defines a comprehensive set of error codes,
@@ -419,13 +418,12 @@ export const errorMessages: Record<ErrorCode, string> = {
   [ErrorCode.DB_UNIQUE_CONSTRAINT_VIOLATION]: "A record with this unique identifier already exists.",
   [ErrorCode.DB_RECORD_NOT_FOUND]: "The requested database record could not be found.",
 };
-```
 
 ---
 
-## 3. src/lib/errors/handler.ts
+§ 3. SRC/LIB/ERRORS/HANDLER.TS
 
-```typescript
+typescript
 // src/lib/errors/handler.ts
 /**
  * @fileoverview Provides a central error handling utility to normalize
@@ -660,13 +658,12 @@ function handleTRPCError(error: TRPCError): AppError {
       );
   }
 }
-```
 
 ---
 
-## 4. src/lib/errors/logger.ts
+§ 4. SRC/LIB/ERRORS/LOGGER.TS
 
-```typescript
+typescript
 // src/lib/errors/logger.ts
 /**
  * @fileoverview Provides centralized logging functions for errors, warnings, and info messages.
@@ -827,13 +824,12 @@ export function reportToSentry(error: AppError, context?: object): void {
 //     });
 //   }
 // }
-```
 
 ---
 
-## 5. src/components/error-boundary.tsx
+§ 5. SRC/COMPONENTS/ERROR-BOUNDARY.TSX
 
-```typescript
+typescript
 // src/components/error-boundary.tsx
 "use client";
 
@@ -1037,13 +1033,12 @@ export function withErrorBoundary<P extends object>(
   HOC.displayName = `withErrorBoundary(${ComponentWithName})`;
   return HOC;
 }
-```
 
 ---
 
-## 6. src/app/error.tsx
+§ 6. SRC/APP/ERROR.TSX
 
-```typescript
+typescript
 // src/app/error.tsx
 "use client";
 
@@ -1139,13 +1134,12 @@ export default function ErrorPage({
     </div>
   );
 }
-```
 
 ---
 
-## 7. src/app/not-found.tsx
+§ 7. SRC/APP/NOT-FOUND.TSX
 
-```typescript
+typescript
 // src/app/not-found.tsx
 /**
  * @fileoverview This is the custom 404 Not Found page for the Next.js App Router.
@@ -1177,13 +1171,12 @@ export default function NotFoundPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 8. src/app/global-error.tsx
+§ 8. SRC/APP/GLOBAL-ERROR.TSX
 
-```typescript
+typescript
 // src/app/global-error.tsx
 "use client";
 
@@ -1269,13 +1262,12 @@ export default function GlobalError({
     </html>
   );
 }
-```
 
 ---
 
-## 9. src/components/ui/error-alert.tsx
+§ 9. SRC/COMPONENTS/UI/ERROR-ALERT.TSX
 
-```typescript
+typescript
 // src/components/ui/error-alert.tsx
 "use client";
 
@@ -1357,13 +1349,12 @@ export function ErrorAlert({ error, onDismiss, onRetry, title, message }: ErrorA
     </Alert>
   );
 }
-```
 
 ---
 
-## 10. src/hooks/use-error-handler.ts
+§ 10. SRC/HOOKS/USE-ERROR-HANDLER.TS
 
-```typescript
+typescript
 // src/hooks/use-error-handler.ts
 "use client";
 
@@ -1424,13 +1415,12 @@ export function useErrorHandler() {
 
   return { error, handleError, clearError };
 }
-```
 
 ---
 
-## 11. tests/error-handling.test.ts
+§ 11. TESTS/ERROR-HANDLING.TEST.TS
 
-```typescript
+typescript
 // tests/error-handling.test.ts
 /**
  * @fileoverview Comprehensive test suite for the error handling module.
@@ -1732,7 +1722,6 @@ describe("Error Handling Module", () => {
     });
   });
 });
-```
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 22272_

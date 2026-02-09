@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | Sezione | Descrizione |
 |---------|-------------|
@@ -23,12 +23,12 @@
 
 ---
 
-## 1. PANORAMICA
+§ 1. PANORAMICA
 
-### 1.1 Obiettivo
+§ 1.1 OBIETTIVO
 File di configurazione completi e production-ready per un progetto Next.js 14 con stack moderno.
 
-### 1.2 Stack Tecnologico
+§ 1.2 STACK TECNOLOGICO
 
 | Categoria | Tecnologia | Versione |
 |-----------|------------|----------|
@@ -41,7 +41,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | **Testing** | Vitest | 1.2.1 |
 | **Auth** | NextAuth | 5.0.0-beta.4 |
 
-### 1.3 Mappa File Configurazione
+§ 1.3 MAPPA FILE CONFIGURAZIONE
 
 | File | Scopo | Sezione |
 |------|-------|---------|
@@ -58,9 +58,9 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 
 ---
 
-## 2. PACKAGE.JSON
+§ 2. PACKAGE.JSON
 
-### 2.1 Script Disponibili
+§ 2.1 SCRIPT DISPONIBILI
 
 | Script | Comando | Descrizione |
 |--------|---------|-------------|
@@ -79,7 +79,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `db:studio` | `prisma studio` | Apri Prisma Studio |
 | `db:seed` | `ts-node prisma/seed.ts` | Seed database |
 
-### 2.2 Dipendenze Core
+§ 2.2 DIPENDENZE CORE
 
 | Package | Versione | Categoria |
 |---------|----------|-----------|
@@ -95,7 +95,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `zod` | 3.22.4 | Validation |
 | `tailwindcss` | 3.4.1 | Styling |
 
-### 2.3 Radix UI Components
+§ 2.3 RADIX UI COMPONENTS
 
 | Package | Versione |
 |---------|----------|
@@ -112,9 +112,9 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `@radix-ui/react-toast` | 1.1.5 |
 | `@radix-ui/react-tooltip` | 1.0.7 |
 
-### 2.4 File Completo
+§ 2.4 FILE COMPLETO
 
-```json
+json
 {
   "name": "platform-template",
   "version": "1.0.0",
@@ -212,13 +212,12 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
     "ts-node": "10.9.2"
   }
 }
-```
 
 ---
 
-## 3. TYPESCRIPT
+§ 3. TYPESCRIPT
 
-### 3.1 Opzioni Compiler
+§ 3.1 OPZIONI COMPILER
 
 | Opzione | Valore | Descrizione |
 |---------|--------|-------------|
@@ -230,7 +229,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `noUnusedParameters` | true | Errore su parametri non usati |
 | `moduleResolution` | bundler | Risoluzione moduli |
 
-### 3.2 Path Aliases
+§ 3.2 PATH ALIASES
 
 | Alias | Path | Uso |
 |-------|------|-----|
@@ -247,9 +246,9 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `@/utils/*` | `./src/utils/*` | Utility functions |
 | `@/auth/*` | `./src/auth/*` | Auth modules |
 
-### 3.3 File Completo
+§ 3.3 FILE COMPLETO
 
-```json
+json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -302,13 +301,12 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
   ],
   "exclude": ["node_modules"]
 }
-```
 
 ---
 
-## 4. TAILWIND CSS
+§ 4. TAILWIND CSS
 
-### 4.1 Design Tokens - Colori
+§ 4.1 DESIGN TOKENS - COLORI
 
 | Token | CSS Variable | Uso |
 |-------|--------------|-----|
@@ -327,7 +325,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `input` | `--input` | Bordi input |
 | `ring` | `--ring` | Focus ring |
 
-### 4.2 Border Radius
+§ 4.2 BORDER RADIUS
 
 | Token | Valore |
 |-------|--------|
@@ -335,7 +333,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `md` | `calc(var(--radius) - 2px)` |
 | `sm` | `calc(var(--radius) - 4px)` |
 
-### 4.3 Animazioni
+§ 4.3 ANIMAZIONI
 
 | Animation | Keyframes | Durata |
 |-----------|-----------|--------|
@@ -343,7 +341,7 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `accordion-up` | height: auto → 0 | 0.2s ease-out |
 | `caret-blink` | opacity blink | 1.25s infinite |
 
-### 4.4 Plugin Attivi
+§ 4.4 PLUGIN ATTIVI
 
 | Plugin | Scopo |
 |--------|-------|
@@ -352,9 +350,9 @@ File di configurazione completi e production-ready per un progetto Next.js 14 co
 | `@tailwindcss/typography` | Prose styling |
 | `@tailwindcss/aspect-ratio` | Aspect ratio utilities |
 
-### 4.5 File Completo
+§ 4.5 FILE COMPLETO
 
-```typescript
+typescript
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -457,13 +455,12 @@ const config = {
 } satisfies Config;
 
 export default config;
-```
 
 ---
 
-## 5. ESLINT & PRETTIER
+§ 5. ESLINT & PRETTIER
 
-### 5.1 ESLint Extends
+§ 5.1 ESLINT EXTENDS
 
 | Config | Scopo |
 |--------|-------|
@@ -477,7 +474,7 @@ export default config;
 | `plugin:prettier/recommended` | Prettier integration |
 | `next/core-web-vitals` | Next.js rules |
 
-### 5.2 Plugin Attivi
+§ 5.2 PLUGIN ATTIVI
 
 | Plugin | Scopo |
 |--------|-------|
@@ -492,7 +489,7 @@ export default config;
 | `vitest` | Test rules |
 | `testing-library` | Testing rules |
 
-### 5.3 Import Sort Groups
+§ 5.3 IMPORT SORT GROUPS
 
 | Gruppo | Pattern |
 |--------|---------|
@@ -502,9 +499,9 @@ export default config;
 | 4 | `^\\.` (sibling imports) |
 | 5 | `.css` files |
 
-### 5.4 ESLint Config
+§ 5.4 ESLINT CONFIG
 
-```json
+json
 {
   "root": true,
   "env": {
@@ -558,11 +555,10 @@ export default config;
     "vitest/no-focused-tests": "error"
   }
 }
-```
 
-### 5.5 Prettier Config
+§ 5.5 PRETTIER CONFIG
 
-```json
+json
 {
   "semi": true,
   "singleQuote": false,
@@ -574,13 +570,12 @@ export default config;
   "endOfLine": "auto",
   "plugins": ["prettier-plugin-tailwindcss"]
 }
-```
 
 ---
 
-## 6. NEXT.JS CONFIG
+§ 6. NEXT.JS CONFIG
 
-### 6.1 Opzioni Principali
+§ 6.1 OPZIONI PRINCIPALI
 
 | Opzione | Valore | Descrizione |
 |---------|--------|-------------|
@@ -588,7 +583,7 @@ export default config;
 | `swcMinify` | true | SWC minification |
 | `output` | standalone | Per Docker deployments |
 
-### 6.2 Allowed Image Hosts
+§ 6.2 ALLOWED IMAGE HOSTS
 
 | Host | Servizio |
 |------|----------|
@@ -596,7 +591,7 @@ export default config;
 | `lh3.googleusercontent.com` | Google OAuth |
 | `avatars.githubusercontent.com` | GitHub OAuth |
 
-### 6.3 Security Headers
+§ 6.3 SECURITY HEADERS
 
 | Header | Valore | Scopo |
 |--------|--------|-------|
@@ -608,9 +603,9 @@ export default config;
 | `Referrer-Policy` | origin-when-cross-origin | Referrer control |
 | `Permissions-Policy` | camera=(), microphone=() | Feature policy |
 
-### 6.4 File Completo
+§ 6.4 FILE COMPLETO
 
-```javascript
+javascript
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -644,13 +639,12 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-```
 
 ---
 
-## 7. VITEST
+§ 7. VITEST
 
-### 7.1 Configurazione Test
+§ 7.1 CONFIGURAZIONE TEST
 
 | Opzione | Valore | Descrizione |
 |---------|--------|-------------|
@@ -659,7 +653,7 @@ module.exports = nextConfig;
 | `css` | false | Skip CSS processing |
 | `setupFiles` | `./vitest.setup.ts` | Setup file |
 
-### 7.2 Coverage Exclude
+§ 7.2 COVERAGE EXCLUDE
 
 | Path | Motivo |
 |------|--------|
@@ -671,9 +665,9 @@ module.exports = nextConfig;
 | `src/server/` | tRPC server |
 | `prisma/` | Database schema |
 
-### 7.3 File Completo
+§ 7.3 FILE COMPLETO
 
-```typescript
+typescript
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -720,13 +714,12 @@ export default defineConfig({
     },
   },
 });
-```
 
 ---
 
-## 8. ENVIRONMENT
+§ 8. ENVIRONMENT
 
-### 8.1 Variabili Richieste
+§ 8.1 VARIABILI RICHIESTE
 
 | Variabile | Tipo | Descrizione |
 |-----------|------|-------------|
@@ -737,14 +730,14 @@ export default defineConfig({
 | `NEXTAUTH_URL` | URL | URL per NextAuth |
 | `NEXTAUTH_SECRET` | string | Secret 32+ chars |
 
-### 8.2 OAuth Providers
+§ 8.2 OAUTH PROVIDERS
 
 | Provider | Client ID | Client Secret |
 |----------|-----------|---------------|
 | Google | `GOOGLE_CLIENT_ID` | `GOOGLE_CLIENT_SECRET` |
 | GitHub | `GITHUB_CLIENT_ID` | `GITHUB_CLIENT_SECRET` |
 
-### 8.3 Servizi Esterni
+§ 8.3 SERVIZI ESTERNI
 
 | Servizio | Variabili |
 |----------|-----------|
@@ -752,9 +745,9 @@ export default defineConfig({
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
 | Uploadthing | `UPLOADTHING_SECRET`, `UPLOADTHING_APP_ID` |
 
-### 8.4 File .env.example
+§ 8.4 FILE .ENV.EXAMPLE
 
-```bash
+bash
 # Application Environment
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -785,13 +778,12 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 # Upload Service (Uploadthing)
 UPLOADTHING_SECRET=
 UPLOADTHING_APP_ID=
-```
 
 ---
 
-## 9. GIT & DOCKER
+§ 9. GIT & DOCKER
 
-### 9.1 Gitignore Categories
+§ 9.1 GITIGNORE CATEGORIES
 
 | Categoria | Pattern |
 |-----------|---------|
@@ -803,7 +795,7 @@ UPLOADTHING_APP_ID=
 | Testing | `coverage/`, `.vitest-cache/` |
 | OS | `.DS_Store`, `Thumbs.db` |
 
-### 9.2 Docker Services
+§ 9.2 DOCKER SERVICES
 
 | Service | Image | Port | Descrizione |
 |---------|-------|------|-------------|
@@ -811,9 +803,9 @@ UPLOADTHING_APP_ID=
 | `redis` | redis:7-alpine | 6379 | Cache/sessions |
 | `adminer` | adminer | 8080 | DB management UI |
 
-### 9.3 Docker Compose
+§ 9.3 DOCKER COMPOSE
 
-```yaml
+yaml
 version: '3.8'
 
 services:
@@ -858,11 +850,10 @@ services:
 volumes:
   db_data:
   redis_data:
-```
 
 ---
 
-## 11. CHECKLIST SETUP PROGETTO
+§ 11. CHECKLIST SETUP PROGETTO
 
 | Step | Comando/Azione | Status |
 |------|----------------|--------|
@@ -884,9 +875,9 @@ _Integrato da: 03-OUTPUT-BOILERPLATE-CONFIG.md_
 _Data integrazione: 2026-01-29 14:51_
 _Generato con: Gemini 2.5 Flash / DeepSeek R1_
 
-## 10. STRATEGY/DECISION TABLES
+§ 10. STRATEGY/DECISION TABLES
 
-### 10.1 Decision Table per Scelta Database
+§ 10.1 DECISION TABLE PER SCELTA DATABASE
 
 | Database | Caratteristiche | Scelta |
 |-----------|----------------|--------|
@@ -894,16 +885,16 @@ _Generato con: Gemini 2.5 Flash / DeepSeek R1_
 | MongoDB   | Tipo: Documentale <br> Scalabilità: Alta <br> Supporto: TypeScript | ✅ Per progetti con dati non strutturati o semi-strutturati |
 | PostgreSQL | Tipo: Relazionale <br> Scalabilità: Alta <br> Supporto: TypeScript | ✅ Per progetti con requisiti di atomicità e consistenza dei dati |
 
-### 10.2 Decision Table per Scelta di Auth
+§ 10.2 DECISION TABLE PER SCELTA DI AUTH
 
 | Auth | Caratteristiche | Scelta |
 |------|----------------|--------|
 | NextAuth | Tipo: Autenticazione <br> Scalabilità: Alta <br> Supporto: TypeScript | ✅ Per progetti con requisiti di autenticazione e autorizzazione |
 | Auth0    | Tipo: Autenticazione <br> Scalabilità: Alta <br> Supporto: TypeScript | ✅ Per progetti con requisiti di autenticazione e autorizzazione esterni |
 
-## 11. BEST PRACTICES
+§ 11. BEST PRACTICES
 
-### 11.1 ✅ DO / ❌ DON'T per Codice pulito
+§ 11.1 ✅ DO / ❌ DON'T PER CODICE PULITO
 
 | Best Practice | Descrizione |
 |---------------|-------------|
@@ -912,7 +903,7 @@ _Generato con: Gemini 2.5 Flash / DeepSeek R1_
 | ✅ Utilizza commenti per spiegare il codice | Utilizza commenti per spiegare il codice e renderlo più leggibile |
 | ❌ Non utilizzare codice duplicato | Evita di utilizzare codice duplicato e cerca di riusare il codice esistente |
 
-### 11.2 ✅ DO / ❌ DON'T per Performance
+§ 11.2 ✅ DO / ❌ DON'T PER PERFORMANCE
 
 | Best Practice | Descrizione |
 |---------------|-------------|
@@ -920,11 +911,11 @@ _Generato con: Gemini 2.5 Flash / DeepSeek R1_
 | ❌ Non utilizzare query SQL complesse | Evita di utilizzare query SQL complesse e cerca di ottimizzare le query esistenti |
 | ✅ Utilizza tecnologie di ottimizzazione della performance | Utilizza tecnologie come Next.js e Prisma per ottimizzare la performance del progetto |
 
-## 12. PERFORMANCE CONSIDERATIONS
+§ 12. PERFORMANCE CONSIDERATIONS
 
-### 12.1 Ottimizzazione della performance del database
+§ 12.1 OTTIMIZZAZIONE DELLA PERFORMANCE DEL DATABASE
 
-```typescript
+typescript
 // Esempio di ottimizzazione della performance del database con Prisma
 import { PrismaClient } from '@prisma/client';
 
@@ -947,11 +938,10 @@ prisma.$use(async (params, next) => {
 
   return result;
 });
-```
 
-### 12.2 Ottimizzazione della performance del server
+§ 12.2 OTTIMIZZAZIONE DELLA PERFORMANCE DEL SERVER
 
-```typescript
+typescript
 // Esempio di ottimizzazione della performance del server con Next.js
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -968,13 +958,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   return res.json(data);
 };
-```
 
-## 13. TESTING PATTERNS
+§ 13. TESTING PATTERNS
 
-### 13.1 Testing dei componenti principali con Vitest
+§ 13.1 TESTING DEI COMPONENTI PRINCIPALI CON VITEST
 
-```typescript
+typescript
 // Esempio di testing dei componenti principali con Vitest
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
@@ -986,11 +975,10 @@ describe('MyComponent', () => {
     expect(getByText('Hello World')).toBeInTheDocument();
   });
 });
-```
 
-### 13.2 Testing delle API con Vitest
+§ 13.2 TESTING DELLE API CON VITEST
 
-```typescript
+typescript
 // Esempio di testing delle API con Vitest
 import { describe, expect, it } from 'vitest';
 import { api } from './api';
@@ -1002,29 +990,28 @@ describe('API', () => {
     expect(response.data).toEqual({ message: 'Hello World' });
   });
 });
-```
 
-## 14. COMMON PITFALLS & TROUBLESHOOTING
+§ 14. COMMON PITFALLS & TROUBLESHOOTING
 
-### 14.1 Errori comuni di configurazione del database
+§ 14.1 ERRORI COMUNI DI CONFIGURAZIONE DEL DATABASE
 
 | Errore | Soluzione |
 |--------|----------|
 | Errore di connessione al database | Verifica la configurazione del database e assicurati di avere i permessi necessari |
 | Errore di query SQL | Verifica la sintassi della query e assicurati di avere i dati necessari |
 
-### 14.2 Errori comuni di configurazione del server
+§ 14.2 ERRORI COMUNI DI CONFIGURAZIONE DEL SERVER
 
 | Errore | Soluzione |
 |--------|----------|
 | Errore di avvio del server | Verifica la configurazione del server e assicurati di avere i permessi necessari |
 | Errore di routing | Verifica la configurazione del routing e assicurati di avere le rotte necessarie |
 
-## 15. MIGRATION/UPGRADE PATTERNS
+§ 15. MIGRATION/UPGRADE PATTERNS
 
-### 15.1 Migration da una versione precedente di Next.js
+§ 15.1 MIGRATION DA UNA VERSIONE PRECEDENTE DI NEXT.JS
 
-```typescript
+typescript
 // Esempio di migration da una versione precedente di Next.js
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -1039,11 +1026,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   return res.json({ message: 'Hello World' });
 };
-```
 
-### 15.2 Upgrade da una versione precedente di Prisma
+§ 15.2 UPGRADE DA UNA VERSIONE PRECEDENTE DI PRISMA
 
-```typescript
+typescript
 // Esempio di upgrade da una versione precedente di Prisma
 import { PrismaClient } from '@prisma/client';
 
@@ -1066,7 +1052,6 @@ prisma.$use(async (params, next) => {
 
   return result;
 });
-```
 
 Catalogo Boilerplate Config - Next.js 14 Configuration Suite
 1. Prisma Configuration

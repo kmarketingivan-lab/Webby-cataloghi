@@ -7,7 +7,7 @@
 
 ---
 
-## 1. INDICE
+§ 1. INDICE
 
 | Sezione | Descrizione |
 |---------|-------------|
@@ -22,12 +22,12 @@
 
 ---
 
-## 1. PANORAMICA
+§ 1. PANORAMICA
 
-### 1.1 Obiettivo
+§ 1.1 OBIETTIVO
 Utilities TypeScript per la gestione avanzata del database con Prisma ORM, incluse paginazione, transazioni, query builders e error handling.
 
-### 1.2 Struttura File
+§ 1.2 STRUTTURA FILE
 
 | File | Path | Descrizione |
 |------|------|-------------|
@@ -40,7 +40,7 @@ Utilities TypeScript per la gestione avanzata del database con Prisma ORM, inclu
 | Audit Log | `src/lib/db/audit.ts` | Logging modifiche |
 | Index | `src/lib/db/index.ts` | Barrel export |
 
-### 1.3 Funzionalità Principali
+§ 1.3 FUNZIONALITÀ PRINCIPALI
 
 | Funzionalità | Descrizione |
 |--------------|-------------|
@@ -55,16 +55,16 @@ Utilities TypeScript per la gestione avanzata del database con Prisma ORM, inclu
 
 ---
 
-## 2. PRISMA CLIENT
+§ 2. PRISMA CLIENT
 
-### 2.1 File: `src/lib/db/client.ts`
+§ 2.1 FILE: `SRC/LIB/DB/CLIENT.TS`
 
 | Export | Tipo | Descrizione |
 |--------|------|-------------|
 | `prisma` | PrismaClient | Singleton instance |
 | `PrismaClientType` | Type | Type del client |
 
-```typescript
+typescript
 // src/lib/db/client.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -96,13 +96,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Export the PrismaClient type for convenience
 export type PrismaClientType = typeof prisma;
-```
 
 ---
 
-## 3. PAGINATION
+§ 3. PAGINATION
 
-### 3.1 Types
+§ 3.1 TYPES
 
 | Type | Descrizione |
 |------|-------------|
@@ -110,14 +109,14 @@ export type PrismaClientType = typeof prisma;
 | `PaginatedResult<T>` | Output paginato |
 | `CursorPaginatedResult<T>` | Output cursor-based |
 
-### 3.2 Costanti
+§ 3.2 COSTANTI
 
 | Costante | Valore | Descrizione |
 |----------|--------|-------------|
 | `DEFAULT_PAGE_SIZE` | 10 | Items per pagina default |
 | `MAX_PAGE_SIZE` | 100 | Limite massimo items |
 
-### 3.3 Funzioni
+§ 3.3 FUNZIONI
 
 | Funzione | Parametri | Return | Descrizione |
 |----------|-----------|--------|-------------|
@@ -126,9 +125,9 @@ export type PrismaClientType = typeof prisma;
 | `getCursorPaginationArgs` | `cursor?, pageSize?` | `{ cursor?, take, skip? }` | Args cursor |
 | `createCursorPaginatedResult` | `data, pageSize, idField` | `CursorPaginatedResult<T>` | Crea risultato cursor |
 
-### 3.4 File: `src/lib/db/pagination.ts`
+§ 3.4 FILE: `SRC/LIB/DB/PAGINATION.TS`
 
-```typescript
+typescript
 // src/lib/db/pagination.ts
 import { Prisma } from '@prisma/client';
 
@@ -246,20 +245,19 @@ export function createCursorPaginatedResult<T extends Record<string, unknown>>(
     },
   };
 }
-```
 
 ---
 
-## 4. TRANSACTION HELPERS
+§ 4. TRANSACTION HELPERS
 
-### 4.1 Funzioni
+§ 4.1 FUNZIONI
 
 | Funzione | Parametri | Return | Descrizione |
 |----------|-----------|--------|-------------|
 | `executeTransaction` | `callback, options?` | `Promise<T>` | Esegue transazione |
 | `executeWithRetry` | `callback, maxRetries?` | `Promise<T>` | Con retry automatico |
 
-### 4.2 Opzioni Transazione
+§ 4.2 OPZIONI TRANSAZIONE
 
 | Opzione | Tipo | Default | Descrizione |
 |---------|------|---------|-------------|
@@ -267,9 +265,9 @@ export function createCursorPaginatedResult<T extends Record<string, unknown>>(
 | `timeout` | number | 10000 | Timeout ms |
 | `isolationLevel` | enum | ReadCommitted | Isolation level |
 
-### 4.3 File: `src/lib/db/transactions.ts`
+§ 4.3 FILE: `SRC/LIB/DB/TRANSACTIONS.TS`
 
-```typescript
+typescript
 // src/lib/db/transactions.ts
 import { Prisma } from '@prisma/client';
 import { prisma } from './client';
@@ -351,13 +349,12 @@ export async function batchOperation<T, R>(
 
   return results;
 }
-```
 
 ---
 
-## 5. QUERY BUILDERS
+§ 5. QUERY BUILDERS
 
-### 5.1 Types
+§ 5.1 TYPES
 
 | Type | Descrizione |
 |------|-------------|
@@ -366,7 +363,7 @@ export async function batchOperation<T, R>(
 | `SortDirection` | asc / desc |
 | `SortCondition` | Campo + direzione |
 
-### 5.2 Funzioni
+§ 5.2 FUNZIONI
 
 | Funzione | Parametri | Return | Descrizione |
 |----------|-----------|--------|-------------|
@@ -374,9 +371,9 @@ export async function batchOperation<T, R>(
 | `buildOrderByClause` | `SortCondition[]` | `Prisma.XOrderByInput` | Costruisce orderBy |
 | `buildSearchClause` | `query, fields[]` | `Prisma.XWhereInput` | Full-text search |
 
-### 5.3 File: `src/lib/db/query-builders.ts`
+§ 5.3 FILE: `SRC/LIB/DB/QUERY-BUILDERS.TS`
 
-```typescript
+typescript
 // src/lib/db/query-builders.ts
 import { Prisma } from '@prisma/client';
 
@@ -509,13 +506,12 @@ export function combineWhereClauses<T extends Record<string, unknown>>(
 
   return { AND: validClauses } as T;
 }
-```
 
 ---
 
-## 6. ERROR HANDLING
+§ 6. ERROR HANDLING
 
-### 6.1 Error Codes Prisma
+§ 6.1 ERROR CODES PRISMA
 
 | Code | Descrizione | HTTP Status |
 |------|-------------|-------------|
@@ -525,7 +521,7 @@ export function combineWhereClauses<T extends Record<string, unknown>>(
 | `P2003` | Foreign key constraint | 400 |
 | `P2025` | Record not found (relation) | 404 |
 
-### 6.2 Funzioni
+§ 6.2 FUNZIONI
 
 | Funzione | Parametri | Return | Descrizione |
 |----------|-----------|--------|-------------|
@@ -533,9 +529,9 @@ export function combineWhereClauses<T extends Record<string, unknown>>(
 | `isRecordNotFound` | `error` | `boolean` | Check not found |
 | `isUniqueConstraintViolation` | `error` | `boolean` | Check unique |
 
-### 6.3 File: `src/lib/db/errors.ts`
+§ 6.3 FILE: `SRC/LIB/DB/ERRORS.TS`
 
-```typescript
+typescript
 // src/lib/db/errors.ts
 import { Prisma } from '@prisma/client';
 
@@ -628,20 +624,19 @@ export function isForeignKeyViolation(error: unknown): boolean {
     error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003'
   );
 }
-```
 
 ---
 
-## 7. SOFT DELETE
+§ 7. SOFT DELETE
 
-### 7.1 Pattern
+§ 7.1 PATTERN
 
 | Campo | Tipo | Descrizione |
 |-------|------|-------------|
 | `deletedAt` | DateTime? | Timestamp eliminazione |
 | `isDeleted` | Boolean | Flag computed (opzionale) |
 
-### 7.2 Middleware
+§ 7.2 MIDDLEWARE
 
 | Middleware | Azione | Descrizione |
 |------------|--------|-------------|
@@ -651,9 +646,9 @@ export function isForeignKeyViolation(error: unknown): boolean {
 | `delete` | Modifica | Converte in update deletedAt |
 | `deleteMany` | Modifica | Converte in updateMany |
 
-### 7.3 File: `src/lib/db/soft-delete.ts`
+§ 7.3 FILE: `SRC/LIB/DB/SOFT-DELETE.TS`
 
-```typescript
+typescript
 // src/lib/db/soft-delete.ts
 import { Prisma, PrismaClient } from '@prisma/client';
 
@@ -753,13 +748,12 @@ export async function findIncludingDeleted<T>(
   // @ts-ignore - Dynamic model access
   return prisma[model.toLowerCase()].findMany(argsWithDeleted);
 }
-```
 
 ---
 
-## 8. AUDIT LOG
+§ 8. AUDIT LOG
 
-### 8.1 Schema Audit
+§ 8.1 SCHEMA AUDIT
 
 | Campo | Tipo | Descrizione |
 |-------|------|-------------|
@@ -772,16 +766,16 @@ export async function findIncludingDeleted<T>(
 | `userId` | String? | Utente che ha fatto la modifica |
 | `timestamp` | DateTime | Quando |
 
-### 8.2 Funzioni
+§ 8.2 FUNZIONI
 
 | Funzione | Parametri | Return | Descrizione |
 |----------|-----------|--------|-------------|
 | `logAudit` | `params` | `Promise<void>` | Crea log entry |
 | `applyAuditMiddleware` | `prisma, getUserId` | `void` | Applica middleware |
 
-### 8.3 File: `src/lib/db/audit.ts`
+§ 8.3 FILE: `SRC/LIB/DB/AUDIT.TS`
 
-```typescript
+typescript
 // src/lib/db/audit.ts
 import { Prisma, PrismaClient } from '@prisma/client';
 
@@ -918,15 +912,14 @@ export async function getAuditHistory(
     timestamp: log.timestamp,
   }));
 }
-```
 
 ---
 
-## 9. BARREL EXPORT
+§ 9. BARREL EXPORT
 
-### 9.1 File: `src/lib/db/index.ts`
+§ 9.1 FILE: `SRC/LIB/DB/INDEX.TS`
 
-```typescript
+typescript
 // src/lib/db/index.ts
 // Client
 export { prisma, type PrismaClientType } from './client';
@@ -987,11 +980,10 @@ export {
   applyAuditMiddleware,
   getAuditHistory,
 } from './audit';
-```
 
 ---
 
-## 11. CHECKLIST IMPLEMENTAZIONE
+§ 11. CHECKLIST IMPLEMENTAZIONE
 
 | Step | Descrizione | Status |
 |------|-------------|--------|

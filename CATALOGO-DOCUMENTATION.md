@@ -13,22 +13,22 @@ markdown
 
 Breve descrizione del progetto, scopo e caratteristiche principali.
 
-## ✨ Funzionalità
+§ ✨ FUNZIONALITÀ
 
 - ✅ Funzionalità 1
 - ✅ Funzionalità 2  
 - 🚧 Funzionalità 3 (in sviluppo)
 
-## 🚀 Quick Start
+§ 🚀 QUICK START
 
-### Prerequisiti
+§ PREREQUISITI
 - Node.js 18.17 o superiore
 - npm, yarn, o pnpm
 - Git
 
-### Installazione
+§ INSTALLAZIONE
 
-```bash
+bash
 # Clona il repository
 git clone https://github.com/username/repo.git
 cd repo
@@ -108,7 +108,6 @@ Discussions
 text
 
 ### Badges Standards
-```markdown
 <!-- Shields.io badges -->
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-14.0.0-black?logo=next.js)
@@ -487,14 +486,14 @@ Descrizione ad alto livello del sistema, obiettivi e scope.
 - **Styling**: Tailwind CSS + CSS Modules
 - **Testing**: Jest + React Testing Library + Cypress
 
-## Pattern Architetturali
+§ PATTERN ARCHITETTURALI
 - Feature-based organization
 - Server Components per data fetching
 - Client Components per interattività
 - API Routes per backend logic
 - Middleware per autenticazione e routing
 
-## Principi di Design
+§ PRINCIPI DI DESIGN
 1. **Server First**: Prioritizzare Server Components
 2. **Type Safety**: TypeScript in tutta la codebase
 3. **Performance**: Ottimizzazione automatica di Next.js
@@ -502,7 +501,7 @@ Descrizione ad alto livello del sistema, obiettivi e scope.
 5. **Security**: Best practices OWASP
 Component Diagram (Mermaid)
 markdown
-```mermaid
+mermaid
 graph TB
     subgraph "Client Side"
         CC[Client Components]
@@ -538,7 +537,6 @@ graph TB
     CS --> CA
 Data Flow Diagram
 markdown
-```mermaid
 sequenceDiagram
     participant U as Utente
     participant B as Browser
@@ -614,12 +612,12 @@ Accettato | In Revisione | Deprecato | Sostituito da [ADR-002]
 ## Data
 2024-01-15
 
-## Decisori
+§ DECISORI
 - Marco Rossi (Tech Lead)
 - Sara Bianchi (Senior Developer)
 - Luca Verdi (Product Manager)
 
-## Contesto
+§ CONTESTO
 Il progetto richiede:
 - Miglior performance SEO
 - Streaming server components
@@ -632,7 +630,7 @@ Opzioni considerate:
 2. **Pages Router**: Approccio tradizionale ben consolidato
 3. **Remix.run**: Alternativa con focus UX
 
-## Decisione
+§ DECISIONE
 Adottare **Next.js App Router** per:
 
 **Vantaggi:**
@@ -648,23 +646,23 @@ Adottare **Next.js App Router** per:
 - Alcune librerie non ancora compatibili
 - Documentazione in evoluzione
 
-## Conseguenze
-### Positive
+§ CONSEGUENZE
+§ POSITIVE
 - Performance migliorata del 40% in lighthouse
 - Bundle size ridotto del 30%
 - Developer experience migliorata
 - Allineamento con roadmap Next.js
 
-### Negative
+§ NEGATIVE
 - Riscrittura di alcuni componenti
 - Training per team (2 settimane)
 - Monitoring aggiuntivo necessario
 
-### Neutral
+§ NEUTRAL
 - Supporto sia Server che Client Components
 - Backward compatibility con Pages Router
 
-## Link Correlati
+§ LINK CORRELATI
 - [Next.js App Router Docs](https://nextjs.org/docs/app)
 - [RFC Server Components](https://github.com/reactjs/rfcs/pull/188)
 - [Migration Guide](/docs/migration/app-router.md)
@@ -723,52 +721,52 @@ e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0
 
 ## [Unreleased]
 
-### Added
+§ ADDED
 - Supporto per dark mode nei componenti UI
 - Nuovo hook `useLocalStorage` per state persistence
 - Integration test con Playwright
 
-### Changed
+§ CHANGED
 - Aggiornato Next.js da 13.4 a 14.0.0
 - Migliorata performance di data fetching del 25%
 - Refactor cartella `lib/utils` in moduli separati
 
-### Deprecated
+§ DEPRECATED
 - `OldComponent` - da rimuovere in v2.0.0
 - API endpoint `/api/v1/users` - migrare a `/api/v2/users`
 
-### Fixed
+§ FIXED
 - Memory leak nei Server Components (#234)
 - Bug di hydration in Safari (#189)
 - Type safety in `useQuery` hook (#201)
 
-### Security
+§ SECURITY
 - Aggiornate dipendenze con vulnerabilità
 - Aggiunto CSP headers in middleware
 
-## [1.2.0] - 2024-01-20
+§ [1.2.0] - 2024-01-20
 
-### Added
+§ ADDED
 - **Feature**: Paginazione avanzata con infinite scroll
 - **Component**: `DataTable` con sorting e filtering
 - **API**: Nuovo endpoint `/api/analytics`
 - **Config**: Supporto per multiple environments
 
-### Changed
+§ CHANGED
 - **Performance**: Lazy loading per immagini sopra la fold
 - **Accessibility**: Migliorato contrasto colori (WCAG AA)
 - **DX**: Migliori error messages in dev mode
 
-### Fixed
+§ FIXED
 - Cross-browser issue con CSS Grid
 - Race condition in authentication flow
 - Incorrect cache invalidation
 
-### Migration Notes
+§ MIGRATION NOTES
 Per migrare da v1.1.0 a v1.2.0:
 
 1. Aggiornare dipendenze:
-```bash
+bash
 npm install next@14.0.0 react@18.2.0
 
 Eseguire migration script:
@@ -786,7 +784,6 @@ NEXT_PUBLIC_ANALYTICS_ID="your-id"
 text
 
 ### Automatic Generation (package.json)
-```json
 {
   "scripts": {
     "changelog": "auto-changelog --template keepachangelog --commit-limit false --unreleased",
@@ -808,14 +805,14 @@ markdown
 - [v1.1.0](/docs/releases/1.1.0.md) | [Breaking Changes](/docs/migrations/1.1.0.md#breaking)
 - [v1.0.0](/docs/releases/1.0.0.md) | [Initial Release](/docs/releases/1.0.0.md)
 
-## Roadmap
+§ ROADMAP
 
-### Q1 2024 (v2.0.0)
+§ Q1 2024 (V2.0.0)
 - [ ] Internationalization (i18n)
 - [ ] PWA support
 - [ ] Real-time updates
 
-### Q2 2024 (v2.1.0)
+§ Q2 2024 (V2.1.0)
 - [ ] AI integration
 - [ ] Advanced analytics
 - [ ] Mobile app (React Native)
@@ -1064,8 +1061,8 @@ markdown
 - Docker Desktop (opzionale) [Download](https://www.docker.com/)
 - VS Code (consigliato) [Download](https://code.visualstudio.com/)
 
-### Estensioni VS Code Consigliate
-```json
+§ ESTENSIONI VS CODE CONSIGLIATE
+json
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",

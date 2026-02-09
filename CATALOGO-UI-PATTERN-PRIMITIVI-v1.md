@@ -1,9 +1,9 @@
 # ============================================================================
 # CATALOGO UI PATTERN PRIMITIVI v1.0
 # ============================================================================
-# TIPO: SPECIFICA DETERMINISTICA
+§ TIPO: SPECIFICA DETERMINISTICA
 # TARGET: Generazione automatica UI per qualsiasi piattaforma
-# AFFIDABILITÀ TARGET: 90%
+§ AFFIDABILITÀ TARGET: 90%
 # DATA: Gennaio 2026
 # ============================================================================
 
@@ -20,7 +20,7 @@ ISTRUZIONI PER IL MODELLO AI:
 """
 
 # ============================================================================
-# INDICE CATEGORIE PATTERN
+§ INDICE CATEGORIE PATTERN
 # ============================================================================
 
 """
@@ -35,19 +35,19 @@ ISTRUZIONI PER IL MODELLO AI:
 """
 
 # ============================================================================
-# SEZIONE 1: LAYOUT PATTERNS
+§ SEZIONE 1: LAYOUT PATTERNS
 # ============================================================================
 
-## 1.1 APP SHELL
+§ 1.1 APP SHELL
 
-### Descrizione:
+§ DESCRIZIONE:
 Struttura base dell'applicazione che contiene header, sidebar, content area e footer.
 
-### Quando usarlo:
+§ QUANDO USARLO:
 - Applicazioni web complete (dashboard, admin panel, SaaS)
 - Qualsiasi app che richiede navigazione persistente
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `sidebar-left` | Sidebar a sinistra (default) |
@@ -56,9 +56,9 @@ Struttura base dell'applicazione che contiene header, sidebar, content area e fo
 | `no-sidebar` | Solo header + content + footer |
 | `minimal` | Solo content area |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // APP SHELL - Variante sidebar-left
 <div className="app-shell min-h-screen flex flex-col">
   {/* Header - Fixed top */}
@@ -103,19 +103,16 @@ Struttura base dell'applicazione che contiene header, sidebar, content area e fo
     {footerContent}
   </footer>
 </div>
-```
 
-### Token Utilizzati:
-```
+§ TOKEN UTILIZZATI:
 - surface-default, surface-muted, surface-subtle
 - border-default
 - text-default
 - spacing: h-16 (64px header), w-64 (256px sidebar), p-4, p-6, gap-2, gap-3
 - z-index: z-sticky
-```
 
-### Responsive Behavior:
-```jsx
+§ RESPONSIVE BEHAVIOR:
+jsx
 // Mobile: Sidebar diventa drawer
 // Tablet: Sidebar collassabile
 // Desktop: Sidebar sempre visibile
@@ -124,16 +121,15 @@ Struttura base dell'applicazione che contiene header, sidebar, content area e fo
 // < 768px (md): Sidebar hidden, hamburger menu
 // 768px - 1024px (lg): Sidebar collapsible (icons only)
 // > 1024px: Sidebar expanded
-```
 
 ---
 
-## 1.2 SIDEBAR LAYOUT
+§ 1.2 SIDEBAR LAYOUT
 
-### Descrizione:
+§ DESCRIZIONE:
 Layout con sidebar navigazionale. La sidebar può essere collassabile o fissa.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Larghezza | Comportamento |
 |----------|-----------|---------------|
 | `expanded` | 256px (w-64) | Sempre espansa |
@@ -142,9 +138,9 @@ Layout con sidebar navigazionale. La sidebar può essere collassabile o fissa.
 | `floating` | 256px | Overlay sul content |
 | `rail` | 72px | Stile Material rail |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SIDEBAR COLLAPSIBLE
 const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -200,25 +196,24 @@ const [isCollapsed, setIsCollapsed] = useState(false);
     )}
   </div>
 </aside>
-```
 
 ---
 
-## 1.3 SPLIT VIEW
+§ 1.3 SPLIT VIEW
 
-### Descrizione:
+§ DESCRIZIONE:
 Layout diviso in due pannelli (sinistra/destra o sopra/sotto) con divisore ridimensionabile.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Direzione | Uso Tipico |
 |----------|-----------|------------|
 | `horizontal` | Sinistra/Destra | Master-detail, email client |
 | `vertical` | Sopra/Sotto | Code editor, terminal |
 | `three-column` | 3 colonne | Email (folders, list, preview) |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SPLIT VIEW - Horizontal
 <div className="flex h-full">
   {/* Left Panel (Master) */}
@@ -243,16 +238,15 @@ Layout diviso in due pannelli (sinistra/destra o sopra/sotto) con divisore ridim
     {rightContent}
   </div>
 </div>
-```
 
 ---
 
-## 1.4 GRID LAYOUT
+§ 1.4 GRID LAYOUT
 
-### Descrizione:
+§ DESCRIZIONE:
 Sistema di griglia responsive per organizzare contenuti.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Colonne | Uso |
 |----------|---------|-----|
 | `12-col` | 12 colonne | Layout complessi |
@@ -260,9 +254,9 @@ Sistema di griglia responsive per organizzare contenuti.
 | `fixed` | N colonne fisse | Gallery, product grid |
 | `masonry` | Altezze variabili | Pinterest-style |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // GRID - Auto-fit responsive
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
   {items.map(item => (
@@ -284,18 +278,17 @@ Sistema di griglia responsive per organizzare contenuti.
     </div>
   ))}
 </div>
-```
 
 ---
 
-## 1.5 STACK LAYOUT
+§ 1.5 STACK LAYOUT
 
-### Descrizione:
+§ DESCRIZIONE:
 Elementi impilati verticalmente o orizzontalmente con spacing consistente.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // VERTICAL STACK
 <div className="flex flex-col gap-4">
   {children}
@@ -310,16 +303,15 @@ Elementi impilati verticalmente o orizzontalmente con spacing consistente.
 <div className="flex flex-col divide-y divide-border-default">
   {children}
 </div>
-```
 
 ---
 
-## 1.6 PAGE CONTAINER
+§ 1.6 PAGE CONTAINER
 
-### Descrizione:
+§ DESCRIZIONE:
 Contenitore per il contenuto principale della pagina con max-width e padding.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Max Width | Uso |
 |----------|-----------|-----|
 | `sm` | 640px | Form singolo |
@@ -328,9 +320,9 @@ Contenitore per il contenuto principale della pagina con max-width e padding.
 | `xl` | 1280px | Wide content |
 | `full` | 100% | No max-width |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PAGE CONTAINER
 <div className={cn(
   "mx-auto px-4 sm:px-6 lg:px-8",
@@ -344,19 +336,18 @@ Contenitore per il contenuto principale della pagina con max-width e padding.
 )}>
   {children}
 </div>
-```
 
 
 # ============================================================================
-# SEZIONE 2: NAVIGATION PATTERNS
+§ SEZIONE 2: NAVIGATION PATTERNS
 # ============================================================================
 
-## 2.1 TOP NAVIGATION BAR (NAVBAR)
+§ 2.1 TOP NAVIGATION BAR (NAVBAR)
 
-### Descrizione:
+§ DESCRIZIONE:
 Barra di navigazione orizzontale in cima alla pagina.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `simple` | Logo + Nav links + Actions |
@@ -365,9 +356,9 @@ Barra di navigazione orizzontale in cima alla pagina.
 | `transparent` | Background trasparente (hero) |
 | `sticky` | Resta fisso durante scroll |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOP NAVBAR - Standard
 <nav className="h-16 bg-surface-default border-b border-border-default 
                 sticky top-0 z-sticky">
@@ -412,18 +403,17 @@ Barra di navigazione orizzontale in cima alla pagina.
     </div>
   </div>
 </nav>
-```
 
 ---
 
-## 2.2 BOTTOM NAVIGATION BAR
+§ 2.2 BOTTOM NAVIGATION BAR
 
-### Descrizione:
+§ DESCRIZIONE:
 Navigazione mobile in basso allo schermo (3-5 items).
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BOTTOM NAV - Mobile
 <nav className="fixed bottom-0 left-0 right-0 h-16 bg-surface-default 
                 border-t border-border-default z-sticky
@@ -446,16 +436,15 @@ Navigazione mobile in basso allo schermo (3-5 items).
     </a>
   ))}
 </nav>
-```
 
 ---
 
-## 2.3 TABS
+§ 2.3 TABS
 
-### Descrizione:
+§ DESCRIZIONE:
 Navigazione tra sezioni di contenuto correlato.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `line` | Underline indicator (default) |
@@ -464,9 +453,9 @@ Navigazione tra sezioni di contenuto correlato.
 | `vertical` | Tabs verticali |
 | `scrollable` | Scroll orizzontale mobile |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TABS - Line variant
 <div className="border-b border-border-default">
   <nav className="flex gap-0 -mb-px" role="tablist">
@@ -509,9 +498,8 @@ Navigazione tra sezioni di contenuto correlato.
     {tab.content}
   </div>
 ))}
-```
 
-```jsx
+jsx
 // TABS - Pills variant
 <div className="flex gap-1 p-1 bg-surface-muted rounded-lg">
   {tabs.map(tab => (
@@ -529,18 +517,17 @@ Navigazione tra sezioni di contenuto correlato.
     </button>
   ))}
 </div>
-```
 
 ---
 
-## 2.4 BREADCRUMBS
+§ 2.4 BREADCRUMBS
 
-### Descrizione:
+§ DESCRIZIONE:
 Mostra il percorso di navigazione corrente.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BREADCRUMBS
 <nav aria-label="Breadcrumb">
   <ol className="flex items-center gap-2 text-sm">
@@ -565,16 +552,15 @@ Mostra il percorso di navigazione corrente.
     ))}
   </ol>
 </nav>
-```
 
 ---
 
-## 2.5 PAGINATION
+§ 2.5 PAGINATION
 
-### Descrizione:
+§ DESCRIZIONE:
 Navigazione tra pagine di contenuti.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `numbers` | Numeri di pagina cliccabili |
@@ -582,9 +568,9 @@ Navigazione tra pagine di contenuti.
 | `load-more` | Bottone "Load more" |
 | `infinite` | Scroll infinito |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PAGINATION - Numbers
 <nav aria-label="Pagination" className="flex items-center justify-center gap-1">
   {/* Previous */}
@@ -634,16 +620,15 @@ Navigazione tra pagine di contenuti.
     <ChevronRightIcon className="w-5 h-5" />
   </button>
 </nav>
-```
 
 ---
 
-## 2.6 STEPPER / WIZARD
+§ 2.6 STEPPER / WIZARD
 
-### Descrizione:
+§ DESCRIZIONE:
 Navigazione multi-step per processi sequenziali.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `horizontal` | Steps orizzontali |
@@ -651,9 +636,9 @@ Navigazione multi-step per processi sequenziali.
 | `dots` | Solo indicatori dot |
 | `numbers` | Con numeri |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // STEPPER - Horizontal
 <nav aria-label="Progress">
   <ol className="flex items-center">
@@ -695,18 +680,17 @@ Navigazione multi-step per processi sequenziali.
     ))}
   </ol>
 </nav>
-```
 
 ---
 
-## 2.7 SIDEBAR NAVIGATION
+§ 2.7 SIDEBAR NAVIGATION
 
-### Descrizione:
+§ DESCRIZIONE:
 Menu di navigazione verticale per sidebar.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SIDEBAR NAV
 <nav className="space-y-1">
   {navGroups.map(group => (
@@ -785,19 +769,18 @@ Menu di navigazione verticale per sidebar.
     </div>
   ))}
 </nav>
-```
 
 
 # ============================================================================
-# SEZIONE 3: CONTENT PATTERNS
+§ SEZIONE 3: CONTENT PATTERNS
 # ============================================================================
 
-## 3.1 CARD
+§ 3.1 CARD
 
-### Descrizione:
+§ DESCRIZIONE:
 Contenitore per raggruppare informazioni correlate con bordo, sfondo e padding.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `default` | Card standard con bordo |
@@ -807,9 +790,9 @@ Contenitore per raggruppare informazioni correlate con bordo, sfondo e padding.
 | `image-top` | Immagine in cima |
 | `horizontal` | Layout orizzontale |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CARD - Default
 <article className="bg-surface-default border border-border-default rounded-lg 
                     overflow-hidden">
@@ -856,9 +839,8 @@ Contenitore per raggruppare informazioni correlate con bordo, sfondo e padding.
     )}
   </div>
 </article>
-```
 
-```jsx
+jsx
 // CARD - Interactive (Clickable)
 <article className={cn(
   "bg-surface-default border border-border-default rounded-lg",
@@ -869,16 +851,15 @@ Contenitore per raggruppare informazioni correlate con bordo, sfondo e padding.
 )}>
   {/* ...contenuto card... */}
 </article>
-```
 
 ---
 
-## 3.2 LIST ITEM
+§ 3.2 LIST ITEM
 
-### Descrizione:
+§ DESCRIZIONE:
 Elemento singolo di una lista con layout flessibile.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `simple` | Solo testo |
@@ -888,9 +869,9 @@ Elemento singolo di una lista con layout flessibile.
 | `with-action` | Azione a destra |
 | `selectable` | Checkbox/radio |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // LIST ITEM - With description and action
 <li className="flex items-start gap-3 p-3 hover:bg-surface-muted 
                rounded-md transition-colors">
@@ -929,18 +910,17 @@ Elemento singolo di una lista con layout flessibile.
     </div>
   )}
 </li>
-```
 
 ---
 
-## 3.3 EMPTY STATE
+§ 3.3 EMPTY STATE
 
-### Descrizione:
+§ DESCRIZIONE:
 Placeholder quando non ci sono dati da mostrare.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // EMPTY STATE
 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
   {/* Illustration/Icon */}
@@ -965,16 +945,15 @@ Placeholder quando non ci sono dati da mostrare.
     </Button>
   )}
 </div>
-```
 
 ---
 
-## 3.4 HERO SECTION
+§ 3.4 HERO SECTION
 
-### Descrizione:
+§ DESCRIZIONE:
 Sezione prominente in cima alla pagina per landing page e marketing.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `centered` | Testo centrato |
@@ -982,9 +961,9 @@ Sezione prominente in cima alla pagina per landing page e marketing.
 | `with-image-bg` | Immagine di sfondo |
 | `with-video` | Video di sfondo |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // HERO - Centered
 <section className="relative py-20 lg:py-32 bg-surface-default">
   <div className="max-w-4xl mx-auto px-4 text-center">
@@ -1027,18 +1006,17 @@ Sezione prominente in cima alla pagina per landing page e marketing.
     )}
   </div>
 </section>
-```
 
 ---
 
-## 3.5 SECTION HEADER
+§ 3.5 SECTION HEADER
 
-### Descrizione:
+§ DESCRIZIONE:
 Header per introdurre una sezione di contenuto.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SECTION HEADER
 <div className="flex items-center justify-between mb-6">
   <div>
@@ -1059,18 +1037,17 @@ Header per introdurre una sezione di contenuto.
     </Button>
   )}
 </div>
-```
 
 ---
 
-## 3.6 MEDIA OBJECT
+§ 3.6 MEDIA OBJECT
 
-### Descrizione:
+§ DESCRIZIONE:
 Pattern classico con media a sinistra e contenuto a destra.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // MEDIA OBJECT
 <div className="flex gap-4">
   {/* Media */}
@@ -1088,18 +1065,17 @@ Pattern classico con media a sinistra e contenuto a destra.
     <p className="text-sm text-text-muted mt-1">{content}</p>
   </div>
 </div>
-```
 
 # ============================================================================
-# SEZIONE 4: INPUT PATTERNS
+§ SEZIONE 4: INPUT PATTERNS
 # ============================================================================
 
-## 4.1 TEXT INPUT
+§ 4.1 TEXT INPUT
 
-### Descrizione:
+§ DESCRIZIONE:
 Campo di input testuale con label, placeholder, helper text e stati.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `default` | Input standard |
@@ -1108,7 +1084,7 @@ Campo di input testuale con label, placeholder, helper text e stati.
 | `textarea` | Multi-line |
 | `password` | Con toggle visibility |
 
-### Stati:
+§ STATI:
 | Stato | Descrizione |
 |-------|-------------|
 | `default` | Stato normale |
@@ -1117,9 +1093,9 @@ Campo di input testuale con label, placeholder, helper text e stati.
 | `error` | Con errore |
 | `success` | Validato con successo |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TEXT INPUT - Complete
 <div className="space-y-1.5">
   {/* Label */}
@@ -1185,16 +1161,15 @@ Campo di input testuale con label, placeholder, helper text e stati.
     </p>
   )}
 </div>
-```
 
 ---
 
-## 4.2 SELECT / DROPDOWN
+§ 4.2 SELECT / DROPDOWN
 
-### Descrizione:
+§ DESCRIZIONE:
 Menu a tendina per selezione singola o multipla.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `native` | Select nativo HTML |
@@ -1202,9 +1177,9 @@ Menu a tendina per selezione singola o multipla.
 | `searchable` | Con ricerca (Combobox) |
 | `multi` | Selezione multipla |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SELECT - Custom (Headless UI style)
 <Listbox value={selected} onChange={setSelected}>
   <div className="relative">
@@ -1264,15 +1239,14 @@ Menu a tendina per selezione singola o multipla.
     </Transition>
   </div>
 </Listbox>
-```
 
 ---
 
-## 4.3 CHECKBOX
+§ 4.3 CHECKBOX
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHECKBOX
 <label className="flex items-start gap-3 cursor-pointer group">
   <div className="relative flex items-center justify-center mt-0.5">
@@ -1305,15 +1279,14 @@ Menu a tendina per selezione singola o multipla.
     )}
   </div>
 </label>
-```
 
 ---
 
-## 4.4 RADIO GROUP
+§ 4.4 RADIO GROUP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RADIO GROUP
 <fieldset>
   <legend className="text-sm font-medium text-text-default mb-3">
@@ -1361,15 +1334,14 @@ Menu a tendina per selezione singola o multipla.
     ))}
   </div>
 </fieldset>
-```
 
 ---
 
-## 4.5 TOGGLE / SWITCH
+§ 4.5 TOGGLE / SWITCH
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOGGLE SWITCH
 <Switch.Group>
   <div className="flex items-center justify-between">
@@ -1395,15 +1367,14 @@ Menu a tendina per selezione singola o multipla.
     </Switch>
   </div>
 </Switch.Group>
-```
 
 ---
 
-## 4.6 SEARCH INPUT
+§ 4.6 SEARCH INPUT
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SEARCH INPUT
 <div className="relative">
   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 
@@ -1430,18 +1401,17 @@ Menu a tendina per selezione singola o multipla.
     </button>
   )}
 </div>
-```
 
 ---
 
-## 4.7 DATE PICKER
+§ 4.7 DATE PICKER
 
-### Descrizione:
+§ DESCRIZIONE:
 Selezione data con calendario popup.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DATE PICKER - Trigger
 <Popover>
   <Popover.Button className={cn(
@@ -1467,15 +1437,14 @@ Selezione data con calendario popup.
     />
   </Popover.Panel>
 </Popover>
-```
 
 ---
 
-## 4.8 FILE UPLOAD
+§ 4.8 FILE UPLOAD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // FILE UPLOAD - Dropzone
 <div
   onDragOver={handleDragOver}
@@ -1512,19 +1481,18 @@ Selezione data con calendario popup.
     {hint || "PNG, JPG up to 10MB"}
   </p>
 </div>
-```
 
 
 # ============================================================================
-# SEZIONE 5: FEEDBACK PATTERNS
+§ SEZIONE 5: FEEDBACK PATTERNS
 # ============================================================================
 
-## 5.1 ALERT / BANNER
+§ 5.1 ALERT / BANNER
 
-### Descrizione:
+§ DESCRIZIONE:
 Messaggio inline per comunicare informazioni importanti all'utente.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Colore | Uso |
 |----------|--------|-----|
 | `info` | Blue | Informazioni generali |
@@ -1532,9 +1500,9 @@ Messaggio inline per comunicare informazioni importanti all'utente.
 | `warning` | Amber | Attenzione richiesta |
 | `error` | Red | Errore o problema |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ALERT
 <div 
   role="alert"
@@ -1579,18 +1547,17 @@ Messaggio inline per comunicare informazioni importanti all'utente.
     </button>
   )}
 </div>
-```
 
 ---
 
-## 5.2 TOAST / NOTIFICATION
+§ 5.2 TOAST / NOTIFICATION
 
-### Descrizione:
+§ DESCRIZIONE:
 Notifica temporanea che appare e scompare automaticamente.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOAST
 <div className={cn(
   "fixed bottom-4 right-4 z-toast",
@@ -1630,22 +1597,21 @@ Notifica temporanea che appare e scompare automaticamente.
     </button>
   </div>
 </div>
-```
 
 ---
 
-## 5.3 PROGRESS BAR
+§ 5.3 PROGRESS BAR
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `determinate` | Percentuale nota |
 | `indeterminate` | Loading infinito |
 | `segmented` | Passaggi discreti |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PROGRESS BAR - Determinate
 <div className="space-y-2">
   {/* Label */}
@@ -1671,15 +1637,14 @@ Notifica temporanea che appare e scompare automaticamente.
 <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
   <div className="h-full w-1/3 bg-surface-brand rounded-full animate-progress-indeterminate" />
 </div>
-```
 
 ---
 
-## 5.4 SPINNER / LOADER
+§ 5.4 SPINNER / LOADER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SPINNER
 <svg 
   className={cn(
@@ -1714,13 +1679,12 @@ Notifica temporanea che appare e scompare automaticamente.
   <div className="h-4 bg-surface-muted rounded w-1/2" />
   <div className="h-4 bg-surface-muted rounded w-5/6" />
 </div>
-```
 
 ---
 
-## 5.5 BADGE
+§ 5.5 BADGE
 
-### Varianti:
+§ VARIANTI:
 | Variante | Uso |
 |----------|-----|
 | `primary` | Principale |
@@ -1730,9 +1694,9 @@ Notifica temporanea che appare e scompare automaticamente.
 | `error` | Negativo |
 | `outline` | Solo bordo |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BADGE
 <span className={cn(
   "inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
@@ -1756,15 +1720,14 @@ Notifica temporanea che appare e scompare automaticamente.
   )}
   {children}
 </span>
-```
 
 ---
 
-## 5.6 TOOLTIP
+§ 5.6 TOOLTIP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOOLTIP
 <Tooltip.Provider>
   <Tooltip.Root>
@@ -1789,18 +1752,17 @@ Notifica temporanea che appare e scompare automaticamente.
     </Tooltip.Portal>
   </Tooltip.Root>
 </Tooltip.Provider>
-```
 
 # ============================================================================
-# SEZIONE 6: OVERLAY PATTERNS
+§ SEZIONE 6: OVERLAY PATTERNS
 # ============================================================================
 
-## 6.1 MODAL / DIALOG
+§ 6.1 MODAL / DIALOG
 
-### Descrizione:
+§ DESCRIZIONE:
 Finestra modale per interazioni importanti che richiedono focus.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Larghezza | Uso |
 |----------|-----------|-----|
 | `sm` | 400px | Conferme semplici |
@@ -1809,9 +1771,9 @@ Finestra modale per interazioni importanti che richiedono focus.
 | `xl` | 800px | Contenuti ricchi |
 | `full` | Full screen | Mobile o editor |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // MODAL
 <Dialog open={isOpen} onClose={onClose}>
   {/* Backdrop */}
@@ -1858,16 +1820,15 @@ Finestra modale per interazioni importanti che richiedono focus.
     </Dialog.Panel>
   </div>
 </Dialog>
-```
 
 ---
 
-## 6.2 DRAWER / SHEET
+§ 6.2 DRAWER / SHEET
 
-### Descrizione:
+§ DESCRIZIONE:
 Pannello che scorre dal bordo dello schermo.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `left` | Da sinistra |
@@ -1875,9 +1836,9 @@ Pannello che scorre dal bordo dello schermo.
 | `bottom` | Dal basso (mobile sheet) |
 | `top` | Dall'alto |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DRAWER - Right
 <Transition show={isOpen}>
   {/* Backdrop */}
@@ -1932,15 +1893,14 @@ Pannello che scorre dal bordo dello schermo.
     </div>
   </Transition.Child>
 </Transition>
-```
 
 ---
 
-## 6.3 POPOVER / DROPDOWN MENU
+§ 6.3 POPOVER / DROPDOWN MENU
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // POPOVER
 <Popover className="relative">
   <Popover.Button className={triggerClassName}>
@@ -2001,18 +1961,17 @@ Pannello che scorre dal bordo dello schermo.
     ))}
   </Menu.Items>
 </Menu>
-```
 
 ---
 
-## 6.4 COMMAND PALETTE
+§ 6.4 COMMAND PALETTE
 
-### Descrizione:
+§ DESCRIZIONE:
 Ricerca globale con comandi (⌘K / Ctrl+K pattern).
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // COMMAND PALETTE
 <Dialog open={isOpen} onClose={onClose}>
   <div className="fixed inset-0 z-command bg-black/50 backdrop-blur-sm" />
@@ -2066,21 +2025,20 @@ Ricerca globale con comandi (⌘K / Ctrl+K pattern).
     </Dialog.Panel>
   </div>
 </Dialog>
-```
 
 
 # ============================================================================
-# SEZIONE 7: DATA DISPLAY PATTERNS
+§ SEZIONE 7: DATA DISPLAY PATTERNS
 # ============================================================================
 
-## 7.1 DATA TABLE
+§ 7.1 DATA TABLE
 
-### Descrizione:
+§ DESCRIZIONE:
 Tabella per visualizzare dati strutturati con sorting, filtering, pagination.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DATA TABLE
 <div className="border border-border-default rounded-lg overflow-hidden">
   {/* Table Header Actions */}
@@ -2189,18 +2147,17 @@ Tabella per visualizzare dati strutturati con sorting, filtering, pagination.
     />
   </div>
 </div>
-```
 
 ---
 
-## 7.2 STATS CARD / METRIC
+§ 7.2 STATS CARD / METRIC
 
-### Descrizione:
+§ DESCRIZIONE:
 Visualizzazione di una singola metrica con trend.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // STAT CARD
 <div className="bg-surface-default border border-border-default rounded-lg p-4">
   <div className="flex items-start justify-between">
@@ -2242,18 +2199,17 @@ Visualizzazione di una singola metrica con trend.
     </div>
   )}
 </div>
-```
 
 ---
 
-## 7.3 CHART CONTAINER
+§ 7.3 CHART CONTAINER
 
-### Descrizione:
+§ DESCRIZIONE:
 Wrapper per grafici con header, legenda e controlli.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHART CONTAINER
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Chart Header */}
@@ -2311,18 +2267,17 @@ Wrapper per grafici con header, legenda e controlli.
     </div>
   )}
 </div>
-```
 
 ---
 
-## 7.4 TIMELINE
+§ 7.4 TIMELINE
 
-### Descrizione:
+§ DESCRIZIONE:
 Visualizzazione cronologica di eventi.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TIMELINE
 <div className="space-y-0">
   {events.map((event, index) => (
@@ -2363,15 +2318,14 @@ Visualizzazione cronologica di eventi.
     </div>
   ))}
 </div>
-```
 
 ---
 
-## 7.5 AVATAR GROUP
+§ 7.5 AVATAR GROUP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // AVATAR GROUP
 <div className="flex -space-x-2">
   {users.slice(0, maxVisible).map((user, index) => (
@@ -2400,15 +2354,14 @@ Visualizzazione cronologica di eventi.
     </div>
   )}
 </div>
-```
 
 # ============================================================================
-# SEZIONE 8: ACTION PATTERNS
+§ SEZIONE 8: ACTION PATTERNS
 # ============================================================================
 
-## 8.1 BUTTON
+§ 8.1 BUTTON
 
-### Varianti:
+§ VARIANTI:
 | Variante | Uso |
 |----------|-----|
 | `primary` | Azione principale |
@@ -2418,16 +2371,16 @@ Visualizzazione cronologica di eventi.
 | `destructive` | Azione pericolosa |
 | `link` | Come link |
 
-### Sizes:
+§ SIZES:
 | Size | Height | Uso |
 |------|--------|-----|
 | `sm` | 32px | Compact UI |
 | `md` | 40px | Default |
 | `lg` | 48px | CTAs prominenti |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BUTTON
 <button
   type={type}
@@ -2469,15 +2422,14 @@ Visualizzazione cronologica di eventi.
     </>
   )}
 </button>
-```
 
 ---
 
-## 8.2 BUTTON GROUP
+§ 8.2 BUTTON GROUP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BUTTON GROUP
 <div className="inline-flex rounded-md shadow-sm" role="group">
   {buttons.map((button, index) => (
@@ -2500,15 +2452,14 @@ Visualizzazione cronologica di eventi.
     </button>
   ))}
 </div>
-```
 
 ---
 
-## 8.3 ICON BUTTON
+§ 8.3 ICON BUTTON
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ICON BUTTON
 <button
   aria-label={ariaLabel}
@@ -2540,15 +2491,14 @@ Visualizzazione cronologica di eventi.
     size === "lg" && "w-6 h-6"
   )} />
 </button>
-```
 
 ---
 
-## 8.4 FAB (Floating Action Button)
+§ 8.4 FAB (FLOATING ACTION BUTTON)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // FAB
 <button
   className={cn(
@@ -2586,15 +2536,14 @@ Visualizzazione cronologica di eventi.
   <PlusIcon className="w-5 h-5" />
   <span className="font-medium">Create New</span>
 </button>
-```
 
 ---
 
-## 8.5 CONFIRMATION DIALOG
+§ 8.5 CONFIRMATION DIALOG
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CONFIRMATION DIALOG
 <Dialog open={isOpen} onClose={onCancel}>
   <div className="fixed inset-0 z-modal-backdrop bg-black/50" />
@@ -2640,11 +2589,10 @@ Visualizzazione cronologica di eventi.
     </Dialog.Panel>
   </div>
 </Dialog>
-```
 
 
 # ============================================================================
-# PARTE II: PATTERN SPECIFICI PER CATEGORIA DI PIATTAFORMA
+§ PARTE II: PATTERN SPECIFICI PER CATEGORIA DI PIATTAFORMA
 # ============================================================================
 
 """
@@ -2663,17 +2611,17 @@ CATEGORIE:
 """
 
 # ============================================================================
-# CATEGORIA 1: E-COMMERCE PATTERNS
+§ CATEGORIA 1: E-COMMERCE PATTERNS
 # ============================================================================
 
-## EC-1: PRODUCT CARD
+§ EC-1: PRODUCT CARD
 
-### Descrizione:
+§ DESCRIZIONE:
 Card per visualizzare un prodotto in grid o list view.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PRODUCT CARD
 <article className="group bg-surface-default border border-border-default rounded-lg overflow-hidden">
   {/* Image Container */}
@@ -2764,15 +2712,14 @@ Card per visualizzare un prodotto in grid o list view.
     </Button>
   </div>
 </article>
-```
 
 ---
 
-## EC-2: CART ITEM
+§ EC-2: CART ITEM
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CART ITEM
 <div className="flex gap-4 py-4 border-b border-border-default">
   {/* Product Image */}
@@ -2835,15 +2782,14 @@ Card per visualizzare un prodotto in grid o list view.
     </div>
   </div>
 </div>
-```
 
 ---
 
-## EC-3: CHECKOUT STEPPER
+§ EC-3: CHECKOUT STEPPER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHECKOUT STEPS: Cart → Shipping → Payment → Review
 const CHECKOUT_STEPS = [
   { id: 'cart', label: 'Cart', icon: ShoppingCartIcon },
@@ -2895,15 +2841,14 @@ const CHECKOUT_STEPS = [
     );
   })}
 </nav>
-```
 
 ---
 
-## EC-4: ORDER SUMMARY
+§ EC-4: ORDER SUMMARY
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ORDER SUMMARY (Sidebar)
 <div className="bg-surface-muted rounded-lg p-6 sticky top-4">
   <h3 className="text-lg font-semibold text-text-default mb-4">
@@ -2973,15 +2918,14 @@ const CHECKOUT_STEPS = [
     <img src="/badges/mastercard.svg" alt="Mastercard" className="h-6" />
   </div>
 </div>
-```
 
 ---
 
-## EC-5: PRODUCT FILTERS
+§ EC-5: PRODUCT FILTERS
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PRODUCT FILTERS (Sidebar)
 <aside className="w-64 shrink-0">
   <div className="sticky top-4 space-y-6">
@@ -3093,17 +3037,16 @@ const CHECKOUT_STEPS = [
     </FilterSection>
   </div>
 </aside>
-```
 
 # ============================================================================
-# CATEGORIA 2: SAAS PATTERNS
+§ CATEGORIA 2: SAAS PATTERNS
 # ============================================================================
 
-## SAAS-1: PRICING TABLE
+§ SAAS-1: PRICING TABLE
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PRICING TABLE
 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
   {plans.map(plan => (
@@ -3172,15 +3115,14 @@ const CHECKOUT_STEPS = [
     </div>
   ))}
 </div>
-```
 
 ---
 
-## SAAS-2: ONBOARDING CHECKLIST
+§ SAAS-2: ONBOARDING CHECKLIST
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ONBOARDING CHECKLIST
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Header */}
@@ -3250,15 +3192,14 @@ const CHECKOUT_STEPS = [
     ))}
   </div>
 </div>
-```
 
 ---
 
-## SAAS-3: USAGE METER
+§ SAAS-3: USAGE METER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // USAGE METER
 <div className="bg-surface-default border border-border-default rounded-lg p-4">
   <div className="flex items-center justify-between mb-2">
@@ -3305,15 +3246,14 @@ const CHECKOUT_STEPS = [
     </Button>
   )}
 </div>
-```
 
 ---
 
-## SAAS-4: TEAM MEMBER ROW
+§ SAAS-4: TEAM MEMBER ROW
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TEAM MEMBER ROW
 <div className="flex items-center gap-4 py-4 border-b border-border-default">
   {/* Avatar & Info */}
@@ -3376,18 +3316,17 @@ const CHECKOUT_STEPS = [
     )}
   </div>
 </div>
-```
 
 
 # ============================================================================
-# CATEGORIA 3: DASHBOARD / ANALYTICS PATTERNS
+§ CATEGORIA 3: DASHBOARD / ANALYTICS PATTERNS
 # ============================================================================
 
-## DASH-1: KPI CARD GRID
+§ DASH-1: KPI CARD GRID
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // KPI CARD GRID
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
   {kpis.map(kpi => (
@@ -3424,15 +3363,14 @@ const CHECKOUT_STEPS = [
     </div>
   ))}
 </div>
-```
 
 ---
 
-## DASH-2: DATA WIDGET
+§ DASH-2: DATA WIDGET
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DATA WIDGET (Generic Container)
 <div className="bg-surface-default border border-border-default rounded-lg flex flex-col">
   {/* Widget Header */}
@@ -3505,15 +3443,14 @@ const CHECKOUT_STEPS = [
     </div>
   )}
 </div>
-```
 
 ---
 
-## DASH-3: FILTER BAR
+§ DASH-3: FILTER BAR
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DASHBOARD FILTER BAR
 <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-muted/50 rounded-lg">
   {/* Date Range Picker */}
@@ -3573,15 +3510,14 @@ const CHECKOUT_STEPS = [
     </Button>
   )}
 </div>
-```
 
 ---
 
-## DASH-4: ACTIVITY FEED
+§ DASH-4: ACTIVITY FEED
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ACTIVITY FEED
 <div className="bg-surface-default border border-border-default rounded-lg">
   <div className="p-4 border-b border-border-default">
@@ -3639,17 +3575,16 @@ const CHECKOUT_STEPS = [
     </div>
   )}
 </div>
-```
 
 # ============================================================================
-# CATEGORIA 4: SOCIAL / CHAT PATTERNS
+§ CATEGORIA 4: SOCIAL / CHAT PATTERNS
 # ============================================================================
 
-## SOCIAL-1: POST CARD (Feed Item)
+§ SOCIAL-1: POST CARD (FEED ITEM)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // POST CARD
 <article className="bg-surface-default border border-border-default rounded-lg">
   {/* Post Header */}
@@ -3755,15 +3690,14 @@ const CHECKOUT_STEPS = [
     </button>
   </div>
 </article>
-```
 
 ---
 
-## SOCIAL-2: CHAT MESSAGE
+§ SOCIAL-2: CHAT MESSAGE
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHAT MESSAGE
 <div className={cn(
   "flex gap-2 max-w-[80%]",
@@ -3837,15 +3771,14 @@ function MessageStatus({ status }) {
   if (status === 'read') return <CheckCheckIcon className="w-3 h-3 text-blue-400" />;
   return null;
 }
-```
 
 ---
 
-## SOCIAL-3: CHAT INPUT
+§ SOCIAL-3: CHAT INPUT
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHAT INPUT BAR
 <div className="border-t border-border-default bg-surface-default p-3">
   {/* Reply Preview */}
@@ -3918,15 +3851,14 @@ function MessageStatus({ status }) {
     </div>
   )}
 </div>
-```
 
 ---
 
-## SOCIAL-4: NOTIFICATION ITEM
+§ SOCIAL-4: NOTIFICATION ITEM
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // NOTIFICATION ITEM
 <a 
   href={notification.href}
@@ -3988,18 +3920,17 @@ function MessageStatus({ status }) {
     <div className="w-2 h-2 rounded-full bg-surface-brand shrink-0 mt-2" />
   )}
 </a>
-```
 
 
 # ============================================================================
-# CATEGORIA 5: VIDEO STREAMING PATTERNS
+§ CATEGORIA 5: VIDEO STREAMING PATTERNS
 # ============================================================================
 
-## VIDEO-1: VIDEO PLAYER
+§ VIDEO-1: VIDEO PLAYER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // VIDEO PLAYER
 <div 
   className="relative aspect-video bg-black rounded-lg overflow-hidden group"
@@ -4180,15 +4111,14 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 ---
 
-## VIDEO-2: CONTENT CARD (Netflix-style)
+§ VIDEO-2: CONTENT CARD (NETFLIX-STYLE)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // VIDEO CONTENT CARD
 <div className="group relative">
   {/* Thumbnail */}
@@ -4273,15 +4203,14 @@ function MessageStatus({ status }) {
     </h4>
   </div>
 </div>
-```
 
 ---
 
-## VIDEO-3: CONTENT ROW (Horizontal Carousel)
+§ VIDEO-3: CONTENT ROW (HORIZONTAL CAROUSEL)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CONTENT ROW
 <section className="py-4">
   {/* Row Header */}
@@ -4338,17 +4267,16 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </section>
-```
 
 # ============================================================================
-# CATEGORIA 6: HEALTHCARE (HIPAA) PATTERNS
+§ CATEGORIA 6: HEALTHCARE (HIPAA) PATTERNS
 # ============================================================================
 
-## HEALTH-1: PATIENT INFO CARD
+§ HEALTH-1: PATIENT INFO CARD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PATIENT INFO CARD (HIPAA Compliant)
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Patient Header */}
@@ -4439,15 +4367,14 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 ---
 
-## HEALTH-2: VITALS DISPLAY
+§ HEALTH-2: VITALS DISPLAY
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // VITALS DISPLAY
 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
   {vitals.map(vital => {
@@ -4490,15 +4417,14 @@ function MessageStatus({ status }) {
     );
   })}
 </div>
-```
 
 ---
 
-## HEALTH-3: APPOINTMENT SCHEDULER
+§ HEALTH-3: APPOINTMENT SCHEDULER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // APPOINTMENT SCHEDULER
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Calendar Header */}
@@ -4593,15 +4519,14 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 ---
 
-## HEALTH-4: SECURE MESSAGE (PHI)
+§ HEALTH-4: SECURE MESSAGE (PHI)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SECURE MESSAGE (HIPAA-Compliant)
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Security Banner */}
@@ -4694,18 +4619,17 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 
 # ============================================================================
-# CATEGORIA 7: FINTECH (PCI-DSS) PATTERNS
+§ CATEGORIA 7: FINTECH (PCI-DSS) PATTERNS
 # ============================================================================
 
-## FINTECH-1: ACCOUNT BALANCE CARD
+§ FINTECH-1: ACCOUNT BALANCE CARD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ACCOUNT BALANCE CARD (PCI-DSS Compliant)
 <div className="bg-gradient-to-br from-surface-brand to-surface-brand-emphasis 
                 rounded-xl p-6 text-white">
@@ -4756,15 +4680,14 @@ function MessageStatus({ status }) {
     </Button>
   </div>
 </div>
-```
 
 ---
 
-## FINTECH-2: TRANSACTION LIST
+§ FINTECH-2: TRANSACTION LIST
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TRANSACTION LIST (PCI-DSS Compliant)
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Header */}
@@ -4856,15 +4779,14 @@ function MessageStatus({ status }) {
     </div>
   )}
 </div>
-```
 
 ---
 
-## FINTECH-3: PAYMENT FORM (PCI-DSS)
+§ FINTECH-3: PAYMENT FORM (PCI-DSS)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PAYMENT FORM (PCI-DSS Compliant - Card data handled by Stripe/similar)
 <div className="max-w-md mx-auto">
   {/* Security Badge */}
@@ -4963,15 +4885,14 @@ function MessageStatus({ status }) {
     </div>
   </form>
 </div>
-```
 
 ---
 
-## FINTECH-4: KYC VERIFICATION STEP
+§ FINTECH-4: KYC VERIFICATION STEP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // KYC VERIFICATION STEP
 <div className="max-w-lg mx-auto">
   {/* Progress */}
@@ -5116,17 +5037,16 @@ function MessageStatus({ status }) {
     </Button>
   </div>
 </div>
-```
 
 # ============================================================================
-# CATEGORIA 8: IOT PATTERNS
+§ CATEGORIA 8: IOT PATTERNS
 # ============================================================================
 
-## IOT-1: DEVICE CARD
+§ IOT-1: DEVICE CARD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // IOT DEVICE CARD
 <div className={cn(
   "bg-surface-default border rounded-lg p-4",
@@ -5216,15 +5136,14 @@ function MessageStatus({ status }) {
     </div>
   )}
 </div>
-```
 
 ---
 
-## IOT-2: SENSOR DASHBOARD
+§ IOT-2: SENSOR DASHBOARD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SENSOR DASHBOARD
 <div className="space-y-6">
   {/* Summary Cards */}
@@ -5345,15 +5264,14 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 ---
 
-## IOT-3: DEVICE CONTROL PANEL
+§ IOT-3: DEVICE CONTROL PANEL
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DEVICE CONTROL PANEL
 <div className="bg-surface-default border border-border-default rounded-lg p-6">
   <div className="flex items-center justify-between mb-6">
@@ -5463,19 +5381,18 @@ function MessageStatus({ status }) {
     </div>
   </div>
 </div>
-```
 
 
 # ============================================================================
-# SEZIONE 3: CONTENT PATTERNS
+§ SEZIONE 3: CONTENT PATTERNS
 # ============================================================================
 
-## 3.1 CARD
+§ 3.1 CARD
 
-### Descrizione:
+§ DESCRIZIONE:
 Contenitore per raggruppare informazioni correlate con bordo, sfondo e ombra opzionale.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `default` | Card standard con bordo |
@@ -5484,9 +5401,9 @@ Contenitore per raggruppare informazioni correlate con bordo, sfondo e ombra opz
 | `interactive` | Hover effect, cliccabile |
 | `compact` | Padding ridotto |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CARD - Default
 <div className={cn(
   "bg-surface-default rounded-lg border border-border-default",
@@ -5523,16 +5440,15 @@ Contenitore per raggruppare informazioni correlate con bordo, sfondo e ombra opz
     </div>
   )}
 </div>
-```
 
 ---
 
-## 3.2 LIST
+§ 3.2 LIST
 
-### Descrizione:
+§ DESCRIZIONE:
 Elenco verticale di elementi correlati.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Descrizione |
 |----------|-------------|
 | `simple` | Testo semplice |
@@ -5541,9 +5457,9 @@ Elenco verticale di elementi correlati.
 | `interactive` | Elementi cliccabili |
 | `selectable` | Con checkbox/radio |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // LIST - Interactive with icons
 <ul className="divide-y divide-border-default" role="list">
   {items.map(item => (
@@ -5585,16 +5501,15 @@ Elenco verticale di elementi correlati.
     </li>
   ))}
 </ul>
-```
 
 ---
 
-## 3.3 AVATAR
+§ 3.3 AVATAR
 
-### Descrizione:
+§ DESCRIZIONE:
 Rappresentazione visiva di un utente o entità.
 
-### Varianti:
+§ VARIANTI:
 | Size | Dimensioni |
 |------|------------|
 | `xs` | 24px (w-6 h-6) |
@@ -5603,9 +5518,9 @@ Rappresentazione visiva di un utente o entità.
 | `lg` | 48px (w-12 h-12) |
 | `xl` | 64px (w-16 h-16) |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // AVATAR
 <div className={cn(
   "relative inline-flex items-center justify-center",
@@ -5662,16 +5577,15 @@ Rappresentazione visiva di un utente o entità.
     </div>
   )}
 </div>
-```
 
 ---
 
-## 3.4 BADGE
+§ 3.4 BADGE
 
-### Descrizione:
+§ DESCRIZIONE:
 Indicatore compatto per stati, conteggi o etichette.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Colore | Uso |
 |----------|--------|-----|
 | `default` | Grigio | Neutro |
@@ -5681,9 +5595,9 @@ Indicatore compatto per stati, conteggi o etichette.
 | `error` | Rosso | Errore/critico |
 | `info` | Blu | Informativo |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BADGE
 <span className={cn(
   "inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
@@ -5700,18 +5614,17 @@ Indicatore compatto per stati, conteggi o etichette.
   {dot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
   {children}
 </span>
-```
 
 ---
 
-## 3.5 EMPTY STATE
+§ 3.5 EMPTY STATE
 
-### Descrizione:
+§ DESCRIZIONE:
 Placeholder quando non ci sono dati da mostrare.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // EMPTY STATE
 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
   {/* Illustration */}
@@ -5737,18 +5650,17 @@ Placeholder quando non ci sono dati da mostrare.
     </Button>
   )}
 </div>
-```
 
 ---
 
-## 3.6 SKELETON / LOADING STATE
+§ 3.6 SKELETON / LOADING STATE
 
-### Descrizione:
+§ DESCRIZIONE:
 Placeholder animato mentre il contenuto viene caricato.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SKELETON BASE
 <div className="animate-pulse bg-surface-muted rounded" />
 
@@ -5774,18 +5686,17 @@ Placeholder animato mentre il contenuto viene caricato.
     <div className="h-4 bg-surface-muted rounded w-4/6 animate-pulse" />
   </div>
 </div>
-```
 
 # ============================================================================
-# SEZIONE 4: INPUT PATTERNS
+§ SEZIONE 4: INPUT PATTERNS
 # ============================================================================
 
-## 4.1 TEXT INPUT
+§ 4.1 TEXT INPUT
 
-### Descrizione:
+§ DESCRIZIONE:
 Campo per inserimento testo singola riga.
 
-### Varianti & Stati:
+§ VARIANTI & STATI:
 | Stato | Descrizione |
 |-------|-------------|
 | `default` | Stato normale |
@@ -5794,9 +5705,9 @@ Campo per inserimento testo singola riga.
 | `disabled` | Non modificabile |
 | `readonly` | Solo lettura |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TEXT INPUT
 <div className="space-y-1.5">
   {/* Label */}
@@ -5867,15 +5778,14 @@ Campo per inserimento testo singola riga.
     </p>
   )}
 </div>
-```
 
 ---
 
-## 4.2 SELECT / DROPDOWN
+§ 4.2 SELECT / DROPDOWN
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SELECT
 <div className="space-y-1.5">
   <label className="block text-sm font-medium text-text-default">
@@ -5911,15 +5821,14 @@ Campo per inserimento testo singola riga.
                                 w-4 h-4 text-text-subtle pointer-events-none" />
   </div>
 </div>
-```
 
 ---
 
-## 4.3 CHECKBOX
+§ 4.3 CHECKBOX
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHECKBOX
 <label className="flex items-start gap-3 cursor-pointer group">
   <div className="relative flex items-center justify-center mt-0.5">
@@ -5955,15 +5864,14 @@ Campo per inserimento testo singola riga.
     )}
   </div>
 </label>
-```
 
 ---
 
-## 4.4 RADIO GROUP
+§ 4.4 RADIO GROUP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RADIO GROUP
 <fieldset>
   <legend className="text-sm font-medium text-text-default mb-3">
@@ -6012,15 +5920,14 @@ Campo per inserimento testo singola riga.
     ))}
   </div>
 </fieldset>
-```
 
 ---
 
-## 4.5 TOGGLE / SWITCH
+§ 4.5 TOGGLE / SWITCH
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOGGLE SWITCH
 <label className="flex items-center gap-3 cursor-pointer">
   <button
@@ -6053,15 +5960,14 @@ Campo per inserimento testo singola riga.
     {label}
   </span>
 </label>
-```
 
 ---
 
-## 4.6 TEXTAREA
+§ 4.6 TEXTAREA
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TEXTAREA
 <div className="space-y-1.5">
   <label className="block text-sm font-medium text-text-default">
@@ -6088,15 +5994,14 @@ Campo per inserimento testo singola riga.
     </p>
   )}
 </div>
-```
 
 ---
 
-## 4.7 SEARCH INPUT
+§ 4.7 SEARCH INPUT
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SEARCH INPUT
 <div className="relative">
   <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 
@@ -6126,15 +6031,14 @@ Campo per inserimento testo singola riga.
     </button>
   )}
 </div>
-```
 
 ---
 
-## 4.8 DATE PICKER
+§ 4.8 DATE PICKER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DATE PICKER (simplified)
 <div className="space-y-1.5">
   <label className="block text-sm font-medium text-text-default">
@@ -6159,15 +6063,14 @@ Campo per inserimento testo singola riga.
                              w-5 h-5 text-text-subtle pointer-events-none" />
   </div>
 </div>
-```
 
 ---
 
-## 4.9 FILE UPLOAD
+§ 4.9 FILE UPLOAD
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // FILE UPLOAD - Dropzone
 <div
   onDragOver={handleDragOver}
@@ -6204,19 +6107,18 @@ Campo per inserimento testo singola riga.
     {acceptLabel || "PNG, JPG, PDF up to 10MB"}
   </p>
 </div>
-```
 
 
 # ============================================================================
-# SEZIONE 5: FEEDBACK PATTERNS
+§ SEZIONE 5: FEEDBACK PATTERNS
 # ============================================================================
 
-## 5.1 ALERT / BANNER
+§ 5.1 ALERT / BANNER
 
-### Descrizione:
+§ DESCRIZIONE:
 Messaggio inline per comunicare informazioni, avvisi o errori.
 
-### Varianti:
+§ VARIANTI:
 | Variante | Colore | Icona | Uso |
 |----------|--------|-------|-----|
 | `info` | Blu | InfoIcon | Informazioni neutrali |
@@ -6224,9 +6126,9 @@ Messaggio inline per comunicare informazioni, avvisi o errori.
 | `warning` | Giallo | AlertTriangleIcon | Attenzione richiesta |
 | `error` | Rosso | XCircleIcon | Errore critico |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ALERT
 <div
   role="alert"
@@ -6273,18 +6175,17 @@ Messaggio inline per comunicare informazioni, avvisi o errori.
     </button>
   )}
 </div>
-```
 
 ---
 
-## 5.2 TOAST / NOTIFICATION
+§ 5.2 TOAST / NOTIFICATION
 
-### Descrizione:
+§ DESCRIZIONE:
 Notifica temporanea non bloccante.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOAST CONTAINER (position)
 <div 
   className="fixed z-toast pointer-events-none"
@@ -6352,15 +6253,14 @@ Notifica temporanea non bloccante.
     <XIcon className="w-4 h-4 text-text-muted" />
   </button>
 </div>
-```
 
 ---
 
-## 5.3 PROGRESS INDICATORS
+§ 5.3 PROGRESS INDICATORS
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PROGRESS BAR
 <div className="space-y-2">
   {/* Label */}
@@ -6420,15 +6320,14 @@ Notifica temporanea non bloccante.
     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
   />
 </svg>
-```
 
 ---
 
-## 5.4 TOOLTIP
+§ 5.4 TOOLTIP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TOOLTIP (using Headless UI / Radix style)
 <Tooltip.Provider>
   <Tooltip.Root>
@@ -6453,15 +6352,14 @@ Notifica temporanea non bloccante.
     </Tooltip.Portal>
   </Tooltip.Root>
 </Tooltip.Provider>
-```
 
 ---
 
-## 5.5 FORM VALIDATION
+§ 5.5 FORM VALIDATION
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // INLINE ERROR
 <div className="flex items-center gap-1.5 mt-1.5">
   <AlertCircleIcon className="w-4 h-4 text-feedback-error shrink-0" />
@@ -6491,18 +6389,17 @@ Notifica temporanea non bloccante.
     </div>
   </div>
 </div>
-```
 
 # ============================================================================
-# SEZIONE 6: OVERLAY PATTERNS
+§ SEZIONE 6: OVERLAY PATTERNS
 # ============================================================================
 
-## 6.1 MODAL / DIALOG
+§ 6.1 MODAL / DIALOG
 
-### Descrizione:
+§ DESCRIZIONE:
 Finestra modale per azioni che richiedono attenzione.
 
-### Varianti:
+§ VARIANTI:
 | Size | Max Width | Uso |
 |------|-----------|-----|
 | `sm` | 400px | Conferme semplici |
@@ -6511,9 +6408,9 @@ Finestra modale per azioni che richiedono attenzione.
 | `xl` | 800px | Contenuti estesi |
 | `full` | Full screen | Editor, wizard |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // MODAL
 <Dialog open={isOpen} onClose={onClose}>
   {/* Backdrop */}
@@ -6568,25 +6465,24 @@ Finestra modale per azioni che richiedono attenzione.
     </div>
   </div>
 </Dialog>
-```
 
 ---
 
-## 6.2 DRAWER / SIDE PANEL
+§ 6.2 DRAWER / SIDE PANEL
 
-### Descrizione:
+§ DESCRIZIONE:
 Pannello che scorre dal bordo dello schermo.
 
-### Varianti:
+§ VARIANTI:
 | Position | Descrizione |
 |----------|-------------|
 | `left` | Da sinistra |
 | `right` | Da destra (più comune) |
 | `bottom` | Dal basso (bottom sheet) |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DRAWER
 <Transition show={isOpen}>
   {/* Backdrop */}
@@ -6644,15 +6540,14 @@ Pannello che scorre dal bordo dello schermo.
     </div>
   </Transition.Child>
 </Transition>
-```
 
 ---
 
-## 6.3 POPOVER / DROPDOWN
+§ 6.3 POPOVER / DROPDOWN
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // POPOVER
 <Popover className="relative">
   <Popover.Button className={triggerClassName}>
@@ -6718,18 +6613,17 @@ Pannello che scorre dal bordo dello schermo.
     ))}
   </Menu.Items>
 </Menu>
-```
 
 ---
 
-## 6.4 COMMAND PALETTE
+§ 6.4 COMMAND PALETTE
 
-### Descrizione:
+§ DESCRIZIONE:
 Ricerca globale e navigazione rapida (Cmd+K pattern).
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // COMMAND PALETTE
 <Dialog open={isOpen} onClose={onClose}>
   <div className="fixed inset-0 z-command bg-black/50 backdrop-blur-sm" />
@@ -6790,21 +6684,20 @@ Ricerca globale e navigazione rapida (Cmd+K pattern).
     </Dialog.Panel>
   </div>
 </Dialog>
-```
 
 
 # ============================================================================
-# SEZIONE 7: DATA DISPLAY PATTERNS
+§ SEZIONE 7: DATA DISPLAY PATTERNS
 # ============================================================================
 
-## 7.1 TABLE
+§ 7.1 TABLE
 
-### Descrizione:
+§ DESCRIZIONE:
 Tabella per visualizzare dati strutturati con sorting, filtering e pagination.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TABLE
 <div className="border border-border-default rounded-lg overflow-hidden">
   {/* Table Header (filters, search, actions) */}
@@ -6909,18 +6802,17 @@ Tabella per visualizzare dati strutturati con sorting, filtering e pagination.
     />
   </div>
 </div>
-```
 
 ---
 
-## 7.2 STAT CARD / KPI
+§ 7.2 STAT CARD / KPI
 
-### Descrizione:
+§ DESCRIZIONE:
 Card per visualizzare metriche chiave con trend.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // STAT CARD
 <div className="bg-surface-default border border-border-default rounded-lg p-6">
   <div className="flex items-start justify-between">
@@ -6966,18 +6858,17 @@ Card per visualizzare metriche chiave con trend.
     </div>
   )}
 </div>
-```
 
 ---
 
-## 7.3 CHART WRAPPER
+§ 7.3 CHART WRAPPER
 
-### Descrizione:
+§ DESCRIZIONE:
 Container standardizzato per grafici.
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CHART WRAPPER
 <div className="bg-surface-default border border-border-default rounded-lg">
   {/* Header */}
@@ -7042,15 +6933,14 @@ Container standardizzato per grafici.
     </div>
   )}
 </div>
-```
 
 ---
 
-## 7.4 TIMELINE
+§ 7.4 TIMELINE
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // TIMELINE
 <div className="relative">
   {events.map((event, index) => (
@@ -7092,15 +6982,14 @@ Container standardizzato per grafici.
     </div>
   ))}
 </div>
-```
 
 ---
 
-## 7.5 DESCRIPTION LIST
+§ 7.5 DESCRIPTION LIST
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // DESCRIPTION LIST
 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
   {items.map(item => (
@@ -7125,18 +7014,17 @@ Container standardizzato per grafici.
     </div>
   ))}
 </dl>
-```
 
 # ============================================================================
-# SEZIONE 8: ACTION PATTERNS
+§ SEZIONE 8: ACTION PATTERNS
 # ============================================================================
 
-## 8.1 BUTTON
+§ 8.1 BUTTON
 
-### Descrizione:
+§ DESCRIZIONE:
 Elemento interattivo per azioni.
 
-### Varianti:
+§ VARIANTI:
 | Variant | Uso |
 |---------|-----|
 | `primary` | Azione principale |
@@ -7146,7 +7034,7 @@ Elemento interattivo per azioni.
 | `destructive` | Azione pericolosa |
 | `link` | Come link testuale |
 
-### Sizes:
+§ SIZES:
 | Size | Height | Uso |
 |------|--------|-----|
 | `xs` | 28px | Compact UI |
@@ -7154,9 +7042,9 @@ Elemento interattivo per azioni.
 | `md` | 40px | Default |
 | `lg` | 48px | CTA prominenti |
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BUTTON
 <button
   type={type}
@@ -7200,15 +7088,14 @@ Elemento interattivo per azioni.
   {children}
   {!loading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
 </button>
-```
 
 ---
 
-## 8.2 ICON BUTTON
+§ 8.2 ICON BUTTON
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // ICON BUTTON
 <button
   type="button"
@@ -7247,15 +7134,14 @@ Elemento interattivo per azioni.
     size === "lg" && "w-6 h-6"
   )} />
 </button>
-```
 
 ---
 
-## 8.3 BUTTON GROUP
+§ 8.3 BUTTON GROUP
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // BUTTON GROUP
 <div className="inline-flex rounded-md shadow-sm" role="group">
   {buttons.map((button, index) => (
@@ -7286,15 +7172,14 @@ Elemento interattivo per azioni.
     </button>
   ))}
 </div>
-```
 
 ---
 
-## 8.4 FLOATING ACTION BUTTON (FAB)
+§ 8.4 FLOATING ACTION BUTTON (FAB)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // FAB
 <button
   className={cn(
@@ -7334,15 +7219,14 @@ Elemento interattivo per azioni.
   <PlusIcon className="w-5 h-5" />
   <span className="font-medium">{label}</span>
 </button>
-```
 
 ---
 
-## 8.5 SEGMENTED CONTROL
+§ 8.5 SEGMENTED CONTROL
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SEGMENTED CONTROL
 <div 
   className="inline-flex p-1 bg-surface-muted rounded-lg"
@@ -7368,15 +7252,14 @@ Elemento interattivo per azioni.
     </button>
   ))}
 </div>
-```
 
 ---
 
-## 8.6 CONFIRMATION DIALOG
+§ 8.6 CONFIRMATION DIALOG
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CONFIRMATION DIALOG
 <Dialog open={isOpen} onClose={onCancel}>
   <div className="fixed inset-0 z-modal-backdrop bg-black/50" />
@@ -7424,19 +7307,18 @@ Elemento interattivo per azioni.
     </Dialog.Panel>
   </div>
 </Dialog>
-```
 
 
 # ============================================================================
-# SEZIONE 9: RESPONSIVE PATTERNS
+§ SEZIONE 9: RESPONSIVE PATTERNS
 # ============================================================================
 
-## 9.1 RESPONSIVE BREAKPOINTS
+§ 9.1 RESPONSIVE BREAKPOINTS
 
-### Descrizione:
+§ DESCRIZIONE:
 Breakpoint standard per design responsive (Tailwind defaults).
 
-### Breakpoints:
+§ BREAKPOINTS:
 | Nome | Min Width | Target |
 |------|-----------|--------|
 | `sm` | 640px | Mobile landscape |
@@ -7445,9 +7327,9 @@ Breakpoint standard per design responsive (Tailwind defaults).
 | `xl` | 1280px | Desktop |
 | `2xl` | 1536px | Desktop large |
 
-### Pattern di utilizzo:
+§ PATTERN DI UTILIZZO:
 
-```jsx
+jsx
 // Mobile-first responsive classes
 <div className={cn(
   "px-4",           // Mobile: padding 16px
@@ -7467,15 +7349,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
 // Hide/show elements
 <div className="hidden lg:block">Desktop only</div>
 <div className="lg:hidden">Mobile/tablet only</div>
-```
 
 ---
 
-## 9.2 CONTAINER
+§ 9.2 CONTAINER
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // CONTAINER
 <div className={cn(
   "w-full mx-auto px-4",
@@ -7491,15 +7372,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
 )}>
   {children}
 </div>
-```
 
 ---
 
-## 9.3 RESPONSIVE NAVIGATION
+§ 9.3 RESPONSIVE NAVIGATION
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RESPONSIVE HEADER
 <header className="sticky top-0 z-header bg-surface-default border-b border-border-default">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -7538,15 +7418,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
     items={navItems}
   />
 </header>
-```
 
 ---
 
-## 9.4 RESPONSIVE SIDEBAR LAYOUT
+§ 9.4 RESPONSIVE SIDEBAR LAYOUT
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RESPONSIVE SIDEBAR LAYOUT
 <div className="min-h-screen flex">
   {/* Sidebar - Desktop */}
@@ -7589,15 +7468,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
     </main>
   </div>
 </div>
-```
 
 ---
 
-## 9.5 RESPONSIVE CARD GRID
+§ 9.5 RESPONSIVE CARD GRID
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RESPONSIVE CARD GRID
 <div className={cn(
   "grid gap-4 sm:gap-6",
@@ -7618,15 +7496,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
     <Card key={item.id} {...item} />
   ))}
 </div>
-```
 
 ---
 
-## 9.6 RESPONSIVE TABLE → CARD LIST
+§ 9.6 RESPONSIVE TABLE → CARD LIST
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // RESPONSIVE TABLE (Desktop) → CARD LIST (Mobile)
 <div>
   {/* Desktop Table */}
@@ -7669,15 +7546,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
     ))}
   </div>
 </div>
-```
 
 # ============================================================================
-# SEZIONE 10: ANIMATION PATTERNS
+§ SEZIONE 10: ANIMATION PATTERNS
 # ============================================================================
 
-## 10.1 TRANSITION DURATIONS
+§ 10.1 TRANSITION DURATIONS
 
-### Token Reference:
+§ TOKEN REFERENCE:
 | Token | Value | Uso |
 |-------|-------|-----|
 | `duration-fast` | 150ms | Micro-interactions, hover |
@@ -7687,9 +7563,9 @@ Breakpoint standard per design responsive (Tailwind defaults).
 
 ---
 
-## 10.2 EASING FUNCTIONS
+§ 10.2 EASING FUNCTIONS
 
-### Token Reference:
+§ TOKEN REFERENCE:
 | Token | Value | Uso |
 |-------|-------|-----|
 | `ease-default` | cubic-bezier(0.4, 0, 0.2, 1) | Default |
@@ -7699,11 +7575,11 @@ Breakpoint standard per design responsive (Tailwind defaults).
 
 ---
 
-## 10.3 COMMON ANIMATIONS
+§ 10.3 COMMON ANIMATIONS
 
-### Keyframes CSS:
+§ KEYFRAMES CSS:
 
-```css
+css
 /* Fade In */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -7769,11 +7645,10 @@ Breakpoint standard per design responsive (Tailwind defaults).
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
 }
-```
 
-### Tailwind Classes:
+§ TAILWIND CLASSES:
 
-```jsx
+jsx
 // Utilizzo con Tailwind
 <div className="animate-fadeIn" />
 <div className="animate-spin" />
@@ -7782,15 +7657,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
 
 // Custom animation con arbitrary values
 <div className="animate-[slideInUp_0.3s_ease-out]" />
-```
 
 ---
 
-## 10.4 TRANSITION PATTERNS
+§ 10.4 TRANSITION PATTERNS
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // HOVER TRANSITIONS
 <button className={cn(
   "transition-colors duration-fast",
@@ -7820,15 +7694,14 @@ Breakpoint standard per design responsive (Tailwind defaults).
   "transition-all duration-normal",
   "hover:shadow-lg hover:scale-[1.02]"
 )}>
-```
 
 ---
 
-## 10.5 PAGE TRANSITION (with Framer Motion style)
+§ 10.5 PAGE TRANSITION (WITH FRAMER MOTION STYLE)
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // PAGE TRANSITION WRAPPER
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -7850,15 +7723,14 @@ const pageTransition = {
 )}>
   {children}
 </div>
-```
 
 ---
 
-## 10.6 SKELETON ANIMATION
+§ 10.6 SKELETON ANIMATION
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // SKELETON con shimmer effect
 <div className="relative overflow-hidden bg-surface-muted rounded">
   <div className={cn(
@@ -7873,17 +7745,16 @@ const pageTransition = {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
-```
 
 # ============================================================================
-# SEZIONE 11: ACCESSIBILITY PATTERNS
+§ SEZIONE 11: ACCESSIBILITY PATTERNS
 # ============================================================================
 
-## 11.1 FOCUS MANAGEMENT
+§ 11.1 FOCUS MANAGEMENT
 
-### Pattern:
+§ PATTERN:
 
-```jsx
+jsx
 // FOCUS VISIBLE (keyboard only)
 <button className={cn(
   "focus:outline-none",
@@ -7912,15 +7783,14 @@ import { FocusTrap } from '@headlessui/react';
 >
   Skip to main content
 </a>
-```
 
 ---
 
-## 11.2 ARIA PATTERNS
+§ 11.2 ARIA PATTERNS
 
-### Pattern comuni:
+§ PATTERN COMUNI:
 
-```jsx
+jsx
 // LIVE REGION (per notifiche dinamiche)
 <div 
   role="status" 
@@ -8009,15 +7879,14 @@ import { FocusTrap } from '@headlessui/react';
 <div id="content-panel" hidden={!isExpanded}>
   {content}
 </div>
-```
 
 ---
 
-## 11.3 SCREEN READER UTILITIES
+§ 11.3 SCREEN READER UTILITIES
 
-### Struttura JSX:
+§ STRUTTURA JSX:
 
-```jsx
+jsx
 // VISUALLY HIDDEN (solo screen reader)
 <span className="sr-only">
   Opens in a new window
@@ -8042,22 +7911,21 @@ import { FocusTrap } from '@headlessui/react';
   Settings
   <span className="sr-only">, opens account settings page</span>
 </a>
-```
 
 ---
 
-## 11.4 COLOR CONTRAST
+§ 11.4 COLOR CONTRAST
 
-### Requisiti WCAG 2.1:
+§ REQUISITI WCAG 2.1:
 
 | Livello | Testo normale | Testo grande | UI Components |
 |---------|---------------|--------------|---------------|
 | AA | 4.5:1 | 3:1 | 3:1 |
 | AAA | 7:1 | 4.5:1 | 4.5:1 |
 
-### Pattern per verificare contrast:
+§ PATTERN PER VERIFICARE CONTRAST:
 
-```jsx
+jsx
 // Colori ad alto contrasto per testo
 const textColors = {
   default: 'text-text-default',      // Contrasto ≥ 4.5:1
@@ -8071,15 +7939,14 @@ const feedbackColors = {
   success: 'text-feedback-success',  // #16A34A su bianco = 4.5:1 ✓
   warning: 'text-feedback-warning',  // #D97706 su bianco = 3.1:1 (usa con icona)
 };
-```
 
 ---
 
-## 11.5 KEYBOARD NAVIGATION
+§ 11.5 KEYBOARD NAVIGATION
 
-### Pattern:
+§ PATTERN:
 
-```jsx
+jsx
 // TAB ORDER
 <div className="flex gap-2">
   <Button tabIndex={0}>First</Button>
@@ -8126,11 +7993,10 @@ useEffect(() => {
   document.addEventListener('keydown', handleEscape);
   return () => document.removeEventListener('keydown', handleEscape);
 }, [onClose]);
-```
 
 
 # ============================================================================
-# SEZIONE 12: PATTERN COMPOSITION GUIDE
+§ SEZIONE 12: PATTERN COMPOSITION GUIDE
 # ============================================================================
 
 """
@@ -8138,9 +8004,9 @@ Questa sezione mostra come combinare i pattern primitivi per costruire
 componenti complessi per ogni categoria di piattaforma.
 """
 
-## 12.1 COMPOSIZIONE: E-COMMERCE CHECKOUT
+§ 12.1 COMPOSIZIONE: E-COMMERCE CHECKOUT
 
-### Primitivi utilizzati:
+§ PRIMITIVI UTILIZZATI:
 - Layout: PageHeader, TwoColumnLayout
 - Navigation: Stepper, Breadcrumb
 - Content: Card, List
@@ -8149,9 +8015,9 @@ componenti complessi per ogni categoria di piattaforma.
 - Action: Button, ButtonGroup
 - Data: DescriptionList
 
-### Struttura composita:
+§ STRUTTURA COMPOSITA:
 
-```jsx
+jsx
 // E-COMMERCE CHECKOUT PAGE
 function CheckoutPage() {
   return (
@@ -8227,13 +8093,12 @@ function CheckoutPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 12.2 COMPOSIZIONE: SAAS DASHBOARD
+§ 12.2 COMPOSIZIONE: SAAS DASHBOARD
 
-### Primitivi utilizzati:
+§ PRIMITIVI UTILIZZATI:
 - Layout: AppShell, SidebarLayout, Grid
 - Navigation: Sidebar, Tabs, Breadcrumb
 - Content: Card, StatCard, EmptyState
@@ -8242,9 +8107,9 @@ function CheckoutPage() {
 - Overlay: CommandPalette, Modal
 - Action: Button, DropdownMenu
 
-### Struttura composita:
+§ STRUTTURA COMPOSITA:
 
-```jsx
+jsx
 // SAAS DASHBOARD
 function DashboardPage() {
   return (
@@ -8322,13 +8187,12 @@ function DashboardPage() {
     </AppShell>
   );
 }
-```
 
 ---
 
-## 12.3 COMPOSIZIONE: SOCIAL FEED
+§ 12.3 COMPOSIZIONE: SOCIAL FEED
 
-### Primitivi utilizzati:
+§ PRIMITIVI UTILIZZATI:
 - Layout: InfiniteScroll, TwoColumnLayout
 - Content: Card, Avatar, MediaGrid
 - Input: TextArea, FileUpload
@@ -8336,9 +8200,9 @@ function DashboardPage() {
 - Action: IconButton, DropdownMenu
 - Overlay: Modal, Popover
 
-### Struttura composita:
+§ STRUTTURA COMPOSITA:
 
-```jsx
+jsx
 // SOCIAL FEED PAGE
 function FeedPage() {
   return (
@@ -8393,13 +8257,12 @@ function FeedPage() {
     </div>
   );
 }
-```
 
 ---
 
-## 12.4 COMPOSIZIONE: HEALTHCARE PATIENT PORTAL
+§ 12.4 COMPOSIZIONE: HEALTHCARE PATIENT PORTAL
 
-### Primitivi utilizzati:
+§ PRIMITIVI UTILIZZATI:
 - Layout: SecureAppShell, TabLayout
 - Navigation: Sidebar, Tabs
 - Content: Card, Timeline, DataTable
@@ -8408,9 +8271,9 @@ function FeedPage() {
 - Data: VitalsDisplay, Chart
 - Overlay: SecureModal
 
-### Struttura composita:
+§ STRUTTURA COMPOSITA:
 
-```jsx
+jsx
 // HEALTHCARE PATIENT DASHBOARD
 function PatientPortal() {
   return (
@@ -8485,13 +8348,12 @@ function PatientPortal() {
     </SecureAppShell>
   );
 }
-```
 
 ---
 
-## 12.5 COMPOSIZIONE: FINTECH BANKING
+§ 12.5 COMPOSIZIONE: FINTECH BANKING
 
-### Primitivi utilizzati:
+§ PRIMITIVI UTILIZZATI:
 - Layout: SecureAppShell, Grid
 - Content: Card, AccountCard, TransactionList
 - Input: SecureForm, AmountInput
@@ -8500,9 +8362,9 @@ function PatientPortal() {
 - Action: Button, ConfirmationDialog
 - Overlay: SecureModal
 
-### Struttura composita:
+§ STRUTTURA COMPOSITA:
 
-```jsx
+jsx
 // FINTECH BANKING DASHBOARD
 function BankingDashboard() {
   return (
@@ -8588,16 +8450,14 @@ function BankingDashboard() {
     </SecureAppShell>
   );
 }
-```
 
 # ============================================================================
-# SEZIONE 13: APPENDICE - QUICK REFERENCE
+§ SEZIONE 13: APPENDICE - QUICK REFERENCE
 # ============================================================================
 
-## 13.1 DESIGN TOKEN QUICK REFERENCE
+§ 13.1 DESIGN TOKEN QUICK REFERENCE
 
-### Colors:
-```
+§ COLORS:
 text-text-default        → Testo principale
 text-text-muted          → Testo secondario
 text-text-subtle         → Testo terziario
@@ -8617,10 +8477,8 @@ text-feedback-error      → Rosso errore
 text-feedback-success    → Verde successo
 text-feedback-warning    → Giallo warning
 text-feedback-info       → Blu info
-```
 
-### Spacing:
-```
+§ SPACING:
 p-1   → 4px      gap-1   → 4px
 p-2   → 8px      gap-2   → 8px
 p-3   → 12px     gap-3   → 12px
@@ -8630,10 +8488,8 @@ p-6   → 24px     gap-6   → 24px
 p-8   → 32px     gap-8   → 32px
 p-10  → 40px     gap-10  → 40px
 p-12  → 48px     gap-12  → 48px
-```
 
-### Typography:
-```
+§ TYPOGRAPHY:
 text-xs    → 12px
 text-sm    → 14px
 text-base  → 16px
@@ -8647,10 +8503,8 @@ font-normal   → 400
 font-medium   → 500
 font-semibold → 600
 font-bold     → 700
-```
 
-### Border Radius:
-```
+§ BORDER RADIUS:
 rounded-sm   → 2px
 rounded      → 4px
 rounded-md   → 6px
@@ -8658,10 +8512,8 @@ rounded-lg   → 8px
 rounded-xl   → 12px
 rounded-2xl  → 16px
 rounded-full → 9999px
-```
 
-### Z-Index:
-```
+§ Z-INDEX:
 z-dropdown       → 50
 z-sticky         → 100
 z-header         → 200
@@ -8672,13 +8524,12 @@ z-popover        → 600
 z-tooltip        → 700
 z-toast          → 800
 z-command        → 900
-```
 
 ---
 
-## 13.2 COMPONENT CHECKLIST
+§ 13.2 COMPONENT CHECKLIST
 
-### Prima di implementare un componente:
+§ PRIMA DI IMPLEMENTARE UN COMPONENTE:
 
 - [ ] **Accessibilità**: ARIA labels, keyboard navigation, focus management
 - [ ] **Responsive**: Mobile-first, breakpoint testing
@@ -8691,9 +8542,8 @@ z-command        → 900
 
 ---
 
-## 13.3 FILE STRUCTURE CONSIGLIATA
+§ 13.3 FILE STRUCTURE CONSIGLIATA
 
-```
 src/
 ├── components/
 │   ├── primitives/           # Pattern base
@@ -8717,12 +8567,11 @@ src/
 └── lib/
     ├── cn.ts                 # className utility
     └── hooks/                # Custom hooks
-```
 
 ---
 
 # ============================================================================
-# FINE CATALOGO UI PATTERN PRIMITIVI
+§ FINE CATALOGO UI PATTERN PRIMITIVI
 # ============================================================================
 
 """

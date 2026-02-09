@@ -1,6 +1,6 @@
 # 📊 CATALOGO ANALYTICS & MONITORING v1.0
 
-## Catalogo Completo per Applicazioni Next.js Enterprise
+§ CATALOGO COMPLETO PER APPLICAZIONI NEXT.JS ENTERPRISE
 
 **Versione:** 1.0.0  
 **Data:** Gennaio 2026  
@@ -9,7 +9,7 @@
 
 ---
 
-## 📑 Indice
+§ 📑 INDICE
 
 1. [Introduzione all'Analytics & Monitoring](#1-introduzione-allanalytics--monitoring)
 2. [Web Analytics - Google Analytics 4](#2-web-analytics---google-analytics-4)
@@ -30,13 +30,12 @@
 
 ---
 
-## 1. Introduzione all'Analytics & Monitoring
+§ 1. INTRODUZIONE ALL'ANALYTICS & MONITORING
 
-### 1.1 Perché Analytics & Monitoring
+§ 1.1 PERCHÉ ANALYTICS & MONITORING
 
 L'analytics e il monitoring sono fondamentali per comprendere il comportamento degli utenti, identificare problemi tecnici e prendere decisioni basate sui dati. In un'applicazione Next.js moderna, una strategia completa di observability include diversi livelli.
 
-```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    OBSERVABILITY STACK                         │
 ├─────────────────────────────────────────────────────────────────┤
@@ -61,9 +60,8 @@ L'analytics e il monitoring sono fondamentali per comprendere il comportamento d
 │  │  Dashboards  │  │   Alerts     │  │   Reports    │        │
 │  └──────────────┘  └──────────────┘  └──────────────┘        │
 └─────────────────────────────────────────────────────────────────┘
-```
 
-### 1.2 I Tre Pilastri dell'Observability
+§ 1.2 I TRE PILASTRI DELL'OBSERVABILITY
 
 | Pilastro | Descrizione | Strumenti Tipici |
 |----------|-------------|------------------|
@@ -71,9 +69,8 @@ L'analytics e il monitoring sono fondamentali per comprendere il comportamento d
 | **Logs** | Eventi discreti con contesto | Pino, Winston, ELK Stack |
 | **Traces** | Percorso delle richieste attraverso i servizi | OpenTelemetry, Jaeger, Zipkin |
 
-### 1.3 Tipi di Analytics
+§ 1.3 TIPI DI ANALYTICS
 
-```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      ANALYTICS ECOSYSTEM                        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -104,11 +101,10 @@ L'analytics e il monitoring sono fondamentali per comprendere il comportamento d
 │  │   Conversion rates, Revenue, Customer LTV, Churn        │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
-```
 
-### 1.4 Analytics Stack Raccomandato per Next.js
+§ 1.4 ANALYTICS STACK RACCOMANDATO PER NEXT.JS
 
-```typescript
+typescript
 // Recommended Analytics Stack for Next.js 2025
 const analyticsStack = {
   // Web Analytics - Traffic & Engagement
@@ -152,13 +148,12 @@ const analyticsStack = {
     visualization: 'Grafana Cloud'
   }
 };
-```
 
 ---
 
-## 2. Web Analytics - Google Analytics 4
+§ 2. WEB ANALYTICS - GOOGLE ANALYTICS 4
 
-### 2.1 Introduzione a GA4
+§ 2.1 INTRODUZIONE A GA4
 
 Google Analytics 4 (GA4) è la piattaforma standard per web analytics dal 2023. Utilizza un modello basato su eventi invece di sessioni, offrendo maggiore flessibilità nel tracciamento.
 
@@ -168,14 +163,13 @@ Google Analytics 4 (GA4) è la piattaforma standard per web analytics dal 2023. 
 - **Enhanced Measurement**: Tracciamento automatico di scroll, click, video
 - **Cross-platform**: Web e App in un unico property
 
-### 2.2 Setup GA4 in Next.js con @next/third-parties
+§ 2.2 SETUP GA4 IN NEXT.JS CON @NEXT/THIRD-PARTIES
 
-```bash
+bash
 # Installazione
 pnpm add @next/third-parties
-```
 
-```typescript
+typescript
 // app/layout.tsx
 import { GoogleAnalytics } from '@next/third-parties/google';
 
@@ -192,11 +186,10 @@ export default function RootLayout({
     </html>
   );
 }
-```
 
-### 2.3 Configurazione Completa con Consent Management
+§ 2.3 CONFIGURAZIONE COMPLETA CON CONSENT MANAGEMENT
 
-```typescript
+typescript
 // lib/analytics/google-analytics.ts
 'use client';
 
@@ -301,11 +294,10 @@ export const setUserProperties = (properties: Record<string, unknown>) => {
     window.gtag('set', 'user_properties', properties);
   }
 };
-```
 
-### 2.4 Components per Analytics
+§ 2.4 COMPONENTS PER ANALYTICS
 
-```typescript
+typescript
 // components/analytics/GoogleAnalyticsProvider.tsx
 'use client';
 
@@ -341,9 +333,8 @@ export function GoogleAnalyticsProvider({
     </>
   );
 }
-```
 
-```typescript
+typescript
 // components/analytics/ConsentBanner.tsx
 'use client';
 
@@ -401,11 +392,10 @@ export function ConsentBanner() {
     </div>
   );
 }
-```
 
-### 2.5 Eventi GA4 Raccomandati
+§ 2.5 EVENTI GA4 RACCOMANDATI
 
-```typescript
+typescript
 // lib/analytics/events.ts
 
 // Recommended events per categoria
@@ -501,11 +491,10 @@ export const GA4Events = {
 //   price: 29.99,
 //   quantity: 1
 // }));
-```
 
-### 2.6 Web Vitals to GA4
+§ 2.6 WEB VITALS TO GA4
 
-```typescript
+typescript
 // lib/analytics/web-vitals.ts
 'use client';
 
@@ -544,11 +533,10 @@ export function WebVitalsReporter() {
 
 // In layout.tsx:
 // <WebVitalsReporter />
-```
 
-### 2.7 Debug View e Testing
+§ 2.7 DEBUG VIEW E TESTING
 
-```typescript
+typescript
 // lib/analytics/debug.ts
 
 // Enable GA4 Debug Mode
@@ -597,13 +585,12 @@ export const validateEventParams = (params: Record<string, unknown>): boolean =>
   
   return true;
 };
-```
 
 ---
 
-## 3. Product Analytics - PostHog
+§ 3. PRODUCT ANALYTICS - POSTHOG
 
-### 3.1 Introduzione a PostHog
+§ 3.1 INTRODUZIONE A POSTHOG
 
 PostHog è una piattaforma open-source all-in-one per product analytics che include: analytics, session recording, feature flags, A/B testing, surveys e altro.
 
@@ -614,14 +601,13 @@ PostHog è una piattaforma open-source all-in-one per product analytics che incl
 - Session replay incluso
 - Nessun vendor lock-in
 
-### 3.2 Setup PostHog in Next.js
+§ 3.2 SETUP POSTHOG IN NEXT.JS
 
-```bash
+bash
 # Installazione
 pnpm add posthog-js @posthog/react
-```
 
-```typescript
+typescript
 // lib/analytics/posthog.ts
 'use client';
 
@@ -657,9 +643,8 @@ if (typeof window !== 'undefined') {
 }
 
 export { posthog };
-```
 
-```typescript
+typescript
 // components/providers/PostHogProvider.tsx
 'use client';
 
@@ -699,11 +684,10 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     </PHProvider>
   );
 }
-```
 
-### 3.3 User Identification
+§ 3.3 USER IDENTIFICATION
 
-```typescript
+typescript
 // lib/analytics/posthog-identify.ts
 'use client';
 
@@ -756,11 +740,10 @@ export const setGroup = (groupType: string, groupKey: string, properties?: Recor
 //   company: user.organization?.name,
 //   createdAt: user.createdAt,
 // });
-```
 
-### 3.4 Event Tracking
+§ 3.4 EVENT TRACKING
 
-```typescript
+typescript
 // lib/analytics/posthog-events.ts
 'use client';
 
@@ -853,11 +836,10 @@ export class EventTimer {
 // const timer = new EventTimer('document_edited');
 // ... user edits document ...
 // timer.complete({ document_id: '123' });
-```
 
-### 3.5 Feature Flags
+§ 3.5 FEATURE FLAGS
 
-```typescript
+typescript
 // lib/analytics/feature-flags.ts
 'use client';
 
@@ -903,9 +885,8 @@ export const overrideFeatureFlag = (flagKey: string, value: string | boolean) =>
 export const clearFeatureFlagOverrides = () => {
   posthog.featureFlags.override(false);
 };
-```
 
-```typescript
+typescript
 // components/FeatureGate.tsx
 'use client';
 
@@ -954,11 +935,10 @@ export function VariantGate({ flag, variants, fallback = null }: VariantGateProp
 //     variant_b: <NewPricingB />,
 //   }}
 // />
-```
 
-### 3.6 Server-Side PostHog
+§ 3.6 SERVER-SIDE POSTHOG
 
-```typescript
+typescript
 // lib/analytics/posthog-server.ts
 import { PostHog } from 'posthog-node';
 
@@ -1012,9 +992,8 @@ export const getAllServerFeatureFlags = async (
 export const shutdownPostHog = async () => {
   await posthogClient.shutdown();
 };
-```
 
-```typescript
+typescript
 // app/api/track/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { captureServerEvent } from '@/lib/analytics/posthog-server';
@@ -1037,19 +1016,17 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
 
 
 
 ---
 
-## 4. Core Web Vitals & Performance Monitoring
+§ 4. CORE WEB VITALS & PERFORMANCE MONITORING
 
-### 4.1 Introduzione ai Core Web Vitals
+§ 4.1 INTRODUZIONE AI CORE WEB VITALS
 
 I Core Web Vitals sono metriche ufficiali di Google che misurano l'esperienza utente reale. Dal 2024, le tre metriche principali sono:
 
-```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    CORE WEB VITALS 2025                         │
 ├─────────────────────────────────────────────────────────────────┤
@@ -1085,16 +1062,14 @@ I Core Web Vitals sono metriche ufficiali di Google che misurano l'esperienza ut
 │  📊 Il 75° percentile delle visite deve raggiungere "Good"     │
 │     per essere considerato "Passing" da Google                 │
 └─────────────────────────────────────────────────────────────────┘
-```
 
-### 4.2 Implementazione Web Vitals in Next.js
+§ 4.2 IMPLEMENTAZIONE WEB VITALS IN NEXT.JS
 
-```bash
+bash
 # Installazione web-vitals library
 pnpm add web-vitals
-```
 
-```typescript
+typescript
 // lib/performance/web-vitals.ts
 'use client';
 
@@ -1181,11 +1156,10 @@ export const reportWebVitals = async (metric: WebVitalsMetric) => {
     console.log(`${emoji} ${metric.name}:`, metric.value.toFixed(2), `(${metric.rating})`);
   }
 };
-```
 
-### 4.3 Web Vitals Component
+§ 4.3 WEB VITALS COMPONENT
 
-```typescript
+typescript
 // components/performance/WebVitalsReporter.tsx
 'use client';
 
@@ -1241,11 +1215,10 @@ export function WebVitalsReporter({
   
   return null;
 }
-```
 
-### 4.4 API Endpoint per Web Vitals
+§ 4.4 API ENDPOINT PER WEB VITALS
 
-```typescript
+typescript
 // app/api/vitals/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -1323,11 +1296,10 @@ function percentile(values: number[], p: number): number {
   const index = Math.ceil((p / 100) * sorted.length) - 1;
   return sorted[Math.max(0, index)];
 }
-```
 
-### 4.5 Performance Budget
+§ 4.5 PERFORMANCE BUDGET
 
-```typescript
+typescript
 // lib/performance/budget.ts
 
 export interface PerformanceBudget {
@@ -1419,11 +1391,10 @@ export function checkBudget(
     warnings,
   };
 }
-```
 
-### 4.6 Performance Monitoring Script (CI/CD)
+§ 4.6 PERFORMANCE MONITORING SCRIPT (CI/CD)
 
-```typescript
+typescript
 // scripts/check-performance.ts
 import { chromium } from 'playwright';
 import { checkBudget, recommendedBudget } from '../lib/performance/budget';
@@ -1541,29 +1512,27 @@ async function runPerformanceAudit(url: string) {
 // Run audit
 const url = process.argv[2] || 'http://localhost:3000';
 runPerformanceAudit(url).catch(console.error);
-```
 
 ---
 
-## 5. Error Tracking - Sentry
+§ 5. ERROR TRACKING - SENTRY
 
-### 5.1 Introduzione a Sentry
+§ 5.1 INTRODUZIONE A SENTRY
 
 Sentry è la piattaforma leader per error tracking e performance monitoring. Per Next.js offre funzionalità avanzate come Session Replay, Profiling e Tracing.
 
-### 5.2 Setup Sentry in Next.js
+§ 5.2 SETUP SENTRY IN NEXT.JS
 
-```bash
+bash
 # Installazione automatica con wizard
 npx @sentry/wizard@latest -i nextjs
 
 # Oppure installazione manuale
 pnpm add @sentry/nextjs
-```
 
-### 5.3 Configurazione File
+§ 5.3 CONFIGURAZIONE FILE
 
-```typescript
+typescript
 // sentry.client.config.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1652,9 +1621,8 @@ Sentry.init({
 
 // Capture router transitions for Next.js App Router
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
-```
 
-```typescript
+typescript
 // sentry.server.config.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1684,9 +1652,8 @@ Sentry.init({
     'ETIMEDOUT',
   ],
 });
-```
 
-```typescript
+typescript
 // sentry.edge.config.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1699,11 +1666,10 @@ Sentry.init({
   
   tracesSampleRate: 0.2,
 });
-```
 
-### 5.4 Instrumentation File
+§ 5.4 INSTRUMENTATION FILE
 
-```typescript
+typescript
 // instrumentation.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1718,11 +1684,10 @@ export async function register() {
 }
 
 export const onRequestError = Sentry.captureRequestError;
-```
 
-### 5.5 Global Error Component
+§ 5.5 GLOBAL ERROR COMPONENT
 
-```typescript
+typescript
 // app/global-error.tsx
 'use client';
 
@@ -1768,11 +1733,10 @@ export default function GlobalError({
     </html>
   );
 }
-```
 
-### 5.6 Error Boundary Component
+§ 5.6 ERROR BOUNDARY COMPONENT
 
-```typescript
+typescript
 // components/ErrorBoundary.tsx
 'use client';
 
@@ -1843,11 +1807,10 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-```
 
-### 5.7 Custom Error Tracking Utilities
+§ 5.7 CUSTOM ERROR TRACKING UTILITIES
 
-```typescript
+typescript
 // lib/error-tracking/sentry-utils.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -1992,11 +1955,10 @@ export const measurePerformance = async <T>(
     throw error;
   }
 };
-```
 
-### 5.8 Next.js Configuration per Sentry
+§ 5.8 NEXT.JS CONFIGURATION PER SENTRY
 
-```javascript
+javascript
 // next.config.js
 const { withSentryConfig } = require('@sentry/nextjs');
 
@@ -2030,19 +1992,17 @@ const sentryWebpackPluginOptions = {
 };
 
 module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
-```
 
 
 
 ---
 
-## 6. Application Performance Monitoring (APM)
+§ 6. APPLICATION PERFORMANCE MONITORING (APM)
 
-### 6.1 Introduzione all'APM
+§ 6.1 INTRODUZIONE ALL'APM
 
 L'Application Performance Monitoring (APM) fornisce visibilità end-to-end sulle performance dell'applicazione, tracciando richieste attraverso tutti i servizi.
 
-```
 ┌─────────────────────────────────────────────────────────────────┐
 │                       APM OVERVIEW                              │
 ├─────────────────────────────────────────────────────────────────┤
@@ -2069,11 +2029,10 @@ L'Application Performance Monitoring (APM) fornisce visibilità end-to-end sulle
 │   • Database query performance                                 │
 │   • External service latency                                   │
 └─────────────────────────────────────────────────────────────────┘
-```
 
-### 6.2 APM con Sentry Performance
+§ 6.2 APM CON SENTRY PERFORMANCE
 
-```typescript
+typescript
 // lib/apm/sentry-apm.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -2174,11 +2133,10 @@ export const withAPM = <T extends (...args: any[]) => Promise<any>>(
     );
   }) as T;
 };
-```
 
-### 6.3 Custom Metrics
+§ 6.3 CUSTOM METRICS
 
-```typescript
+typescript
 // lib/apm/metrics.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -2236,24 +2194,22 @@ export async function POST(request: Request) {
   return Response.json(order);
 }
 */
-```
 
 ---
 
-## 7. Logging & Structured Logs
+§ 7. LOGGING & STRUCTURED LOGS
 
-### 7.1 Introduzione al Logging
+§ 7.1 INTRODUZIONE AL LOGGING
 
 Il logging strutturato è fondamentale per debugging, monitoring e auditing. In Next.js, Pino è la scelta raccomandata per le sue performance superiori.
 
-### 7.2 Setup Pino Logger
+§ 7.2 SETUP PINO LOGGER
 
-```bash
+bash
 # Installazione
 pnpm add pino pino-pretty
-```
 
-```typescript
+typescript
 // lib/logger/index.ts
 import pino, { Logger, LoggerOptions } from 'pino';
 
@@ -2336,11 +2292,10 @@ export const apiLogger = createLogger({ module: 'api' });
 export const dbLogger = createLogger({ module: 'database' });
 export const authLogger = createLogger({ module: 'auth' });
 export const jobLogger = createLogger({ module: 'jobs' });
-```
 
-### 7.3 Request Logger Middleware
+§ 7.3 REQUEST LOGGER MIDDLEWARE
 
-```typescript
+typescript
 // lib/logger/request-logger.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { logger, createLogger } from './index';
@@ -2434,11 +2389,10 @@ export const withRequestLogging = <T>(
     }
   };
 };
-```
 
-### 7.4 Structured Log Events
+§ 7.4 STRUCTURED LOG EVENTS
 
-```typescript
+typescript
 // lib/logger/events.ts
 import { logger, createLogger } from './index';
 
@@ -2537,11 +2491,10 @@ logPerformance('database_query', 1523, {
   resultCount: 100,
 });
 */
-```
 
-### 7.5 Log Aggregation Setup
+§ 7.5 LOG AGGREGATION SETUP
 
-```typescript
+typescript
 // lib/logger/transports.ts
 import pino from 'pino';
 
@@ -2599,11 +2552,10 @@ export const lokiTransport = {
     },
   },
 };
-```
 
-### 7.6 Log Rotation
+§ 7.6 LOG ROTATION
 
-```typescript
+typescript
 // lib/logger/rotation.ts
 import pino from 'pino';
 
@@ -2627,19 +2579,18 @@ export const createRotatingLogger = () => {
     },
   });
 };
-```
 
 ---
 
-## 8. Real User Monitoring (RUM)
+§ 8. REAL USER MONITORING (RUM)
 
-### 8.1 Introduzione al RUM
+§ 8.1 INTRODUZIONE AL RUM
 
 Real User Monitoring cattura le metriche di performance direttamente dai browser degli utenti reali, fornendo dati più accurati rispetto ai test sintetici.
 
-### 8.2 Custom RUM Implementation
+§ 8.2 CUSTOM RUM IMPLEMENTATION
 
-```typescript
+typescript
 // lib/rum/index.ts
 'use client';
 
@@ -2754,11 +2705,10 @@ const getSessionId = (): string => {
   
   return sessionId;
 };
-```
 
-### 8.3 RUM Component
+§ 8.3 RUM COMPONENT
 
-```typescript
+typescript
 // components/performance/RUMCollector.tsx
 'use client';
 
@@ -2786,17 +2736,15 @@ export function RUMCollector() {
   
   return null;
 }
-```
 
 ---
 
-## 9. Observability - OpenTelemetry
+§ 9. OBSERVABILITY - OPENTELEMETRY
 
-### 9.1 Introduzione a OpenTelemetry
+§ 9.1 INTRODUZIONE A OPENTELEMETRY
 
 OpenTelemetry (OTel) è lo standard CNCF per la raccolta di telemetria (traces, metrics, logs). Fornisce un'interfaccia vendor-neutral per instrumentare le applicazioni.
 
-```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    OPENTELEMETRY ARCHITECTURE                   │
 ├─────────────────────────────────────────────────────────────────┤
@@ -2832,11 +2780,10 @@ OpenTelemetry (OTel) è lo standard CNCF per la raccolta di telemetria (traces, 
 │  └──────────┘    └──────────┘    └──────────┘                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
-```
 
-### 9.2 Setup OpenTelemetry in Next.js
+§ 9.2 SETUP OPENTELEMETRY IN NEXT.JS
 
-```bash
+bash
 # Installazione
 pnpm add @opentelemetry/api \
   @opentelemetry/sdk-node \
@@ -2845,9 +2792,8 @@ pnpm add @opentelemetry/api \
   @opentelemetry/exporter-metrics-otlp-http \
   @opentelemetry/resources \
   @opentelemetry/semantic-conventions
-```
 
-```typescript
+typescript
 // instrumentation.node.ts
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
@@ -2921,11 +2867,10 @@ process.on('SIGTERM', () => {
 });
 
 export { sdk };
-```
 
-### 9.3 Custom Spans and Metrics
+§ 9.3 CUSTOM SPANS AND METRICS
 
-```typescript
+typescript
 // lib/otel/tracing.ts
 import { trace, SpanStatusCode, context, propagation } from '@opentelemetry/api';
 import { metrics } from '@opentelemetry/api';
@@ -3048,11 +2993,10 @@ export const injectTraceContext = (headers: Headers): void => {
     headers.set(key, value);
   });
 };
-```
 
-### 9.4 OpenTelemetry Collector Configuration
+§ 9.4 OPENTELEMETRY COLLECTOR CONFIGURATION
 
-```yaml
+yaml
 # otel-collector-config.yaml
 receivers:
   otlp:
@@ -3118,21 +3062,20 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [loki]
-```
 
 
 
 ---
 
-## 10. Metrics & Dashboards - Prometheus & Grafana
+§ 10. METRICS & DASHBOARDS - PROMETHEUS & GRAFANA
 
-### 10.1 Introduzione a Prometheus
+§ 10.1 INTRODUZIONE A PROMETHEUS
 
 Prometheus è il sistema di monitoring standard per metriche time-series, integrato nativamente con Kubernetes e ampiamente supportato.
 
-### 10.2 Custom Metrics Endpoint
+§ 10.2 CUSTOM METRICS ENDPOINT
 
-```typescript
+typescript
 // app/api/metrics/route.ts
 import { NextResponse } from 'next/server';
 import { register, Counter, Histogram, Gauge } from 'prom-client';
@@ -3200,11 +3143,10 @@ export async function GET() {
     );
   }
 }
-```
 
-### 10.3 Metrics Middleware
+§ 10.3 METRICS MIDDLEWARE
 
-```typescript
+typescript
 // lib/metrics/middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { httpRequestsTotal, httpRequestDuration, errorRate } from '@/app/api/metrics/route';
@@ -3241,11 +3183,10 @@ export function withMetrics<T extends NextResponse>(
 
 // Usage in API route:
 // export const GET = withMetrics(async (req) => { ... }, '/api/users');
-```
 
-### 10.4 Grafana Dashboard JSON
+§ 10.4 GRAFANA DASHBOARD JSON
 
-```json
+json
 {
   "dashboard": {
     "title": "Next.js Application Dashboard",
@@ -3358,11 +3299,10 @@ export function withMetrics<T extends NextResponse>(
     ]
   }
 }
-```
 
-### 10.5 Prometheus Configuration
+§ 10.5 PROMETHEUS CONFIGURATION
 
-```yaml
+yaml
 # prometheus.yml
 global:
   scrape_interval: 15s
@@ -3391,15 +3331,14 @@ scrape_configs:
   - job_name: 'postgres-exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']
-```
 
 ---
 
-## 11. Alerting & Incident Management
+§ 11. ALERTING & INCIDENT MANAGEMENT
 
-### 11.1 Alert Rules per Prometheus
+§ 11.1 ALERT RULES PER PROMETHEUS
 
-```yaml
+yaml
 # alert-rules.yml
 groups:
   - name: nextjs-app
@@ -3482,11 +3421,10 @@ groups:
         annotations:
           summary: "Low order volume"
           description: "Only {{ $value | printf \"%.0f\" }} orders in the last hour"
-```
 
-### 11.2 Alertmanager Configuration
+§ 11.2 ALERTMANAGER CONFIGURATION
 
-```yaml
+yaml
 # alertmanager.yml
 global:
   resolve_timeout: 5m
@@ -3537,11 +3475,10 @@ inhibit_rules:
     target_match:
       severity: 'warning'
     equal: ['alertname']
-```
 
-### 11.3 Slack Integration per Alerts
+§ 11.3 SLACK INTEGRATION PER ALERTS
 
-```typescript
+typescript
 // lib/alerting/slack.ts
 interface SlackAlert {
   channel: string;
@@ -3593,17 +3530,16 @@ export const sendSlackAlert = async (alert: SlackAlert): Promise<void> => {
 //     { title: 'Threshold', value: '5%', short: true },
 //   ],
 // });
-```
 
 ---
 
-## 12. Session Replay & Heatmaps
+§ 12. SESSION REPLAY & HEATMAPS
 
-### 12.1 Session Replay con Sentry
+§ 12.1 SESSION REPLAY CON SENTRY
 
 Session Replay è già incluso nella configurazione Sentry (sezione 5). Configurazione aggiuntiva:
 
-```typescript
+typescript
 // lib/replay/sentry-replay.ts
 import * as Sentry from '@sentry/nextjs';
 
@@ -3641,11 +3577,10 @@ export const initReplay = () => {
     networkResponseHeaders: ['X-Request-Id'],
   });
 };
-```
 
-### 12.2 Heatmaps con PostHog
+§ 12.2 HEATMAPS CON POSTHOG
 
-```typescript
+typescript
 // lib/heatmaps/posthog-heatmap.ts
 'use client';
 
@@ -3677,11 +3612,10 @@ export const trackElementClick = (
     ...metadata,
   });
 };
-```
 
-### 12.3 Custom Session Recording
+§ 12.3 CUSTOM SESSION RECORDING
 
-```typescript
+typescript
 // lib/replay/custom-recorder.ts
 'use client';
 
@@ -3801,15 +3735,14 @@ class SessionRecorder {
 }
 
 export const sessionRecorder = new SessionRecorder();
-```
 
 ---
 
-## 13. A/B Testing & Feature Flags
+§ 13. A/B TESTING & FEATURE FLAGS
 
-### 13.1 A/B Testing con PostHog
+§ 13.1 A/B TESTING CON POSTHOG
 
-```typescript
+typescript
 // lib/experiments/posthog-experiments.ts
 'use client';
 
@@ -3864,11 +3797,10 @@ export const trackExperimentConversion = (
     ...metadata,
   });
 };
-```
 
-### 13.2 Experiment Component
+§ 13.2 EXPERIMENT COMPONENT
 
-```typescript
+typescript
 // components/experiments/Experiment.tsx
 'use client';
 
@@ -3917,11 +3849,10 @@ export function Experiment({
 //   }}
 //   fallback={<OriginalPricing />}
 // />
-```
 
-### 13.3 Server-Side Feature Flags
+§ 13.3 SERVER-SIDE FEATURE FLAGS
 
-```typescript
+typescript
 // lib/experiments/server-flags.ts
 import { PostHog } from 'posthog-node';
 import { cookies } from 'next/headers';
@@ -3966,15 +3897,14 @@ export async function getAllFeatureFlags(userId?: string) {
 export async function shutdownPostHog() {
   await posthog.shutdown();
 }
-```
 
 ---
 
-## 14. Privacy & GDPR Compliance
+§ 14. PRIVACY & GDPR COMPLIANCE
 
-### 14.1 Privacy-First Analytics
+§ 14.1 PRIVACY-FIRST ANALYTICS
 
-```typescript
+typescript
 // lib/privacy/consent-manager.ts
 'use client';
 
@@ -4085,11 +4015,10 @@ export const rejectAllConsent = () => {
     preferences: false,
   });
 };
-```
 
-### 14.2 Cookie Banner Component
+§ 14.2 COOKIE BANNER COMPONENT
 
-```typescript
+typescript
 // components/privacy/CookieBanner.tsx
 'use client';
 
@@ -4259,11 +4188,10 @@ export function CookieBanner() {
     </div>
   );
 }
-```
 
-### 14.3 Data Subject Request Handler
+§ 14.3 DATA SUBJECT REQUEST HANDLER
 
-```typescript
+typescript
 // lib/privacy/dsr-handler.ts
 import { logger } from '@/lib/logger';
 
@@ -4347,17 +4275,15 @@ async function handleRestrictRequest(request: DSRRequest) {
   // Restrict processing of user data
   logger.info({ userId: request.userId }, 'Processing restrict request');
 }
-```
 
 
 
 ---
 
-## 15. Costi e Confronto Strumenti
+§ 15. COSTI E CONFRONTO STRUMENTI
 
-### 15.1 Tabella Comparativa Tools
+§ 15.1 TABELLA COMPARATIVA TOOLS
 
-```
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
 │                           CONFRONTO STRUMENTI ANALYTICS & MONITORING                     │
 ├──────────────────────────────────────────────────────────────────────────────────────────┤
@@ -4421,11 +4347,9 @@ async function handleRestrictRequest(request: DSRRequest) {
 │                  ├─────────────────┼────────────────────┼─────────────────┼─────────────┤
 │                  │ Papertrail      │ 100MB/mese         │ $7/mese (1GB)   │ Semplice    │
 └──────────────────┴─────────────────┴────────────────────┴─────────────────┴─────────────┘
-```
 
-### 15.2 Stack Raccomandati per Budget
+§ 15.2 STACK RACCOMANDATI PER BUDGET
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           STACK PER BUDGET                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4481,11 +4405,9 @@ async function handleRestrictRequest(request: DSRRequest) {
 │  Copre: Unlimited scale, SLAs, support                                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
-### 15.3 ROI dell'Analytics & Monitoring
+§ 15.3 ROI DELL'ANALYTICS & MONITORING
 
-```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     ROI DELL'ANALYTICS & MONITORING                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -4516,15 +4438,14 @@ async function handleRestrictRequest(request: DSRRequest) {
 │  ROI: (35k - 1.2k) / 1.2k = 2,817%                                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
-## Appendice: Quick Reference
+§ APPENDICE: QUICK REFERENCE
 
-### A.1 Checklist Analytics Setup
+§ A.1 CHECKLIST ANALYTICS SETUP
 
-```markdown
+markdown
 ## Analytics & Monitoring Checklist
 
 ### Setup Iniziale
@@ -4561,11 +4482,10 @@ async function handleRestrictRequest(request: DSRRequest) {
 - [ ] Dashboard condivise con team
 - [ ] Runbook per incidenti
 - [ ] Metriche KPI definite
-```
 
-### A.2 Event Naming Conventions
+§ A.2 EVENT NAMING CONVENTIONS
 
-```typescript
+typescript
 // Event naming conventions
 const eventNamingConventions = {
   // Use snake_case
@@ -4613,11 +4533,10 @@ const eventNamingConventions = {
   // Max length
   maxLength: 40,
 };
-```
 
-### A.3 Comandi Utili
+§ A.3 COMANDI UTILI
 
-```bash
+bash
 # Google Analytics Debug
 # Aggiungi ?debug=1 all'URL o usa GA Debug Extension
 
@@ -4653,11 +4572,10 @@ curl http://localhost:3000/api/metrics
 
 # OpenTelemetry debug
 export OTEL_LOG_LEVEL=debug
-```
 
-### A.4 Troubleshooting Guide
+§ A.4 TROUBLESHOOTING GUIDE
 
-```markdown
+markdown
 ## Troubleshooting Comune
 
 ### GA4 non traccia eventi
@@ -4695,11 +4613,10 @@ export OTEL_LOG_LEVEL=debug
 2. Controlla che pino-pretty sia installato (dev)
 3. Verifica che stdout non sia reindirizzato
 4. Controlla transport configuration
-```
 
-### A.5 Metriche KPI Raccomandate
+§ A.5 METRICHE KPI RACCOMANDATE
 
-```typescript
+typescript
 // KPI metrics to track
 const kpiMetrics = {
   // Technical KPIs
@@ -4784,11 +4701,10 @@ const kpiMetrics = {
     },
   },
 };
-```
 
-### A.6 Risorse Utili
+§ A.6 RISORSE UTILI
 
-```markdown
+markdown
 ## Documentazione Ufficiale
 - [Google Analytics 4](https://developers.google.com/analytics)
 - [PostHog Docs](https://posthog.com/docs)
@@ -4813,11 +4729,10 @@ const kpiMetrics = {
 - [Analytics Subreddit](https://reddit.com/r/analytics)
 - [PostHog Community](https://posthog.com/community)
 - [Sentry Discord](https://discord.com/invite/sentry)
-```
 
 ---
 
-## Changelog
+§ CHANGELOG
 
 | Versione | Data | Modifiche |
 |----------|------|-----------|

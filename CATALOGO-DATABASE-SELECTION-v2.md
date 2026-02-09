@@ -7,7 +7,7 @@
 
 ---
 
-## 1. DATABASE DECISION MATRIX
+§ 1. DATABASE DECISION MATRIX
 
 | Database           | Tipo                | Modello Dati             | Scaling                    | ACID             | Query Language  | Latency  | Caso d'Uso Ideale                       |
 | ------------------ | ------------------- | ------------------------ | -------------------------- | ---------------- | --------------- | -------- | --------------------------------------- |
@@ -37,7 +37,7 @@
 
 ---
 
-## 2. USE CASE → DATABASE MAPPING
+§ 2. USE CASE → DATABASE MAPPING
 
 | #  | Scenario                             | Database Primario  | Database Secondario | Motivazione                                 |
 | -- | ------------------------------------ | ------------------ | ------------------- | ------------------------------------------- |
@@ -64,9 +64,9 @@
 
 ---
 
-## 3. SCALING PATTERNS
+§ 3. SCALING PATTERNS
 
-### 3.1 Pattern Matrix
+§ 3.1 PATTERN MATRIX
 
 | Pattern                  | Quando Usare            | Database Compatibili          | Complessità | Latency Impact |
 | ------------------------ | ----------------------- | ----------------------------- | ----------- | -------------- |
@@ -80,9 +80,8 @@
 | Event Sourcing           | Audit completo          | PostgreSQL + Kafka            | High        | Eventual       |
 | Multi-region replication | SLA globali             | CockroachDB, YugabyteDB       | High        | +10–40ms       |
 
-### 3.2 Scaling Decision Tree
+§ 3.2 SCALING DECISION TREE
 
-```
 START
 │
 ├─ Bottleneck READ?
@@ -104,13 +103,12 @@ START
 └─ Global users?
     ├─ Multi-region DB
     └─ Edge caching
-```
 
 ---
 
-## 4. MANAGED SERVICES COST COMPARISON
+§ 4. MANAGED SERVICES COST COMPARISON
 
-### 4.1 Relational Databases
+§ 4.1 RELATIONAL DATABASES
 
 | Service            | Free Tier | Starter   | Production   | Enterprise     |
 | ------------------ | --------- | --------- | ------------ | -------------- |
@@ -120,7 +118,7 @@ START
 | Neon               | ✅ 3GB    | $19/mo    | $69–300/mo   | $1000+/mo      |
 | PlanetScale        | ✅ 5GB    | $29/mo    | $99–500/mo   | $1000+/mo      |
 
-### 4.2 NoSQL & Search
+§ 4.2 NOSQL & SEARCH
 
 | Service             | Free Tier     | Starter       | Production   | Notes           |
 | ------------------- | ------------- | ------------- | ------------ | --------------- |
@@ -131,7 +129,7 @@ START
 | Elasticsearch Cloud | ❌            | $16/mo        | $95–2000/mo  | Search engine   |
 | OpenSearch AWS      | ❌            | $20/mo        | $100–3000/mo | OSS alternative |
 
-### 4.3 Monthly Cost Scenarios
+§ 4.3 MONTHLY COST SCENARIOS
 
 | App Type    | Users    | Architecture                          | Estimated Cost   |
 | ----------- | -------- | ------------------------------------- | ---------------- |
@@ -143,7 +141,7 @@ START
 
 ---
 
-## 5. ARCHITECTURE COMPARISON MATRIX
+§ 5. ARCHITECTURE COMPARISON MATRIX
 
 | Requirement           | Relational | Document | Graph | Wide-Column | Columnar |
 | --------------------- | ---------- | -------- | ----- | ----------- | -------- |
@@ -156,7 +154,7 @@ START
 
 ---
 
-## 6. PERFORMANCE CHARACTERISTICS
+§ 6. PERFORMANCE CHARACTERISTICS
 
 | Database      | Max Throughput | Write Perf | Read Perf  | Consistency | Availability | Durability             |
 | ------------- | -------------- | ---------- | ---------- | ----------- | ------------ | ---------------------- |
@@ -173,7 +171,7 @@ START
 
 ---
 
-## 7. ARCHITECTURE PATTERNS
+§ 7. ARCHITECTURE PATTERNS
 
 | Architecture       | Database Core | Supporting DB | Messaging  | Cache   | Cost/mo     | Scale Ceiling |
 | ------------------ | ------------- | ------------- | ---------- | ------- | ----------- | ------------- |
@@ -186,7 +184,7 @@ START
 
 ---
 
-## 8. DATABASE SELECTION SCORECARD
+§ 8. DATABASE SELECTION SCORECARD
 
 | Requirement            | PostgreSQL | MongoDB | DynamoDB | Redis | ClickHouse | Neo4j | CockroachDB |
 | ---------------------- | ---------- | ------- | -------- | ----- | ---------- | ----- | ----------- |
@@ -199,9 +197,8 @@ START
 
 ---
 
-## 9. SELECTION FORMULA
+§ 9. SELECTION FORMULA
 
-```
 Score(Database) =
   (Consistency * 0.25) +
   (Scalability * 0.25) +
@@ -211,13 +208,11 @@ Score(Database) =
   (RealTimePerformance * 0.05)
 
 Scelta finale = Database con score più alto per il caso d'uso specifico
-```
 
 ---
 
-## 10. DATABASE SELECTION CHECKLIST
+§ 10. DATABASE SELECTION CHECKLIST
 
-```
 □ Modello dati richiesto (relazionale, document, graph, time-series)
 □ Volume iniziale dati (GB/TB)
 □ Crescita annua prevista (%)
@@ -233,39 +228,38 @@ Scelta finale = Database con score più alto per il caso d'uso specifico
 □ Serverless vs serverful
 □ Query complexity (CRUD vs analytics)
 □ Evoluzione schema prevista
-```
 
 ---
 
-## 11. QUICK REFERENCE BY WORKLOAD
+§ 11. QUICK REFERENCE BY WORKLOAD
 
-### OLTP (Transactional)
+§ OLTP (TRANSACTIONAL)
 - **Best**: PostgreSQL, MySQL, CockroachDB
 - **Avoid**: ClickHouse, BigQuery
 
-### OLAP (Analytics)
+§ OLAP (ANALYTICS)
 - **Best**: ClickHouse, BigQuery, Snowflake
 - **Avoid**: Redis, MongoDB
 
-### Real-time
+§ REAL-TIME
 - **Best**: Redis, DynamoDB, Cassandra
 - **Avoid**: BigQuery, Snowflake
 
-### Graph Traversal
+§ GRAPH TRAVERSAL
 - **Best**: Neo4j, ArangoDB
 - **Avoid**: ClickHouse, DynamoDB
 
-### Time-series
+§ TIME-SERIES
 - **Best**: TimescaleDB, InfluxDB
 - **Avoid**: MongoDB, Neo4j
 
-### Full-text Search
+§ FULL-TEXT SEARCH
 - **Best**: Elasticsearch, OpenSearch
 - **Avoid**: DynamoDB, Cassandra
 
 ---
 
-## 12. MIGRATION COMPLEXITY MATRIX
+§ 12. MIGRATION COMPLEXITY MATRIX
 
 | From → To     | PostgreSQL | MongoDB | DynamoDB | Redis | Elasticsearch |
 | ------------- | ---------- | ------- | -------- | ----- | ------------- |
@@ -278,9 +272,9 @@ Scelta finale = Database con score più alto per il caso d'uso specifico
 
 ---
 
-## 13. CONNECTION POOLING
+§ 13. CONNECTION POOLING
 
-### 13.1 Connection Pooler Comparison
+§ 13.1 CONNECTION POOLER COMPARISON
 
 | Tool | Database | Max Conn | Overhead | Pool Mode | Serverless | Best For |
 |------|----------|----------|----------|-----------|------------|----------|
@@ -293,9 +287,9 @@ Scelta finale = Database con score più alto per il caso d'uso specifico
 | Neon Pooler | PostgreSQL | 10,000+ | 1-2ms | Transaction | ✅ | Serverless Postgres |
 | PlanetScale | MySQL | Unlimited | 1-3ms | Connection | ✅ | Vitess-based |
 
-### 13.2 PgBouncer Production Config
+§ 13.2 PGBOUNCER PRODUCTION CONFIG
 
-```ini
+ini
 ; /etc/pgbouncer/pgbouncer.ini
 [databases]
 myapp = host=db.example.com port=5432 dbname=myapp_production
@@ -330,11 +324,10 @@ log_connections = 1
 log_disconnections = 1
 log_pooler_errors = 1
 stats_period = 60
-```
 
-### 13.3 Prisma Connection Pooling
+§ 13.3 PRISMA CONNECTION POOLING
 
-```typescript
+typescript
 // lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -367,24 +360,21 @@ const shutdown = async () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-```
 
-### 13.4 Pool Sizing Formula
+§ 13.4 POOL SIZING FORMULA
 
-```
 Optimal Pool Size = (Number of CPU Cores * 2) + Effective Spindle Count
 
 For SSDs (no spindle): Pool Size = CPU Cores * 2 + 1
 Example (8 core, SSD): Pool Size = 8 * 2 + 1 = 17 connections
 For Serverless: Pool Size = Max Concurrent Functions / 10
-```
 
 
 ---
 
-## 14. DATABASE MIGRATIONS
+§ 14. DATABASE MIGRATIONS
 
-### 14.1 Migration Tools Comparison
+§ 14.1 MIGRATION TOOLS COMPARISON
 
 | Tool | Language | Rollback | Version Control | CI/CD | Type Safety | Best For |
 |------|----------|----------|-----------------|-------|-------------|----------|
@@ -397,9 +387,9 @@ For Serverless: Pool Size = Max Concurrent Functions / 10
 | TypeORM | TypeScript | ✅ Auto | ✅ Timestamps | ✅ | ⚠️ Partial | NestJS projects |
 | Atlas | HCL/SQL | ✅ Auto | ✅ Declarative | ✅ | ❌ | Multi-DB |
 
-### 14.2 Prisma Migration Workflow
+§ 14.2 PRISMA MIGRATION WORKFLOW
 
-```bash
+bash
 # Development: Create and apply migration
 npx prisma migrate dev --name add_user_profile
 
@@ -414,11 +404,10 @@ npx prisma migrate reset
 
 # Check migration status
 npx prisma migrate status
-```
 
-### 14.3 Drizzle Migration Workflow
+§ 14.3 DRIZZLE MIGRATION WORKFLOW
 
-```typescript
+typescript
 // drizzle.config.ts
 import type { Config } from 'drizzle-kit';
 
@@ -430,13 +419,12 @@ export default {
     connectionString: process.env.DATABASE_URL!,
   },
 } satisfies Config;
-```
 
 ---
 
-## 15. INDEX OPTIMIZATION
+§ 15. INDEX OPTIMIZATION
 
-### 15.1 Index Types Reference
+§ 15.1 INDEX TYPES REFERENCE
 
 | Index Type | PostgreSQL | MySQL | Use Case | Complexity | When to Use |
 |------------|------------|-------|----------|------------|-------------|
@@ -449,9 +437,9 @@ export default {
 | Composite | ✅ | ✅ | Multi-column | O(log n) | Combined filters |
 | Covering | ✅ | ✅ | Index-only scans | O(log n) | SELECT specific cols |
 
-### 15.2 Index Strategy Patterns
+§ 15.2 INDEX STRATEGY PATTERNS
 
-```sql
+sql
 -- COMPOSITE INDEX (column order matters!)
 CREATE INDEX idx_orders_status_created 
 ON orders (status, created_at DESC);
@@ -469,14 +457,13 @@ INCLUDE (total_amount, created_at);
 -- GIN INDEX FOR JSONB
 CREATE INDEX idx_products_metadata 
 ON products USING GIN (metadata jsonb_path_ops);
-```
 
 
 ---
 
-## 16. QUERY OPTIMIZATION
+§ 16. QUERY OPTIMIZATION
 
-### 16.1 Query Anti-Patterns
+§ 16.1 QUERY ANTI-PATTERNS
 
 | ❌ Anti-Pattern | ✅ Solution | Performance Impact |
 |----------------|-------------|-------------------|
@@ -488,9 +475,9 @@ ON products USING GIN (metadata jsonb_path_ops);
 | OR conditions | UNION ALL | 2-10x faster |
 | NOT IN (subquery) | NOT EXISTS | 2-5x faster |
 
-### 16.2 Optimization Examples
+§ 16.2 OPTIMIZATION EXAMPLES
 
-```sql
+sql
 -- ❌ OFFSET PAGINATION (slow at high pages)
 SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET 10000;
 
@@ -504,13 +491,12 @@ SELECT COUNT(*) FROM posts;
 
 -- ✅ APPROXIMATE COUNT
 SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = 'posts';
-```
 
 ---
 
-## 17. MULTI-TENANCY PATTERNS
+§ 17. MULTI-TENANCY PATTERNS
 
-### 17.1 Strategy Comparison
+§ 17.1 STRATEGY COMPARISON
 
 | Strategy | Isolation | Cost | Complexity | Scale | Best For |
 |----------|-----------|------|------------|-------|----------|
@@ -519,9 +505,9 @@ SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = 'posts';
 | Database per Tenant | 🟢 High | 💰💰💰 High | 🔴 High | 🔴 Complex | Enterprise, regulated |
 | Row-Level Security | 🟡 Medium | 💰 Low | 🟡 Medium | 🟢 Easy | PostgreSQL projects |
 
-### 17.2 Row-Level Security Implementation
+§ 17.2 ROW-LEVEL SECURITY IMPLEMENTATION
 
-```sql
+sql
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts FORCE ROW LEVEL SECURITY;
 
@@ -529,13 +515,12 @@ CREATE POLICY tenant_isolation_policy ON posts
   FOR ALL
   USING (tenant_id = current_setting('app.current_tenant')::uuid)
   WITH CHECK (tenant_id = current_setting('app.current_tenant')::uuid);
-```
 
 ---
 
-## 18. BACKUP & DISASTER RECOVERY
+§ 18. BACKUP & DISASTER RECOVERY
 
-### 18.1 Backup Strategy Matrix
+§ 18.1 BACKUP STRATEGY MATRIX
 
 | Strategy | RPO | RTO | Complexity | Best For |
 |----------|-----|-----|------------|----------|
@@ -547,9 +532,9 @@ CREATE POLICY tenant_isolation_policy ON posts
 
 ---
 
-## 19. DATABASE MONITORING
+§ 19. DATABASE MONITORING
 
-### 19.1 Key Metrics Table
+§ 19.1 KEY METRICS TABLE
 
 | Metric | Warning | Critical | Query/Tool |
 |--------|---------|----------|------------|
@@ -563,9 +548,8 @@ CREATE POLICY tenant_isolation_policy ON posts
 
 ---
 
-## 20. DATABASE EXPANSION CHECKLIST
+§ 20. DATABASE EXPANSION CHECKLIST
 
-```
 CONNECTION MANAGEMENT
 □ Connection pooler deployed (PgBouncer/RDS Proxy)
 □ Pool size tuned for workload
@@ -598,14 +582,13 @@ MONITORING
 □ Connection metrics tracked
 □ Query performance metrics
 □ Disk usage alerts
-```
 
 
 ---
 
-## 13. CONNECTION POOLING
+§ 13. CONNECTION POOLING
 
-### 13.1 Connection Pooler Comparison
+§ 13.1 CONNECTION POOLER COMPARISON
 
 | Tool | Database | Max Conn | Overhead | Pool Mode | Serverless | Best For |
 |------|----------|----------|----------|-----------|------------|----------|
@@ -618,9 +601,9 @@ MONITORING
 | Neon Pooler | PostgreSQL | 10,000+ | 1-2ms | Transaction | ✅ | Serverless Postgres |
 | PlanetScale | MySQL | Unlimited | 1-3ms | Connection | ✅ | Vitess-based |
 
-### 13.2 PgBouncer Production Config
+§ 13.2 PGBOUNCER PRODUCTION CONFIG
 
-```ini
+ini
 ; /etc/pgbouncer/pgbouncer.ini
 [databases]
 myapp = host=db.example.com port=5432 dbname=myapp_production
@@ -655,11 +638,10 @@ log_connections = 1
 log_disconnections = 1
 log_pooler_errors = 1
 stats_period = 60
-```
 
-### 13.3 Prisma Connection Pooling
+§ 13.3 PRISMA CONNECTION POOLING
 
-```typescript
+typescript
 // lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
@@ -692,11 +674,9 @@ const shutdown = async () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-```
 
-### 13.4 Pool Sizing Formula
+§ 13.4 POOL SIZING FORMULA
 
-```
 Optimal Pool Size = (Number of CPU Cores * 2) + Effective Spindle Count
 
 For SSDs (no spindle): 
@@ -707,14 +687,13 @@ Example (8 core, SSD):
 
 For Serverless:
   Pool Size = Max Concurrent Functions / 10
-```
 
 
 ---
 
-## 14. DATABASE MIGRATIONS
+§ 14. DATABASE MIGRATIONS
 
-### 14.1 Migration Tools Comparison
+§ 14.1 MIGRATION TOOLS COMPARISON
 
 | Tool | Language | Rollback | Version Control | CI/CD | Type Safety | Best For |
 |------|----------|----------|-----------------|-------|-------------|----------|
@@ -726,9 +705,9 @@ For Serverless:
 | TypeORM | TypeScript | ✅ Auto | ✅ Timestamps | ✅ | ⚠️ Partial | NestJS projects |
 | Atlas | HCL/SQL | ✅ Auto | ✅ Declarative | ✅ | ❌ | Multi-DB |
 
-### 14.2 Prisma Migration Workflow
+§ 14.2 PRISMA MIGRATION WORKFLOW
 
-```bash
+bash
 # Development: Create and apply migration
 npx prisma migrate dev --name add_user_profile
 
@@ -746,11 +725,10 @@ npx prisma migrate status
 
 # Resolve failed migration
 npx prisma migrate resolve --applied "20240115120000_failed_migration"
-```
 
-### 14.3 Prisma Schema Example
+§ 14.3 PRISMA SCHEMA EXAMPLE
 
-```typescript
+typescript
 // prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
@@ -782,13 +760,12 @@ enum Role {
   ADMIN
   MODERATOR
 }
-```
 
 ---
 
-## 15. INDEX OPTIMIZATION
+§ 15. INDEX OPTIMIZATION
 
-### 15.1 Index Types Reference
+§ 15.1 INDEX TYPES REFERENCE
 
 | Index Type | PostgreSQL | MySQL | Use Case | Complexity | When to Use |
 |------------|------------|-------|----------|------------|-------------|
@@ -801,9 +778,9 @@ enum Role {
 | Composite | ✅ | ✅ | Multi-column | O(log n) | Combined filters |
 | Covering | ✅ | ✅ | Index-only scans | O(log n) | SELECT specific cols |
 
-### 15.2 Index Strategy Patterns
+§ 15.2 INDEX STRATEGY PATTERNS
 
-```sql
+sql
 -- 1. COMPOSITE INDEX (column order matters!)
 CREATE INDEX idx_orders_status_created 
 ON orders (status, created_at DESC);
@@ -832,11 +809,10 @@ ON posts USING GIN (
 CREATE INDEX idx_events_created_brin 
 ON events USING BRIN (created_at) 
 WITH (pages_per_range = 128);
-```
 
-### 15.3 Index Analysis Queries
+§ 15.3 INDEX ANALYSIS QUERIES
 
-```sql
+sql
 -- Find missing indexes (high seq scan tables)
 SELECT 
   schemaname || '.' || relname AS table_name,
@@ -861,14 +837,13 @@ WHERE idx_scan < 50
   AND indexrelname NOT LIKE '%_pkey'
 ORDER BY pg_relation_size(indexrelid) DESC
 LIMIT 20;
-```
 
 
 ---
 
-## 16. QUERY OPTIMIZATION
+§ 16. QUERY OPTIMIZATION
 
-### 16.1 Query Anti-Patterns
+§ 16.1 QUERY ANTI-PATTERNS
 
 | ❌ Anti-Pattern | ✅ Solution | Performance Impact |
 |----------------|-------------|-------------------|
@@ -882,9 +857,9 @@ LIMIT 20;
 | Functions on indexed columns | Expression index | 10x faster |
 | Missing indexes | Add appropriate indexes | 100-1000x faster |
 
-### 16.2 Optimization Examples
+§ 16.2 OPTIMIZATION EXAMPLES
 
-```sql
+sql
 -- ❌ N+1 PROBLEM
 SELECT * FROM users;
 -- Then for EACH user: SELECT * FROM posts WHERE user_id = ?;
@@ -908,13 +883,12 @@ SELECT COUNT(*) FROM posts;
 -- ✅ APPROXIMATE COUNT
 SELECT reltuples::bigint AS estimate 
 FROM pg_class WHERE relname = 'posts';
-```
 
 ---
 
-## 17. MULTI-TENANCY PATTERNS
+§ 17. MULTI-TENANCY PATTERNS
 
-### 17.1 Strategy Comparison
+§ 17.1 STRATEGY COMPARISON
 
 | Strategy | Isolation | Cost | Complexity | Scale | Compliance | Best For |
 |----------|-----------|------|------------|-------|------------|----------|
@@ -923,9 +897,9 @@ FROM pg_class WHERE relname = 'posts';
 | Database per Tenant | 🟢 High | 💰💰💰 High | 🔴 High | 🔴 Complex | ✅ Excellent | Enterprise, regulated |
 | Row-Level Security | 🟡 Medium | 💰 Low | 🟡 Medium | 🟢 Easy | ✅ Good | PostgreSQL projects |
 
-### 17.2 Row-Level Security Implementation
+§ 17.2 ROW-LEVEL SECURITY IMPLEMENTATION
 
-```sql
+sql
 -- Enable RLS on tables
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts FORCE ROW LEVEL SECURITY;
@@ -940,9 +914,8 @@ CREATE POLICY tenant_isolation_policy ON posts
 CREATE POLICY admin_bypass ON posts
   FOR ALL
   USING (current_setting('app.is_admin', true)::boolean = true);
-```
 
-```typescript
+typescript
 // Prisma extension for automatic tenant filtering
 export const prismaWithTenant = (tenantId: string) => {
   return prisma.$extends({
@@ -965,13 +938,12 @@ export const prismaWithTenant = (tenantId: string) => {
     },
   });
 };
-```
 
 ---
 
-## 18. BACKUP & DISASTER RECOVERY
+§ 18. BACKUP & DISASTER RECOVERY
 
-### 18.1 Backup Strategy Matrix
+§ 18.1 BACKUP STRATEGY MATRIX
 
 | Strategy | RPO | RTO | Storage | Complexity | Best For |
 |----------|-----|-----|---------|------------|----------|
@@ -983,9 +955,9 @@ export const prismaWithTenant = (tenantId: string) => {
 | pgBackRest | Minutes | 15-60min | Medium | 🟡 Medium | Large DBs |
 | Cloud Snapshots | 1-24h | 30min-2h | Low | 🟢 Low | Managed DBs |
 
-### 18.2 Automated Backup Script
+§ 18.2 AUTOMATED BACKUP SCRIPT
 
-```bash
+bash
 #!/bin/bash
 # backup-postgres.sh
 set -euo pipefail
@@ -1013,14 +985,13 @@ aws s3 cp "${BACKUP_FILE}" "${S3_BUCKET}/${DB_NAME}/"
 find "${BACKUP_DIR}" -name "*.sql.gz" -mtime +${RETENTION_DAYS} -delete
 
 echo "✅ Backup verified: ${BACKUP_FILE}"
-```
 
 
 ---
 
-## 19. DATABASE MONITORING
+§ 19. DATABASE MONITORING
 
-### 19.1 Key Metrics Table
+§ 19.1 KEY METRICS TABLE
 
 | Metric | Warning | Critical | Query/Tool |
 |--------|---------|----------|------------|
@@ -1033,9 +1004,9 @@ echo "✅ Backup verified: ${BACKUP_FILE}"
 | Disk usage | >80% | >90% | pg_database_size |
 | Transaction rate | Baseline +50% | Baseline +100% | pg_stat_database |
 
-### 19.2 Monitoring Queries
+§ 19.2 MONITORING QUERIES
 
-```sql
+sql
 -- Current connections by state
 SELECT state, COUNT(*) as count,
   MAX(EXTRACT(EPOCH FROM (now() - query_start))) as max_duration_sec
@@ -1068,13 +1039,11 @@ ORDER BY n_dead_tup DESC LIMIT 20;
 SELECT client_addr, state, sent_lsn, replay_lsn,
   pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
 FROM pg_stat_replication;
-```
 
 ---
 
-## 20. DATABASE EXPANSION CHECKLIST
+§ 20. DATABASE EXPANSION CHECKLIST
 
-```
 CONNECTION MANAGEMENT
 □ Connection pooler deployed (PgBouncer/RDS Proxy)
 □ Pool size tuned for workload
@@ -1123,4 +1092,3 @@ MONITORING
 □ Disk usage alerts
 □ Replication lag monitoring
 □ Dead tuple alerting
-```
