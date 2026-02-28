@@ -2485,3 +2485,545 @@ TESTING
 □ Error boundary tests
 □ API error tests
 □ UI error state tests
+
+---
+
+## ERROR-MONITORING-AND-REPORTING
+
+### Panoramica
+Sistema completo di error monitoring: Sentry integration, error boundary con recovery, user feedback collection, error grouping e alerting.
+
+### Implementazione Completa
+
+```typescript
+// lib/monitoring/error-reporter.ts
+import * as Sentry from "@sentry/nextjs";
+
+// ============================================================
+// ERROR REPORTER SERVICE
+// ============================================================
+interface ErrorContext {
+  userId?: string;
+  sessionId?: string;
+  route?: string;
+  action?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export class ErrorReporter {
+  private static instance: ErrorReporter;
+
+  static getInstance(): ErrorReporter {
+    if (!this.instance) {
+      this.instance = new ErrorReporter();
+    }
+    return this.instance;
+  }
+
+  // ----------------------------------------------------------
+  // CAPTURE ERROR
+  // ----------------------------------------------------------
+  captureError(error: Error, context?: ErrorContext): string {
+    const eventId = Sentry.captureException(error, {
+      tags: {
+        route: context?.route,
+        action: context?.action,
+      },
+      user: context?.userId
+        ? { id: context.userId }
+        : undefined,
+      extra: {
+        ...context?.metadata,
+        sessionId: context?.sessionId,
+      },
+    });
+
+    if (process.env.NODE_ENV === "development") {
+      console.error("[ErrorReporter]", error.message, context);
+    }
+
+    return eventId;
+  }
+
+  // ----------------------------------------------------------
+  // CAPTURE MESSAGE (non-error warnings)
+  // ----------------------------------------------------------
+  captureMessage(message: string, level: "info" | "warning" | "error" = "warning", context?: ErrorContext): void {
+    Sentry.captureMessage(message, {
+      level,
+      tags: { route: context?.route, action: context?.action },
+      extra: context?.metadata,
+    });
+  }
+
+  // ----------------------------------------------------------
+  // ADD BREADCRUMB (for error context trail)
+  // ----------------------------------------------------------
+  addBreadcrumb(
+    category: string,
+    message: string,
+    data?: Record<string, unknown>,
+    level: "info" | "warning" | "error" = "info"
+  ): void {
+    Sentry.addBreadcrumb({
+      category,
+      message,
+      data,
+      level,
+      timestamp: Date.now() / 1000,
+    });
+  }
+
+  // ----------------------------------------------------------
+  // SET USER CONTEXT
+  // ----------------------------------------------------------
+  setUser(user: { id: string; email?: string; plan?: string } | null): void {
+    if (user) {
+      Sentry.setUser({ id: user.id, email: user.email, plan: user.plan });
+    } else {
+      Sentry.setUser(null);
+    }
+  }
+
+  // ----------------------------------------------------------
+  // PERFORMANCE MONITORING
+  // ----------------------------------------------------------
+  startTransaction(name: string, op: string): ReturnType<typeof Sentry.startSpan> {
+    return Sentry.startSpan({ name, op }, (span) => span);
+  }
+
+  // ----------------------------------------------------------
+  // USER FEEDBACK
+  // ----------------------------------------------------------
+  async submitUserFeedback(eventId: string, feedback: {
+    name: string;
+    email: string;
+    comments: string;
+  }): Promise<void> {
+    Sentry.captureUserFeedback({
+      event_id: eventId,
+      name: feedback.name,
+      email: feedback.email,
+      comments: feedback.comments,
+    });
+  }
+}
+
+export const errorReporter = ErrorReporter.getInstance();
+```
+
+```typescript
+// components/error/error-boundary-with-feedback.tsx
+"use client";
+
+import { Component, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AlertTriangle, RefreshCw, Send, Bug } from "lucide-react";
+import { errorReporter } from "@/lib/monitoring/error-reporter";
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+  eventId: string | null;
+  showFeedback: boolean;
+  feedbackSent: boolean;
+  feedbackName: string;
+  feedbackEmail: string;
+  feedbackComments: string;
+}
+
+export class ErrorBoundaryWithFeedback extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      eventId: null,
+      showFeedback: false,
+      feedbackSent: false,
+      feedbackName: "",
+      feedbackEmail: "",
+      feedbackComments: "",
+    };
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    const eventId = errorReporter.captureError(error, {
+      metadata: { componentStack: errorInfo.componentStack },
+    });
+    this.setState({ eventId });
+    this.props.onError?.(error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      eventId: null,
+      showFeedback: false,
+      feedbackSent: false,
+    });
+  };
+
+  handleSubmitFeedback = async () => {
+    if (!this.state.eventId) return;
+
+    await errorReporter.submitUserFeedback(this.state.eventId, {
+      name: this.state.feedbackName,
+      email: this.state.feedbackEmail,
+      comments: this.state.feedbackComments,
+    });
+
+    this.setState({ feedbackSent: true });
+  };
+
+  render() {
+    if (!this.state.hasError) return this.props.children;
+
+    if (this.props.fallback) return this.props.fallback;
+
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-8">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <CardTitle className="text-lg">Something went wrong</CardTitle>
+            </div>
+            <CardDescription>
+              We've been notified and are working on a fix.
+              {this.state.eventId && (
+                <span className="block mt-1 font-mono text-xs">
+                  Error ID: {this.state.eventId}
+                </span>
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Button onClick={this.handleReset} className="flex-1">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => this.setState({ showFeedback: true })}
+                className="flex-1"
+              >
+                <Bug className="mr-2 h-4 w-4" />
+                Report
+              </Button>
+            </div>
+
+            {this.state.showFeedback && !this.state.feedbackSent && (
+              <div className="space-y-3 border-t pt-4">
+                <p className="text-sm font-medium">Help us fix this issue</p>
+                <Input
+                  placeholder="Your name"
+                  value={this.state.feedbackName}
+                  onChange={(e) => this.setState({ feedbackName: e.target.value })}
+                />
+                <Input
+                  placeholder="Your email"
+                  type="email"
+                  value={this.state.feedbackEmail}
+                  onChange={(e) => this.setState({ feedbackEmail: e.target.value })}
+                />
+                <Textarea
+                  placeholder="What were you doing when this happened?"
+                  value={this.state.feedbackComments}
+                  onChange={(e) => this.setState({ feedbackComments: e.target.value })}
+                />
+                <Button
+                  size="sm"
+                  onClick={this.handleSubmitFeedback}
+                  disabled={!this.state.feedbackComments}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Feedback
+                </Button>
+              </div>
+            )}
+
+            {this.state.feedbackSent && (
+              <p className="text-sm text-green-600 text-center">
+                Thank you for your feedback!
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+}
+```
+
+### Errori Comuni da Evitare
+- **Sentry in development**: Disabilita Sentry in dev o usa un DSN separato
+- **PII nei breadcrumb**: Non loggare password, token o dati sensibili
+- **Error boundary senza recovery**: Fornisci sempre un pulsante "Try Again"
+- **Missing source maps**: Carica le source maps su Sentry per stack trace leggibili
+
+### Checklist di Verifica
+- [ ] Sentry e configurato con DSN, environment e release
+- [ ] L'error boundary cattura errori di rendering React
+- [ ] Il feedback form raccoglie contesto dall'utente
+- [ ] I breadcrumb forniscono trail di azioni pre-errore
+- [ ] Le source maps sono caricate per deobfuscation
+- [ ] L'error grouping in Sentry e corretto (no duplicati)
+
+
+---
+
+## ERROR-LOGGING-STRUCTURED
+
+### Panoramica
+Sistema di logging strutturato con livelli, contesto arricchito, log rotation e integrazione con servizi di monitoring esterni.
+
+### Implementazione Completa
+
+```typescript
+// lib/logging/structured-logger.ts
+
+type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
+
+interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  context: Record<string, unknown>;
+  error?: {
+    name: string;
+    message: string;
+    stack?: string;
+    code?: string;
+  };
+  request?: {
+    method: string;
+    url: string;
+    userAgent?: string;
+    ip?: string;
+    requestId?: string;
+  };
+  duration?: number;
+  userId?: string;
+  traceId?: string;
+  spanId?: string;
+  service: string;
+  environment: string;
+}
+
+interface LoggerConfig {
+  service: string;
+  environment: string;
+  minLevel: LogLevel;
+  transports: LogTransport[];
+}
+
+interface LogTransport {
+  name: string;
+  minLevel: LogLevel;
+  write(entry: LogEntry): void | Promise<void>;
+}
+
+const LOG_LEVELS: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  fatal: 4,
+};
+
+class ConsoleTransport implements LogTransport {
+  name = "console";
+  minLevel: LogLevel = "debug";
+
+  write(entry: LogEntry): void {
+    const color = {
+      debug: "\x1b[36m",
+      info: "\x1b[32m",
+      warn: "\x1b[33m",
+      error: "\x1b[31m",
+      fatal: "\x1b[35m",
+    }[entry.level];
+    const reset = "\x1b[0m";
+    const prefix = `${color}[${entry.level.toUpperCase()}]${reset}`;
+    const msg = `${prefix} ${entry.timestamp} [${entry.service}] ${entry.message}`;
+
+    if (entry.level === "error" || entry.level === "fatal") {
+      console.error(msg, entry.error ?? "", entry.context);
+    } else if (entry.level === "warn") {
+      console.warn(msg, entry.context);
+    } else {
+      console.log(msg, Object.keys(entry.context).length > 0 ? entry.context : "");
+    }
+  }
+}
+
+class JsonFileTransport implements LogTransport {
+  name = "json-file";
+  minLevel: LogLevel = "info";
+  private buffer: string[] = [];
+  private flushInterval: ReturnType<typeof setInterval>;
+
+  constructor(private filePath: string, flushIntervalMs = 5000) {
+    this.flushInterval = setInterval(() => this.flush(), flushIntervalMs);
+  }
+
+  write(entry: LogEntry): void {
+    this.buffer.push(JSON.stringify(entry));
+    if (this.buffer.length >= 100) {
+      this.flush();
+    }
+  }
+
+  private flush(): void {
+    if (this.buffer.length === 0) return;
+    const batch = this.buffer.splice(0);
+    const content = batch.join("\n") + "\n";
+    // In Node.js environment, append to file
+    if (typeof globalThis.process !== "undefined") {
+      const fs = require("fs");
+      fs.appendFileSync(this.filePath, content);
+    }
+  }
+
+  destroy(): void {
+    clearInterval(this.flushInterval);
+    this.flush();
+  }
+}
+
+export class StructuredLogger {
+  private config: LoggerConfig;
+  private defaultContext: Record<string, unknown> = {};
+
+  constructor(config: LoggerConfig) {
+    this.config = config;
+  }
+
+  setDefaultContext(ctx: Record<string, unknown>): void {
+    this.defaultContext = { ...this.defaultContext, ...ctx };
+  }
+
+  child(context: Record<string, unknown>): StructuredLogger {
+    const child = new StructuredLogger(this.config);
+    child.defaultContext = { ...this.defaultContext, ...context };
+    return child;
+  }
+
+  debug(message: string, context: Record<string, unknown> = {}): void {
+    this.log("debug", message, context);
+  }
+
+  info(message: string, context: Record<string, unknown> = {}): void {
+    this.log("info", message, context);
+  }
+
+  warn(message: string, context: Record<string, unknown> = {}): void {
+    this.log("warn", message, context);
+  }
+
+  error(message: string, error?: Error, context: Record<string, unknown> = {}): void {
+    this.log("error", message, context, error);
+  }
+
+  fatal(message: string, error?: Error, context: Record<string, unknown> = {}): void {
+    this.log("fatal", message, context, error);
+  }
+
+  private log(level: LogLevel, message: string, context: Record<string, unknown>, error?: Error): void {
+    if (LOG_LEVELS[level] < LOG_LEVELS[this.config.minLevel]) return;
+
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      context: { ...this.defaultContext, ...context },
+      service: this.config.service,
+      environment: this.config.environment,
+    };
+
+    if (error) {
+      entry.error = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        code: (error as any).code,
+      };
+    }
+
+    for (const transport of this.config.transports) {
+      if (LOG_LEVELS[level] >= LOG_LEVELS[transport.minLevel]) {
+        try {
+          transport.write(entry);
+        } catch (err) {
+          console.error(`Failed to write to transport ${transport.name}:`, err);
+        }
+      }
+    }
+  }
+
+  // Request logging middleware
+  requestLogger() {
+    return (req: any, res: any, next: () => void) => {
+      const start = Date.now();
+      const requestId = req.headers["x-request-id"] ?? crypto.randomUUID();
+      const child = this.child({ requestId });
+
+      child.info(`${req.method} ${req.url}`, {
+        method: req.method,
+        url: req.url,
+        userAgent: req.headers["user-agent"],
+      });
+
+      const originalEnd = res.end;
+      res.end = (...args: any[]) => {
+        const duration = Date.now() - start;
+        child.info(`${req.method} ${req.url} ${res.statusCode}`, {
+          statusCode: res.statusCode,
+          duration,
+        });
+        originalEnd.apply(res, args);
+      };
+
+      next();
+    };
+  }
+}
+
+// Factory
+export function createLogger(service: string): StructuredLogger {
+  return new StructuredLogger({
+    service,
+    environment: process.env.NODE_ENV ?? "development",
+    minLevel: (process.env.LOG_LEVEL as LogLevel) ?? "info",
+    transports: [
+      new ConsoleTransport(),
+      ...(process.env.NODE_ENV === "production"
+        ? [new JsonFileTransport(`/var/log/${service}.log`)]
+        : []),
+    ],
+  });
+}
+```
+
+### Checklist di Verifica
+- [ ] Ogni log entry ha timestamp ISO 8601, service name e environment
+- [ ] Gli errori includono stack trace e error code
+- [ ] Il logger supporta child loggers con contesto ereditato
+- [ ] I transport hanno livelli minimi indipendenti
+- [ ] Il file transport usa buffering per performance

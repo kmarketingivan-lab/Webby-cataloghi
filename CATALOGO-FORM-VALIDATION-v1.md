@@ -2282,3 +2282,618 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
+
+---
+
+## FORM-FIELD-COMPONENTS-COMPLETE
+
+### Panoramica
+Libreria completa di form field components: text input, textarea, select, checkbox group, radio group, date picker, file upload, phone input con validazione inline e accessibilita.
+
+### Implementazione Completa
+
+```typescript
+// components/form/form-fields.tsx
+"use client";
+
+import { forwardRef, ReactNode, useId } from "react";
+import { useFormContext, Controller, FieldValues, Path } from "react-hook-form";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, CalendarIcon, Info } from "lucide-react";
+import { format } from "date-fns";
+
+// ============================================================
+// BASE FIELD WRAPPER
+// ============================================================
+interface FieldWrapperProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  children: ReactNode;
+  className?: string;
+}
+
+function FieldWrapper<T extends FieldValues>({
+  name,
+  label,
+  hint,
+  required,
+  children,
+  className,
+}: FieldWrapperProps) {
+  const id = useId();
+  const { formState: { errors } } = useFormContext<T>();
+  const error = errors[name as Path<T>];
+  const errorMessage = error?.message as string | undefined;
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label htmlFor={id} className="flex items-center gap-1">
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </Label>
+      {children}
+      {errorMessage && (
+        <p className="text-sm text-destructive flex items-center gap-1" role="alert">
+          <AlertCircle className="h-3 w-3 shrink-0" />
+          {errorMessage}
+        </p>
+      )}
+      {!errorMessage && hint && (
+        <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <Info className="h-3 w-3 shrink-0" />
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// TEXT FIELD
+// ============================================================
+interface TextFieldProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  type?: "text" | "email" | "password" | "url" | "tel" | "number";
+  placeholder?: string;
+  prefix?: ReactNode;
+  suffix?: ReactNode;
+  className?: string;
+}
+
+export function TextField({
+  name,
+  label,
+  hint,
+  required,
+  type = "text",
+  placeholder,
+  prefix,
+  suffix,
+  className,
+}: TextFieldProps) {
+  const { register, formState: { errors } } = useFormContext();
+  const error = errors[name];
+
+  return (
+    <FieldWrapper name={name} label={label} hint={hint} required={required} className={className}>
+      <div className="relative">
+        {prefix && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            {prefix}
+          </div>
+        )}
+        <Input
+          {...register(name)}
+          type={type}
+          placeholder={placeholder}
+          aria-invalid={!!error}
+          className={cn(
+            error && "border-destructive focus-visible:ring-destructive",
+            prefix && "pl-10",
+            suffix && "pr-10"
+          )}
+        />
+        {suffix && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            {suffix}
+          </div>
+        )}
+      </div>
+    </FieldWrapper>
+  );
+}
+
+// ============================================================
+// TEXT AREA FIELD
+// ============================================================
+interface TextAreaFieldProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  placeholder?: string;
+  rows?: number;
+  maxLength?: number;
+  className?: string;
+}
+
+export function TextAreaField({
+  name,
+  label,
+  hint,
+  required,
+  placeholder,
+  rows = 4,
+  maxLength,
+  className,
+}: TextAreaFieldProps) {
+  const { register, watch, formState: { errors } } = useFormContext();
+  const error = errors[name];
+  const value = watch(name) ?? "";
+
+  return (
+    <FieldWrapper name={name} label={label} hint={hint} required={required} className={className}>
+      <div className="relative">
+        <Textarea
+          {...register(name)}
+          placeholder={placeholder}
+          rows={rows}
+          maxLength={maxLength}
+          aria-invalid={!!error}
+          className={cn(error && "border-destructive focus-visible:ring-destructive")}
+        />
+        {maxLength && (
+          <span className={cn(
+            "absolute bottom-2 right-3 text-xs",
+            value.length > maxLength * 0.9 ? "text-destructive" : "text-muted-foreground"
+          )}>
+            {value.length}/{maxLength}
+          </span>
+        )}
+      </div>
+    </FieldWrapper>
+  );
+}
+
+// ============================================================
+// SELECT FIELD
+// ============================================================
+interface SelectFieldProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  placeholder?: string;
+  options: Array<{ value: string; label: string; disabled?: boolean }>;
+  className?: string;
+}
+
+export function SelectField({
+  name,
+  label,
+  hint,
+  required,
+  placeholder = "Select...",
+  options,
+  className,
+}: SelectFieldProps) {
+  const { control } = useFormContext();
+
+  return (
+    <FieldWrapper name={name} label={label} hint={hint} required={required} className={className}>
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <Select onValueChange={field.onChange} value={field.value}>
+            <SelectTrigger>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} disabled={opt.disabled}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      />
+    </FieldWrapper>
+  );
+}
+
+// ============================================================
+// DATE PICKER FIELD
+// ============================================================
+interface DatePickerFieldProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  minDate?: Date;
+  maxDate?: Date;
+  className?: string;
+}
+
+export function DatePickerField({
+  name,
+  label,
+  hint,
+  required,
+  minDate,
+  maxDate,
+  className,
+}: DatePickerFieldProps) {
+  const { control } = useFormContext();
+
+  return (
+    <FieldWrapper name={name} label={label} hint={hint} required={required} className={className}>
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !field.value && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {field.value ? format(field.value, "PPP") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) => {
+                  if (minDate && date < minDate) return true;
+                  if (maxDate && date > maxDate) return true;
+                  return false;
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+      />
+    </FieldWrapper>
+  );
+}
+
+// ============================================================
+// CHECKBOX GROUP FIELD
+// ============================================================
+interface CheckboxGroupFieldProps {
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  options: Array<{ value: string; label: string; description?: string }>;
+  className?: string;
+}
+
+export function CheckboxGroupField({
+  name,
+  label,
+  hint,
+  required,
+  options,
+  className,
+}: CheckboxGroupFieldProps) {
+  const { control } = useFormContext();
+
+  return (
+    <FieldWrapper name={name} label={label} hint={hint} required={required} className={className}>
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-2">
+            {options.map((opt) => {
+              const checked = (field.value ?? []).includes(opt.value);
+              return (
+                <label
+                  key={opt.value}
+                  className="flex items-start gap-3 rounded-md border p-3 hover:bg-muted/50 cursor-pointer"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(isChecked) => {
+                      const current = field.value ?? [];
+                      field.onChange(
+                        isChecked
+                          ? [...current, opt.value]
+                          : current.filter((v: string) => v !== opt.value)
+                      );
+                    }}
+                  />
+                  <div>
+                    <span className="text-sm font-medium">{opt.label}</span>
+                    {opt.description && (
+                      <p className="text-xs text-muted-foreground">{opt.description}</p>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        )}
+      />
+    </FieldWrapper>
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **useFormContext fuori da FormProvider**: Wrappa sempre con `<FormProvider>`
+- **Controller senza defaultValue**: Definisci defaultValues nel useForm
+- **aria-invalid mancante**: Aggiungi aria-invalid per comunicare errori agli screen reader
+- **Label non collegata**: Usa htmlFor + id matching
+
+### Checklist di Verifica
+- [ ] Ogni campo ha label, error message e hint
+- [ ] I campi required sono indicati con asterisco
+- [ ] Il TextAreaField mostra character count se maxLength e definito
+- [ ] Il DatePickerField supporta min/max date
+- [ ] Il CheckboxGroupField supporta selezione multipla
+- [ ] Tutti i campi gestiscono lo stato di errore visivamente
+
+
+---
+
+## FORM-ACCESSIBILITY-PATTERNS
+
+### Panoramica
+Pattern per form accessibili con ARIA attributes, error announcements, focus management e keyboard navigation completa.
+
+### Implementazione Completa
+
+```typescript
+// components/forms/accessible-form.tsx
+"use client";
+
+import { useId, useRef, useEffect, ReactNode, FormEvent } from "react";
+import { cn } from "@/lib/utils";
+import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+
+// ============================================================
+// FORM ERROR SUMMARY — WCAG 3.3.1
+// ============================================================
+interface FormError {
+  field: string;
+  message: string;
+}
+
+interface ErrorSummaryProps {
+  errors: FormError[];
+  title?: string;
+}
+
+export function ErrorSummary({ errors, title = "Please fix the following errors:" }: ErrorSummaryProps) {
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (errors.length > 0 && summaryRef.current) {
+      summaryRef.current.focus();
+    }
+  }, [errors]);
+
+  if (errors.length === 0) return null;
+
+  return (
+    <div
+      ref={summaryRef}
+      role="alert"
+      aria-labelledby="error-summary-title"
+      className="rounded-lg border border-destructive/50 bg-destructive/10 p-4"
+      tabIndex={-1}
+    >
+      <h2 id="error-summary-title" className="mb-2 flex items-center gap-2 font-semibold text-destructive">
+        <AlertCircle className="h-5 w-5" />
+        {title}
+      </h2>
+      <ul className="space-y-1">
+        {errors.map((error) => (
+          <li key={error.field}>
+            <a
+              href={`#${error.field}`}
+              className="text-sm text-destructive underline hover:no-underline"
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById(error.field);
+                el?.focus();
+                el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            >
+              {error.message}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ============================================================
+// ACCESSIBLE FIELDSET GROUP
+// ============================================================
+interface FieldsetProps {
+  legend: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+}
+
+export function AccessibleFieldset({ legend, description, children, className }: FieldsetProps) {
+  const descId = useId();
+
+  return (
+    <fieldset
+      className={cn("space-y-4 rounded-lg border p-4", className)}
+      aria-describedby={description ? descId : undefined}
+    >
+      <legend className="px-2 text-lg font-semibold">{legend}</legend>
+      {description && (
+        <p id={descId} className="text-sm text-muted-foreground">
+          {description}
+        </p>
+      )}
+      {children}
+    </fieldset>
+  );
+}
+
+// ============================================================
+// LIVE VALIDATION FIELD
+// ============================================================
+interface LiveValidationFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  validate: (value: string) => string | null;
+  hint?: string;
+  required?: boolean;
+  type?: string;
+  successMessage?: string;
+}
+
+export function LiveValidationField({
+  id,
+  label,
+  value,
+  onChange,
+  validate,
+  hint,
+  required = false,
+  type = "text",
+  successMessage = "Looks good!",
+}: LiveValidationFieldProps) {
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
+  const successId = `${id}-success`;
+  const error = value.length > 0 ? validate(value) : null;
+  const isValid = value.length > 0 && error === null;
+
+  const describedBy = [
+    hint ? hintId : null,
+    error ? errorId : null,
+    isValid ? successId : null,
+  ].filter(Boolean).join(" ");
+
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+        {required && <span className="ml-1 text-destructive" aria-hidden="true">*</span>}
+        {required && <span className="sr-only"> (required)</span>}
+      </label>
+
+      {hint && (
+        <p id={hintId} className="text-xs text-muted-foreground">
+          {hint}
+        </p>
+      )}
+
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={describedBy || undefined}
+        aria-required={required}
+        className={cn(
+          "flex h-10 w-full rounded-md border px-3 py-2 text-sm transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          error && "border-destructive focus-visible:ring-destructive",
+          isValid && "border-green-500 focus-visible:ring-green-500"
+        )}
+      />
+
+      {error && (
+        <p id={errorId} role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {error}
+        </p>
+      )}
+
+      {isValid && (
+        <p id={successId} className="flex items-center gap-1.5 text-sm text-green-600">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          {successMessage}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// ACCESSIBLE FORM WRAPPER
+// ============================================================
+interface AccessibleFormProps {
+  children: ReactNode;
+  onSubmit: (e: FormEvent) => void;
+  errors?: FormError[];
+  className?: string;
+  ariaLabel: string;
+}
+
+export function AccessibleForm({
+  children,
+  onSubmit,
+  errors = [],
+  className,
+  ariaLabel,
+}: AccessibleFormProps) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(e);
+      }}
+      aria-label={ariaLabel}
+      noValidate
+      className={cn("space-y-6", className)}
+    >
+      <ErrorSummary errors={errors} />
+      {children}
+    </form>
+  );
+}
+```
+
+### Checklist di Verifica
+- [ ] Ogni campo ha un `<label>` associato tramite `htmlFor/id`
+- [ ] Gli errori usano `role="alert"` per annuncio automatico
+- [ ] Il form ha `noValidate` per gestione custom degli errori
+- [ ] I campi required hanno indicatore visivo e `aria-required`
+- [ ] L'ErrorSummary riceve il focus automaticamente
+- [ ] I link nell'ErrorSummary portano al campo con errore

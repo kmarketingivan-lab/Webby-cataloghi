@@ -2807,3 +2807,222 @@ Ogni sezione includerebbe:
 - Documentazione dettagliata
 
 Il documento finale sarebbe di 1800-2200 righe come richiesto, con codice production-ready completo e funzionante.]
+
+
+---
+
+## CHART-ACCESSIBILITY-AND-RESPONSIVE
+
+### Panoramica
+Pattern per rendere i grafici accessibili con screen reader support, keyboard navigation, responsive container e data table fallback.
+
+### Implementazione Completa
+
+```typescript
+// components/charts/accessible-chart.tsx
+"use client";
+
+import { ReactNode, useRef, useState } from "react";
+import {
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
+import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { TableIcon, BarChart3 } from "lucide-react";
+
+// ============================================================
+// ACCESSIBLE CHART WRAPPER
+// ============================================================
+interface AccessibleChartProps {
+  title: string;
+  description: string;
+  data: Record<string, unknown>[];
+  columns: { key: string; label: string; formatter?: (value: unknown) => string }[];
+  children: ReactNode;
+  className?: string;
+  height?: number;
+}
+
+export function AccessibleChart({
+  title,
+  description,
+  data,
+  columns,
+  children,
+  className,
+  height = 400,
+}: AccessibleChartProps) {
+  const [showTable, setShowTable] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div
+      className={cn("space-y-4", className)}
+      role="figure"
+      aria-label={title}
+      aria-describedby={`${title}-desc`}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <p id={`${title}-desc`} className="text-sm text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowTable(!showTable)}
+          aria-label={showTable ? "Show chart" : "Show data table"}
+        >
+          {showTable ? (
+            <><BarChart3 className="mr-2 h-4 w-4" />Chart</>
+          ) : (
+            <><TableIcon className="mr-2 h-4 w-4" />Table</>
+          )}
+        </Button>
+      </div>
+
+      {showTable ? (
+        <div className="rounded-md border overflow-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((col) => (
+                  <TableHead key={col.key}>{col.label}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((row, i) => (
+                <TableRow key={i}>
+                  {columns.map((col) => (
+                    <TableCell key={col.key}>
+                      {col.formatter
+                        ? col.formatter(row[col.key])
+                        : String(row[col.key] ?? "")}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div ref={chartRef} style={{ height }} aria-hidden="true">
+          <ResponsiveContainer width="100%" height="100%">
+            {children as any}
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Screen reader only data summary */}
+      <div className="sr-only" role="status">
+        {description}. Data has {data.length} data points.
+        {columns.map((col) => {
+          const values = data.map((d) => Number(d[col.key])).filter(Boolean);
+          if (values.length === 0) return null;
+          const min = Math.min(...values);
+          const max = Math.max(...values);
+          const avg = values.reduce((a, b) => a + b, 0) / values.length;
+          return ` ${col.label}: min ${min.toFixed(1)}, max ${max.toFixed(1)}, average ${avg.toFixed(1)}.`;
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CUSTOM TOOLTIP
+// ============================================================
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+  formatter?: (value: number, name: string) => string;
+  labelFormatter?: (label: string) => string;
+}
+
+export function ChartTooltip({
+  active,
+  payload,
+  label,
+  formatter,
+  labelFormatter,
+}: CustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="rounded-lg border bg-background p-3 shadow-md">
+      <p className="mb-1 text-sm font-medium">
+        {labelFormatter ? labelFormatter(label ?? "") : label}
+      </p>
+      {payload.map((entry, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-2 text-sm"
+        >
+          <div
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-muted-foreground">{entry.name}:</span>
+          <span className="font-mono font-medium">
+            {formatter
+              ? formatter(entry.value, entry.name)
+              : entry.value.toLocaleString()}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// CHART COLOR PALETTE — colorblind safe
+// ============================================================
+export const chartColors = {
+  primary: "hsl(var(--primary))",
+  secondary: "hsl(var(--secondary))",
+  accent: "hsl(var(--accent))",
+  destructive: "hsl(var(--destructive))",
+  // Colorblind-safe palette (Wong, 2011)
+  palette: [
+    "#0072B2", // Blue
+    "#E69F00", // Orange
+    "#009E73", // Green
+    "#CC79A7", // Pink
+    "#56B4E9", // Light blue
+    "#D55E00", // Red-orange
+    "#F0E442", // Yellow
+    "#000000", // Black
+  ],
+} as const;
+
+export function getChartColor(index: number): string {
+  return chartColors.palette[index % chartColors.palette.length];
+}
+```
+
+### Errori Comuni da Evitare
+- **Missing aria-label**: Ogni chart deve avere `role="figure"` e `aria-label`
+- **No data table alternative**: Fornisci sempre una vista tabellare per accessibilita
+- **Colori non distinguibili**: Usa la palette colorblind-safe di Wong
+- **Tooltip non responsive**: Il tooltip deve gestire bordi del viewport
+
+### Checklist di Verifica
+- [ ] Ogni chart ha titolo, descrizione e data table toggle
+- [ ] La palette colori e colorblind-safe
+- [ ] Lo screen reader riceve un summary con min/max/avg
+- [ ] Il tooltip custom usa i design tokens del tema
+- [ ] Il ResponsiveContainer adatta il chart al container

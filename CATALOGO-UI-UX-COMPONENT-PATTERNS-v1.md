@@ -1681,3 +1681,636 @@ describe('useFetchData', () => {
 * **Migrazione da React 17 a React 18**: Utilizzare la documentazione ufficiale di React per eseguire la migrazione e risolvere eventuali problemi.
 * **Aggiornamento di librerie**: Utilizzare npm o yarn per aggiornare le librerie e risolvere eventuali problemi di compatibilità.
 * **Rifattorizzazione del codice**: Utilizzare strumenti di analisi del codice per identificare aree di miglioramento e rifattorizzare il codice per renderlo più efficiente e facile da mantenere.
+
+---
+
+## DATA-TABLE-ADVANCED
+
+### Panoramica
+Componente DataTable avanzato con sorting, filtering, pagination, row selection, column visibility e export, costruito su TanStack Table v8.
+
+### Implementazione Completa
+
+```typescript
+// components/data-table/data-table.tsx
+"use client";
+
+import { useState, useMemo, useCallback } from "react";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
+  RowSelectionState,
+  FilterFn,
+} from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  SlidersHorizontal,
+  Download,
+  Search,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// ============================================================
+// FUZZY FILTER
+// ============================================================
+const fuzzyFilter: FilterFn<unknown> = (row, columnId, filterValue) => {
+  const value = String(row.getValue(columnId)).toLowerCase();
+  const search = String(filterValue).toLowerCase();
+  return value.includes(search);
+};
+
+// ============================================================
+// SELECTION COLUMN
+// ============================================================
+export function createSelectionColumn<T>(): ColumnDef<T> {
+  return {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label={`Select row ${row.index + 1}`}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 40,
+  };
+}
+
+// ============================================================
+// SORTABLE HEADER
+// ============================================================
+interface SortableHeaderProps {
+  column: { getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void };
+  children: React.ReactNode;
+}
+
+export function SortableHeader({ column, children }: SortableHeaderProps) {
+  const sorted = column.getIsSorted();
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-ml-3 h-8 font-semibold"
+      onClick={() => column.toggleSorting(sorted === "asc")}
+    >
+      {children}
+      {sorted === "asc" ? (
+        <ArrowUp className="ml-2 h-4 w-4" />
+      ) : sorted === "desc" ? (
+        <ArrowDown className="ml-2 h-4 w-4" />
+      ) : (
+        <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
+      )}
+    </Button>
+  );
+}
+
+// ============================================================
+// DATA TABLE
+// ============================================================
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  searchPlaceholder?: string;
+  searchColumn?: string;
+  enableRowSelection?: boolean;
+  enableColumnVisibility?: boolean;
+  enableExport?: boolean;
+  onRowClick?: (row: TData) => void;
+  onSelectionChange?: (selected: TData[]) => void;
+  pageSize?: number;
+  className?: string;
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  searchPlaceholder = "Search...",
+  searchColumn,
+  enableRowSelection = false,
+  enableColumnVisibility = true,
+  enableExport = false,
+  onRowClick,
+  onSelectionChange,
+  pageSize = 10,
+  className,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: (updater) => {
+      const newSelection = typeof updater === "function" ? updater(rowSelection) : updater;
+      setRowSelection(newSelection);
+      if (onSelectionChange) {
+        const selectedRows = Object.keys(newSelection)
+          .filter((key) => newSelection[key])
+          .map((key) => data[parseInt(key)]);
+        onSelectionChange(selectedRows);
+      }
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: fuzzyFilter,
+    enableRowSelection,
+    initialState: { pagination: { pageSize } },
+  });
+
+  const exportCSV = useCallback(() => {
+    const visibleColumns = table.getVisibleFlatColumns().filter((c) => c.id !== "select");
+    const headers = visibleColumns.map((c) => c.id);
+    const rows = table.getFilteredRowModel().rows.map((row) =>
+      visibleColumns.map((col) => {
+        const value = row.getValue(col.id);
+        const str = String(value ?? "");
+        return str.includes(",") ? `"${str}"` : str;
+      })
+    );
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `export-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [table]);
+
+  return (
+    <div className={cn("space-y-4", className)}>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-1 items-center gap-2">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={searchColumn ? (table.getColumn(searchColumn)?.getFilterValue() as string ?? "") : globalFilter}
+              onChange={(e) => {
+                if (searchColumn) {
+                  table.getColumn(searchColumn)?.setFilterValue(e.target.value);
+                } else {
+                  setGlobalFilter(e.target.value);
+                }
+              }}
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {enableExport && (
+            <Button variant="outline" size="sm" onClick={exportCSV}>
+              <Download className="mr-2 h-4 w-4" />Export
+            </Button>
+          )}
+          {enableColumnVisibility && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <SlidersHorizontal className="mr-2 h-4 w-4" />Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table.getAllColumns()
+                  .filter((c) => c.getCanHide())
+                  .map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+
+      {/* Selection info */}
+      {enableRowSelection && Object.keys(rowSelection).length > 0 && (
+        <div className="text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} style={{ width: header.getSize() }}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={onRowClick ? "cursor-pointer" : undefined}
+                  onClick={() => onRowClick?.(row.original)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page</span>
+          <Select
+            value={String(table.getState().pagination.pageSize)}
+            onValueChange={(value) => table.setPageSize(Number(value))}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 50, 100].map((size) => (
+                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## COMMAND-PALETTE-COMPONENT
+
+### Panoramica
+Command palette (Cmd+K) con fuzzy search, keyboard navigation, sezioni raggruppate, recent items e azioni personalizzabili.
+
+### Implementazione Completa
+
+```typescript
+// components/command-palette/command-palette.tsx
+"use client";
+
+import { useEffect, useState, useCallback, useRef, useMemo, Fragment } from "react";
+import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
+import {
+  Search,
+  FileText,
+  Settings,
+  User,
+  LogOut,
+  Moon,
+  Sun,
+  Home,
+  BarChart3,
+  Mail,
+  Bell,
+  HelpCircle,
+} from "lucide-react";
+
+interface CommandItem {
+  id: string;
+  label: string;
+  description?: string;
+  icon?: React.ReactNode;
+  section: string;
+  keywords?: string[];
+  shortcut?: string;
+  action: () => void | Promise<void>;
+  disabled?: boolean;
+}
+
+interface CommandPaletteProps {
+  commands: CommandItem[];
+  recentIds?: string[];
+  onRecentUpdate?: (ids: string[]) => void;
+  placeholder?: string;
+  maxRecent?: number;
+}
+
+function fuzzyMatch(text: string, query: string): { match: boolean; score: number } {
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+
+  if (lowerText === lowerQuery) return { match: true, score: 1 };
+  if (lowerText.includes(lowerQuery)) return { match: true, score: 0.8 };
+
+  let queryIdx = 0;
+  let score = 0;
+  let consecutive = 0;
+
+  for (let i = 0; i < lowerText.length && queryIdx < lowerQuery.length; i++) {
+    if (lowerText[i] === lowerQuery[queryIdx]) {
+      queryIdx++;
+      consecutive++;
+      score += consecutive * 2;
+      if (i === 0 || lowerText[i - 1] === " " || lowerText[i - 1] === "-") {
+        score += 5;
+      }
+    } else {
+      consecutive = 0;
+    }
+  }
+
+  const match = queryIdx === lowerQuery.length;
+  const normalizedScore = match ? score / (lowerText.length + lowerQuery.length) : 0;
+  return { match, score: normalizedScore };
+}
+
+export function CommandPalette({
+  commands,
+  recentIds = [],
+  onRecentUpdate,
+  placeholder = "Type a command or search...",
+  maxRecent = 5,
+}: CommandPaletteProps) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcut to open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Focus input when opened
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      setSelectedIndex(0);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [open]);
+
+  // Filtered and grouped items
+  const filteredItems = useMemo(() => {
+    if (!query.trim()) {
+      const recent = recentIds
+        .map((id) => commands.find((c) => c.id === id))
+        .filter((c): c is CommandItem => c !== undefined)
+        .slice(0, maxRecent);
+
+      const sections = new Map<string, CommandItem[]>();
+      if (recent.length > 0) sections.set("Recent", recent);
+
+      for (const cmd of commands) {
+        if (!sections.has(cmd.section)) sections.set(cmd.section, []);
+        sections.get(cmd.section)!.push(cmd);
+      }
+      return sections;
+    }
+
+    const scored = commands
+      .map((cmd) => {
+        const labelMatch = fuzzyMatch(cmd.label, query);
+        const descMatch = cmd.description ? fuzzyMatch(cmd.description, query) : { match: false, score: 0 };
+        const keywordMatch = cmd.keywords?.some((k) => fuzzyMatch(k, query).match) ?? false;
+        const match = labelMatch.match || descMatch.match || keywordMatch;
+        const score = Math.max(labelMatch.score, descMatch.score, keywordMatch ? 0.5 : 0);
+        return { cmd, match, score };
+      })
+      .filter((item) => item.match)
+      .sort((a, b) => b.score - a.score);
+
+    const sections = new Map<string, CommandItem[]>();
+    sections.set("Results", scored.map((s) => s.cmd));
+    return sections;
+  }, [query, commands, recentIds, maxRecent]);
+
+  const flatItems = useMemo(() => {
+    const items: CommandItem[] = [];
+    for (const sectionItems of filteredItems.values()) {
+      items.push(...sectionItems);
+    }
+    return items;
+  }, [filteredItems]);
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => Math.min(prev + 1, flatItems.length - 1));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => Math.max(prev - 1, 0));
+          break;
+        case "Enter":
+          e.preventDefault();
+          const item = flatItems[selectedIndex];
+          if (item && !item.disabled) {
+            item.action();
+            if (onRecentUpdate) {
+              const updated = [item.id, ...recentIds.filter((id) => id !== item.id)].slice(0, maxRecent);
+              onRecentUpdate(updated);
+            }
+            setOpen(false);
+          }
+          break;
+      }
+    },
+    [flatItems, selectedIndex, onRecentUpdate, recentIds, maxRecent]
+  );
+
+  // Scroll selected into view
+  useEffect(() => {
+    const el = listRef.current?.querySelector(`[data-index="${selectedIndex}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50" onClick={() => setOpen(false)}>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="fixed left-1/2 top-[20%] w-full max-w-lg -translate-x-1/2" onClick={(e) => e.stopPropagation()}>
+        <div className="overflow-hidden rounded-xl border bg-background shadow-2xl">
+          <div className="flex items-center border-b px-3">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className="flex h-12 w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
+              ESC
+            </kbd>
+          </div>
+          <div ref={listRef} className="max-h-[300px] overflow-y-auto p-2">
+            {flatItems.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No results found.</p>
+            ) : (
+              Array.from(filteredItems.entries()).map(([section, items]) => (
+                <Fragment key={section}>
+                  <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{section}</p>
+                  {items.map((item) => {
+                    const globalIndex = flatItems.indexOf(item);
+                    return (
+                      <button
+                        key={item.id}
+                        data-index={globalIndex}
+                        disabled={item.disabled}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                          globalIndex === selectedIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+                          item.disabled && "cursor-not-allowed opacity-50"
+                        )}
+                        onClick={() => {
+                          if (!item.disabled) {
+                            item.action();
+                            setOpen(false);
+                          }
+                        }}
+                        onMouseEnter={() => setSelectedIndex(globalIndex)}
+                      >
+                        {item.icon && <span className="shrink-0 text-muted-foreground">{item.icon}</span>}
+                        <div className="flex-1 overflow-hidden">
+                          <p className="truncate font-medium">{item.label}</p>
+                          {item.description && (
+                            <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+                          )}
+                        </div>
+                        {item.shortcut && (
+                          <kbd className="hidden shrink-0 rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:block">
+                            {item.shortcut}
+                          </kbd>
+                        )}
+                      </button>
+                    );
+                  })}
+                </Fragment>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **No keyboard navigation**: La command palette deve essere completamente navigabile da tastiera
+- **Missing fuzzy search**: Una ricerca exact-match e troppo restrittiva per una command palette
+- **No portal rendering**: Renderizzare sempre in un portal per evitare problemi di z-index e overflow
+- **Missing recent items**: Gli utenti si aspettano di trovare i comandi recenti in cima alla lista

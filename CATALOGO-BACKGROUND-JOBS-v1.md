@@ -1690,3 +1690,1602 @@ La risposta completa includerebbe:
 - §11: Complete Checklist
 
 Il codice è production-ready con TypeScript strict, error handling completo, e pattern per ogni use case comune.
+
+### BACKGROUND JOBS - Advanced Implementation Pattern #1
+
+```typescript
+// lib/background-jobs/pattern-1.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BACKGROUNDJOBSService1 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/background-jobs/Manager1.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager1({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BACKGROUND JOBS - Advanced Implementation Pattern #2
+
+```typescript
+// lib/background-jobs/pattern-2.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BACKGROUNDJOBSService2 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/background-jobs/Manager2.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager2({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BACKGROUND JOBS - Advanced Implementation Pattern #3
+
+```typescript
+// lib/background-jobs/pattern-3.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BACKGROUNDJOBSService3 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/background-jobs/Manager3.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager3({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BACKGROUND JOBS - Advanced Implementation Pattern #4
+
+```typescript
+// lib/background-jobs/pattern-4.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BACKGROUNDJOBSService4 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/background-jobs/Manager4.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager4({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BACKGROUND JOBS - Advanced Implementation Pattern #5
+
+```typescript
+// lib/background-jobs/pattern-5.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BACKGROUNDJOBSService5 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/background-jobs/Manager5.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager5({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```

@@ -2183,3 +2183,698 @@ Upgrading from Socket.io 3 to Socket.io 4 can be a complex process. Here are som
 | ✅ Use a compatibility layer | Implement a compatibility layer to ensure backward compatibility with existing Socket.io 3 clients |
 | ✅ Use testing and validation | Thoroughly test and validate the upgrade to ensure that it works as expected |
 | ❌ Use a big-bang approach | Avoid upgrading everything at once, as this can cause significant downtime and disruption |
+
+---
+
+## WEBSOCKET-ROOM-MANAGEMENT
+
+### Panoramica
+Sistema completo di gestione rooms WebSocket con join/leave, broadcast, presence tracking e message history per applicazioni collaborative.
+
+### Implementazione Completa
+
+```typescript
+// lib/realtime/room-manager.ts
+
+interface RoomMember {
+  userId: string;
+  socketId: string;
+  displayName: string;
+  avatar?: string;
+  joinedAt: Date;
+  lastActivity: Date;
+  cursor?: { x: number; y: number };
+  status: "active" | "idle" | "away";
+}
+
+interface RoomMessage {
+  id: string;
+  roomId: string;
+  userId: string;
+  type: "text" | "system" | "action";
+  content: string;
+  metadata?: Record<string, unknown>;
+  timestamp: Date;
+}
+
+interface Room {
+  id: string;
+  name: string;
+  type: "public" | "private" | "direct";
+  members: Map<string, RoomMember>;
+  messageHistory: RoomMessage[];
+  maxMembers: number;
+  maxHistorySize: number;
+  createdAt: Date;
+  metadata: Record<string, unknown>;
+}
+
+type RoomEvent =
+  | { type: "member_joined"; member: RoomMember }
+  | { type: "member_left"; userId: string; reason: "leave" | "disconnect" | "kick" }
+  | { type: "message"; message: RoomMessage }
+  | { type: "presence_update"; userId: string; status: RoomMember["status"] }
+  | { type: "cursor_update"; userId: string; cursor: { x: number; y: number } }
+  | { type: "room_closed"; reason: string };
+
+type EventHandler = (roomId: string, event: RoomEvent) => void;
+
+export class RoomManager {
+  private rooms: Map<string, Room> = new Map();
+  private userRooms: Map<string, Set<string>> = new Map();
+  private eventHandlers: EventHandler[] = [];
+  private idleTimeout = 5 * 60 * 1000; // 5 minutes
+  private idleCheckInterval: ReturnType<typeof setInterval>;
+
+  constructor() {
+    this.idleCheckInterval = setInterval(() => this.checkIdleMembers(), 60_000);
+  }
+
+  onEvent(handler: EventHandler): () => void {
+    this.eventHandlers.push(handler);
+    return () => {
+      this.eventHandlers = this.eventHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  private emit(roomId: string, event: RoomEvent): void {
+    for (const handler of this.eventHandlers) {
+      try {
+        handler(roomId, event);
+      } catch (err) {
+        console.error("Event handler error:", err);
+      }
+    }
+  }
+
+  createRoom(options: {
+    id: string;
+    name: string;
+    type: Room["type"];
+    maxMembers?: number;
+    maxHistorySize?: number;
+    metadata?: Record<string, unknown>;
+  }): Room {
+    if (this.rooms.has(options.id)) {
+      throw new Error(`Room ${options.id} already exists`);
+    }
+
+    const room: Room = {
+      id: options.id,
+      name: options.name,
+      type: options.type,
+      members: new Map(),
+      messageHistory: [],
+      maxMembers: options.maxMembers ?? 100,
+      maxHistorySize: options.maxHistorySize ?? 500,
+      createdAt: new Date(),
+      metadata: options.metadata ?? {},
+    };
+
+    this.rooms.set(room.id, room);
+    return room;
+  }
+
+  joinRoom(roomId: string, member: Omit<RoomMember, "joinedAt" | "lastActivity" | "status">): boolean {
+    const room = this.rooms.get(roomId);
+    if (!room) throw new Error(`Room ${roomId} not found`);
+    if (room.members.size >= room.maxMembers) return false;
+    if (room.members.has(member.userId)) return true;
+
+    const fullMember: RoomMember = {
+      ...member,
+      joinedAt: new Date(),
+      lastActivity: new Date(),
+      status: "active",
+    };
+
+    room.members.set(member.userId, fullMember);
+
+    if (!this.userRooms.has(member.userId)) {
+      this.userRooms.set(member.userId, new Set());
+    }
+    this.userRooms.get(member.userId)!.add(roomId);
+
+    this.addSystemMessage(roomId, `${member.displayName} joined the room`);
+    this.emit(roomId, { type: "member_joined", member: fullMember });
+
+    return true;
+  }
+
+  leaveRoom(roomId: string, userId: string, reason: "leave" | "disconnect" | "kick" = "leave"): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    const member = room.members.get(userId);
+    if (!member) return;
+
+    room.members.delete(userId);
+    this.userRooms.get(userId)?.delete(roomId);
+
+    const reasonText = reason === "kick" ? "was kicked from" : "left";
+    this.addSystemMessage(roomId, `${member.displayName} ${reasonText} the room`);
+    this.emit(roomId, { type: "member_left", userId, reason });
+
+    if (room.members.size === 0 && room.type !== "public") {
+      this.rooms.delete(roomId);
+    }
+  }
+
+  disconnectUser(userId: string): void {
+    const roomIds = this.userRooms.get(userId);
+    if (!roomIds) return;
+    for (const roomId of Array.from(roomIds)) {
+      this.leaveRoom(roomId, userId, "disconnect");
+    }
+    this.userRooms.delete(userId);
+  }
+
+  sendMessage(roomId: string, userId: string, content: string, metadata?: Record<string, unknown>): RoomMessage | null {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+    const member = room.members.get(userId);
+    if (!member) return null;
+
+    member.lastActivity = new Date();
+    member.status = "active";
+
+    const message: RoomMessage = {
+      id: crypto.randomUUID(),
+      roomId,
+      userId,
+      type: "text",
+      content,
+      metadata,
+      timestamp: new Date(),
+    };
+
+    room.messageHistory.push(message);
+    if (room.messageHistory.length > room.maxHistorySize) {
+      room.messageHistory = room.messageHistory.slice(-room.maxHistorySize);
+    }
+
+    this.emit(roomId, { type: "message", message });
+    return message;
+  }
+
+  private addSystemMessage(roomId: string, content: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const message: RoomMessage = {
+      id: crypto.randomUUID(),
+      roomId,
+      userId: "system",
+      type: "system",
+      content,
+      timestamp: new Date(),
+    };
+    room.messageHistory.push(message);
+  }
+
+  updatePresence(roomId: string, userId: string, status: RoomMember["status"]): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const member = room.members.get(userId);
+    if (!member) return;
+    member.status = status;
+    member.lastActivity = new Date();
+    this.emit(roomId, { type: "presence_update", userId, status });
+  }
+
+  updateCursor(roomId: string, userId: string, cursor: { x: number; y: number }): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const member = room.members.get(userId);
+    if (!member) return;
+    member.cursor = cursor;
+    member.lastActivity = new Date();
+    this.emit(roomId, { type: "cursor_update", userId, cursor });
+  }
+
+  getRoomMembers(roomId: string): RoomMember[] {
+    const room = this.rooms.get(roomId);
+    if (!room) return [];
+    return Array.from(room.members.values());
+  }
+
+  getMessageHistory(roomId: string, limit = 50, before?: Date): RoomMessage[] {
+    const room = this.rooms.get(roomId);
+    if (!room) return [];
+    let messages = room.messageHistory;
+    if (before) {
+      messages = messages.filter((m) => m.timestamp < before);
+    }
+    return messages.slice(-limit);
+  }
+
+  getUserRooms(userId: string): Room[] {
+    const roomIds = this.userRooms.get(userId);
+    if (!roomIds) return [];
+    return Array.from(roomIds)
+      .map((id) => this.rooms.get(id))
+      .filter((r): r is Room => r !== undefined);
+  }
+
+  private checkIdleMembers(): void {
+    const now = Date.now();
+    for (const [roomId, room] of this.rooms) {
+      for (const [userId, member] of room.members) {
+        if (member.status === "active" && now - member.lastActivity.getTime() > this.idleTimeout) {
+          member.status = "idle";
+          this.emit(roomId, { type: "presence_update", userId, status: "idle" });
+        }
+      }
+    }
+  }
+
+  destroy(): void {
+    clearInterval(this.idleCheckInterval);
+    for (const [roomId] of this.rooms) {
+      this.emit(roomId, { type: "room_closed", reason: "server_shutdown" });
+    }
+    this.rooms.clear();
+    this.userRooms.clear();
+  }
+}
+```
+
+### Errori Comuni da Evitare
+- **Memory leak da rooms non chiuse**: Chiudere le rooms vuote automaticamente
+- **Missing disconnect handling**: Gestire sempre la disconnessione dell'utente con cleanup di tutte le rooms
+- **Unbounded message history**: Limitare sempre la dimensione della history
+- **No idle detection**: Implementare sempre il check per utenti inattivi
+
+---
+
+## SERVER-SENT-EVENTS-PATTERN
+
+### Panoramica
+Pattern SSE per streaming unidirezionale con auto-reconnect, event filtering e backpressure management.
+
+### Implementazione Completa
+
+```typescript
+// app/api/events/route.ts
+import { NextRequest } from "next/server";
+
+interface SSEClient {
+  id: string;
+  userId: string;
+  controller: ReadableStreamDefaultController;
+  channels: Set<string>;
+  lastEventId: number;
+  connectedAt: Date;
+}
+
+class SSEManager {
+  private clients: Map<string, SSEClient> = new Map();
+  private eventCounter = 0;
+  private heartbeatInterval: ReturnType<typeof setInterval>;
+  private eventBuffer: { id: number; channel: string; event: string; data: string; timestamp: Date }[] = [];
+  private maxBufferSize = 1000;
+
+  constructor() {
+    this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), 30_000);
+  }
+
+  addClient(userId: string, channels: string[], lastEventId?: number): ReadableStream {
+    const clientId = crypto.randomUUID();
+
+    const stream = new ReadableStream({
+      start: (controller) => {
+        const client: SSEClient = {
+          id: clientId,
+          userId,
+          controller,
+          channels: new Set(channels),
+          lastEventId: lastEventId ?? this.eventCounter,
+          connectedAt: new Date(),
+        };
+
+        this.clients.set(clientId, client);
+
+        // Send missed events if reconnecting
+        if (lastEventId !== undefined) {
+          const missedEvents = this.eventBuffer.filter(
+            (e) => e.id > lastEventId && channels.includes(e.channel)
+          );
+          for (const event of missedEvents) {
+            this.sendToClient(client, event.event, event.data, event.id);
+          }
+        }
+
+        // Send initial connection event
+        this.sendToClient(client, "connected", JSON.stringify({
+          clientId,
+          channels,
+          timestamp: new Date().toISOString(),
+        }));
+      },
+      cancel: () => {
+        this.clients.delete(clientId);
+      },
+    });
+
+    return stream;
+  }
+
+  broadcast(channel: string, event: string, data: unknown): void {
+    const eventId = ++this.eventCounter;
+    const serialized = JSON.stringify(data);
+
+    this.eventBuffer.push({
+      id: eventId,
+      channel,
+      event,
+      data: serialized,
+      timestamp: new Date(),
+    });
+
+    if (this.eventBuffer.length > this.maxBufferSize) {
+      this.eventBuffer = this.eventBuffer.slice(-this.maxBufferSize);
+    }
+
+    for (const client of this.clients.values()) {
+      if (client.channels.has(channel)) {
+        this.sendToClient(client, event, serialized, eventId);
+      }
+    }
+  }
+
+  sendToUser(userId: string, event: string, data: unknown): void {
+    const serialized = JSON.stringify(data);
+    const eventId = ++this.eventCounter;
+
+    for (const client of this.clients.values()) {
+      if (client.userId === userId) {
+        this.sendToClient(client, event, serialized, eventId);
+      }
+    }
+  }
+
+  private sendToClient(client: SSEClient, event: string, data: string, id?: number): void {
+    try {
+      const encoder = new TextEncoder();
+      let message = "";
+      if (id !== undefined) message += `id: ${id}\n`;
+      message += `event: ${event}\n`;
+      message += `data: ${data}\n\n`;
+      client.controller.enqueue(encoder.encode(message));
+      if (id !== undefined) client.lastEventId = id;
+    } catch {
+      this.clients.delete(client.id);
+    }
+  }
+
+  private sendHeartbeat(): void {
+    const encoder = new TextEncoder();
+    for (const [id, client] of this.clients) {
+      try {
+        client.controller.enqueue(encoder.encode(`: heartbeat ${Date.now()}\n\n`));
+      } catch {
+        this.clients.delete(id);
+      }
+    }
+  }
+
+  getClientCount(): number {
+    return this.clients.size;
+  }
+
+  getChannelStats(): Record<string, number> {
+    const stats: Record<string, number> = {};
+    for (const client of this.clients.values()) {
+      for (const channel of client.channels) {
+        stats[channel] = (stats[channel] ?? 0) + 1;
+      }
+    }
+    return stats;
+  }
+
+  destroy(): void {
+    clearInterval(this.heartbeatInterval);
+    for (const client of this.clients.values()) {
+      try {
+        client.controller.close();
+      } catch {
+        // ignore
+      }
+    }
+    this.clients.clear();
+  }
+}
+
+// Singleton
+const sseManager = new SSEManager();
+
+export async function GET(request: NextRequest) {
+  const userId = request.headers.get("x-user-id");
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const channels = request.nextUrl.searchParams.get("channels")?.split(",") ?? ["general"];
+  const lastEventId = request.headers.get("last-event-id");
+
+  const stream = sseManager.addClient(
+    userId,
+    channels,
+    lastEventId ? parseInt(lastEventId, 10) : undefined
+  );
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
+
+export { sseManager };
+```
+
+```typescript
+// hooks/use-sse.ts
+"use client";
+
+import { useEffect, useRef, useCallback, useState } from "react";
+
+interface UseSSEOptions {
+  url: string;
+  channels: string[];
+  onMessage: (event: string, data: unknown) => void;
+  onError?: (error: Event) => void;
+  onOpen?: () => void;
+  enabled?: boolean;
+  maxRetries?: number;
+}
+
+interface SSEState {
+  connected: boolean;
+  retryCount: number;
+  lastEventId: string | null;
+}
+
+export function useSSE({
+  url,
+  channels,
+  onMessage,
+  onError,
+  onOpen,
+  enabled = true,
+  maxRetries = 10,
+}: UseSSEOptions) {
+  const [state, setState] = useState<SSEState>({
+    connected: false,
+    retryCount: 0,
+    lastEventId: null,
+  });
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const onMessageRef = useRef(onMessage);
+  onMessageRef.current = onMessage;
+
+  const connect = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+
+    const fullUrl = `${url}?channels=${channels.join(",")}`;
+    const es = new EventSource(fullUrl);
+    eventSourceRef.current = es;
+
+    es.onopen = () => {
+      setState((prev) => ({ ...prev, connected: true, retryCount: 0 }));
+      onOpen?.();
+    };
+
+    es.onerror = (event) => {
+      setState((prev) => {
+        const newRetryCount = prev.retryCount + 1;
+        if (newRetryCount <= maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, newRetryCount), 30000);
+          retryTimeoutRef.current = setTimeout(connect, delay);
+        }
+        return { ...prev, connected: false, retryCount: newRetryCount };
+      });
+      onError?.(event);
+    };
+
+    es.addEventListener("connected", (e) => {
+      const data = JSON.parse((e as MessageEvent).data);
+      setState((prev) => ({ ...prev, lastEventId: data.clientId }));
+    });
+
+    for (const channel of channels) {
+      es.addEventListener(channel, (e) => {
+        const me = e as MessageEvent;
+        try {
+          const data = JSON.parse(me.data);
+          onMessageRef.current(channel, data);
+        } catch {
+          onMessageRef.current(channel, me.data);
+        }
+      });
+    }
+  }, [url, channels.join(","), maxRetries]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    connect();
+    return () => {
+      eventSourceRef.current?.close();
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+    };
+  }, [enabled, connect]);
+
+  return state;
+}
+```
+
+### Checklist di Verifica
+- [ ] Il server invia heartbeat ogni 30 secondi per mantenere la connessione
+- [ ] Il client implementa auto-reconnect con exponential backoff
+- [ ] Gli eventi persi durante la disconnessione vengono recuperati tramite Last-Event-ID
+- [ ] Il buffer eventi ha un limite massimo per evitare memory leak
+- [ ] Le connessioni chiuse vengono rimosse dal manager
+
+
+
+---
+
+## OPTIMISTIC-UPDATES-PATTERN
+
+### Panoramica
+Pattern per aggiornamenti ottimistici con WebSocket che forniscono feedback istantaneo all'utente e gestiscono conflitti e rollback.
+
+### Implementazione Completa
+
+```typescript
+// lib/realtime/optimistic-updates.ts
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+
+interface OptimisticUpdate<T> {
+  id: string;
+  timestamp: number;
+  previousValue: T;
+  optimisticValue: T;
+  status: "pending" | "confirmed" | "rejected";
+}
+
+interface UseOptimisticMutationOptions<T> {
+  onMutate: (newValue: T) => Promise<void>;
+  onSuccess?: (confirmed: T) => void;
+  onError?: (error: Error, previousValue: T) => void;
+  timeout?: number;
+}
+
+export function useOptimisticMutation<T>(
+  currentValue: T,
+  setValue: (value: T) => void,
+  options: UseOptimisticMutationOptions<T>
+) {
+  const [isPending, setIsPending] = useState(false);
+  const pendingUpdates = useRef<Map<string, OptimisticUpdate<T>>>(new Map());
+  const timeoutRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const mutate = useCallback(
+    async (optimisticValue: T) => {
+      const updateId = crypto.randomUUID();
+      const update: OptimisticUpdate<T> = {
+        id: updateId,
+        timestamp: Date.now(),
+        previousValue: currentValue,
+        optimisticValue,
+        status: "pending",
+      };
+
+      pendingUpdates.current.set(updateId, update);
+      setValue(optimisticValue);
+      setIsPending(true);
+
+      // Set timeout for automatic rollback
+      const timeout = options.timeout ?? 10000;
+      const timeoutId = setTimeout(() => {
+        const pending = pendingUpdates.current.get(updateId);
+        if (pending && pending.status === "pending") {
+          pending.status = "rejected";
+          setValue(pending.previousValue);
+          pendingUpdates.current.delete(updateId);
+          setIsPending(pendingUpdates.current.size > 0);
+          options.onError?.(new Error("Mutation timed out"), pending.previousValue);
+        }
+      }, timeout);
+      timeoutRefs.current.set(updateId, timeoutId);
+
+      try {
+        await options.onMutate(optimisticValue);
+        const pending = pendingUpdates.current.get(updateId);
+        if (pending) {
+          pending.status = "confirmed";
+          pendingUpdates.current.delete(updateId);
+          options.onSuccess?.(optimisticValue);
+        }
+      } catch (error) {
+        const pending = pendingUpdates.current.get(updateId);
+        if (pending) {
+          pending.status = "rejected";
+          setValue(pending.previousValue);
+          pendingUpdates.current.delete(updateId);
+          options.onError?.(error as Error, pending.previousValue);
+        }
+      } finally {
+        clearTimeout(timeoutRefs.current.get(updateId));
+        timeoutRefs.current.delete(updateId);
+        setIsPending(pendingUpdates.current.size > 0);
+      }
+    },
+    [currentValue, setValue, options]
+  );
+
+  const rollbackAll = useCallback(() => {
+    const updates = Array.from(pendingUpdates.current.values());
+    if (updates.length > 0) {
+      const oldest = updates[0];
+      setValue(oldest.previousValue);
+    }
+    pendingUpdates.current.clear();
+    for (const timeout of timeoutRefs.current.values()) {
+      clearTimeout(timeout);
+    }
+    timeoutRefs.current.clear();
+    setIsPending(false);
+  }, [setValue]);
+
+  return { mutate, isPending, rollbackAll, pendingCount: pendingUpdates.current.size };
+}
+```
+
+### Checklist di Verifica
+- [ ] Ogni mutazione ottimistica ha un timeout di sicurezza
+- [ ] Il rollback ripristina il valore precedente corretto
+- [ ] Le mutazioni pendenti sono tracciate con status
+- [ ] Il componente mostra stato "pending" durante la conferma

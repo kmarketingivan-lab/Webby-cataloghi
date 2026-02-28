@@ -2294,3 +2294,570 @@ export function RecurrenceSelector({ value, onChange }: RecurrenceSelectorProps)
 - Mobile responsiveness
 
 Il catalogo completo sarebbe di 1200-1500 righe con codice production-ready.]
+
+---
+
+## CALENDAR-RECURRING-EVENTS
+
+### Panoramica
+Sistema completo per eventi ricorrenti: RRULE parsing, generazione occorrenze, gestione eccezioni, timezone support e UI per configurazione ricorrenza.
+
+### Implementazione Completa
+
+```typescript
+// lib/calendar/recurrence.ts
+import { RRule, RRuleSet, rrulestr } from "rrule";
+import { addMinutes, startOfDay, endOfDay, isWithinInterval } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+
+// ============================================================
+// RECURRENCE RULE BUILDER
+// ============================================================
+interface RecurrenceConfig {
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  interval: number;
+  byDay?: number[]; // 0=Monday, 6=Sunday (RRule.MO to RRule.SU)
+  byMonthDay?: number[];
+  byMonth?: number[];
+  bySetPos?: number[]; // e.g., -1 for "last"
+  count?: number;
+  until?: Date;
+  timezone: string;
+}
+
+const DAY_MAP = {
+  0: RRule.MO,
+  1: RRule.TU,
+  2: RRule.WE,
+  3: RRule.TH,
+  4: RRule.FR,
+  5: RRule.SA,
+  6: RRule.SU,
+};
+
+const FREQ_MAP = {
+  daily: RRule.DAILY,
+  weekly: RRule.WEEKLY,
+  monthly: RRule.MONTHLY,
+  yearly: RRule.YEARLY,
+};
+
+export function buildRecurrenceRule(
+  startDate: Date,
+  config: RecurrenceConfig
+): string {
+  const rule = new RRule({
+    freq: FREQ_MAP[config.frequency],
+    interval: config.interval,
+    dtstart: startDate,
+    ...(config.count && { count: config.count }),
+    ...(config.until && { until: config.until }),
+    ...(config.byDay && {
+      byweekday: config.byDay.map((d) => DAY_MAP[d as keyof typeof DAY_MAP]),
+    }),
+    ...(config.byMonthDay && { bymonthday: config.byMonthDay }),
+    ...(config.byMonth && { bymonth: config.byMonth }),
+    ...(config.bySetPos && { bysetpos: config.bySetPos }),
+  });
+
+  return rule.toString();
+}
+
+// ============================================================
+// OCCURRENCE GENERATOR
+// ============================================================
+interface EventOccurrence {
+  id: string;
+  originalEventId: string;
+  title: string;
+  start: Date;
+  end: Date;
+  isException: boolean;
+  isModified: boolean;
+}
+
+export function generateOccurrences(
+  event: {
+    id: string;
+    title: string;
+    startTime: Date;
+    endTime: Date;
+    rrule: string;
+    exceptions: Date[];
+    modifications: Array<{ originalDate: Date; newStart: Date; newEnd: Date; newTitle?: string }>;
+  },
+  rangeStart: Date,
+  rangeEnd: Date,
+  timezone: string
+): EventOccurrence[] {
+  const ruleSet = new RRuleSet();
+
+  // Parse the RRULE
+  const rule = rrulestr(event.rrule, { dtstart: event.startTime });
+  ruleSet.rrule(rule);
+
+  // Add exceptions (excluded dates)
+  for (const exDate of event.exceptions) {
+    ruleSet.exdate(exDate);
+  }
+
+  // Generate all occurrences in range
+  const duration = event.endTime.getTime() - event.startTime.getTime();
+  const dates = ruleSet.between(rangeStart, rangeEnd, true);
+
+  const modMap = new Map(
+    event.modifications.map((m) => [m.originalDate.toISOString(), m])
+  );
+
+  return dates.map((date) => {
+    const mod = modMap.get(date.toISOString());
+    const zonedStart = toZonedTime(mod?.newStart ?? date, timezone);
+    const zonedEnd = toZonedTime(
+      mod?.newEnd ?? new Date(date.getTime() + duration),
+      timezone
+    );
+
+    return {
+      id: `${event.id}_${date.toISOString()}`,
+      originalEventId: event.id,
+      title: mod?.newTitle ?? event.title,
+      start: zonedStart,
+      end: zonedEnd,
+      isException: false,
+      isModified: !!mod,
+    };
+  });
+}
+
+// ============================================================
+// HUMAN-READABLE RRULE DESCRIPTION
+// ============================================================
+export function describeRecurrence(rruleString: string): string {
+  try {
+    const rule = rrulestr(rruleString);
+    return rule.toText();
+  } catch {
+    return "Custom recurrence";
+  }
+}
+
+// ============================================================
+// AVAILABILITY CHECKER
+// ============================================================
+interface TimeSlot {
+  start: Date;
+  end: Date;
+}
+
+interface WorkingHours {
+  dayOfWeek: number; // 0-6, 0=Monday
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+}
+
+export function findAvailableSlots(
+  existingEvents: TimeSlot[],
+  workingHours: WorkingHours[],
+  date: Date,
+  slotDuration: number, // minutes
+  timezone: string
+): TimeSlot[] {
+  const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1; // Convert to Mon=0
+  const todayHours = workingHours.filter((wh) => wh.dayOfWeek === dayOfWeek);
+
+  if (todayHours.length === 0) return []; // Day off
+
+  const slots: TimeSlot[] = [];
+  const dayStart = startOfDay(toZonedTime(date, timezone));
+
+  for (const wh of todayHours) {
+    let current = addMinutes(dayStart, wh.startHour * 60 + wh.startMinute);
+    const end = addMinutes(dayStart, wh.endHour * 60 + wh.endMinute);
+
+    while (current.getTime() + slotDuration * 60000 <= end.getTime()) {
+      const slotEnd = addMinutes(current, slotDuration);
+      const slot: TimeSlot = { start: current, end: slotEnd };
+
+      // Check if slot conflicts with existing events
+      const hasConflict = existingEvents.some(
+        (event) =>
+          isWithinInterval(current, { start: event.start, end: event.end }) ||
+          isWithinInterval(slotEnd, { start: event.start, end: event.end }) ||
+          (current <= event.start && slotEnd >= event.end)
+      );
+
+      if (!hasConflict) {
+        slots.push(slot);
+      }
+
+      current = addMinutes(current, slotDuration);
+    }
+  }
+
+  return slots;
+}
+```
+
+### Varianti e Configurazioni
+
+```typescript
+// components/calendar/recurrence-picker.tsx
+"use client";
+
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+
+interface RecurrencePickerProps {
+  value: {
+    frequency: string;
+    interval: number;
+    byDay: number[];
+    endType: "never" | "count" | "until";
+    count?: number;
+    until?: Date;
+  };
+  onChange: (value: RecurrencePickerProps["value"]) => void;
+}
+
+const DAYS = [
+  { label: "Mon", value: 0 },
+  { label: "Tue", value: 1 },
+  { label: "Wed", value: 2 },
+  { label: "Thu", value: 3 },
+  { label: "Fri", value: 4 },
+  { label: "Sat", value: 5 },
+  { label: "Sun", value: 6 },
+];
+
+export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
+  const update = (partial: Partial<typeof value>) =>
+    onChange({ ...value, ...partial });
+
+  return (
+    <div className="space-y-4">
+      {/* Frequency */}
+      <div className="flex items-center gap-2">
+        <Label>Repeat every</Label>
+        <Input
+          type="number"
+          min={1}
+          max={99}
+          value={value.interval}
+          onChange={(e) => update({ interval: parseInt(e.target.value) || 1 })}
+          className="w-16"
+        />
+        <Select
+          value={value.frequency}
+          onValueChange={(f) => update({ frequency: f })}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="daily">day(s)</SelectItem>
+            <SelectItem value="weekly">week(s)</SelectItem>
+            <SelectItem value="monthly">month(s)</SelectItem>
+            <SelectItem value="yearly">year(s)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Day selector for weekly */}
+      {value.frequency === "weekly" && (
+        <div className="space-y-2">
+          <Label>On days</Label>
+          <div className="flex gap-1">
+            {DAYS.map((day) => (
+              <Button
+                key={day.value}
+                variant={value.byDay.includes(day.value) ? "default" : "outline"}
+                size="sm"
+                className="h-8 w-10"
+                onClick={() => {
+                  const newDays = value.byDay.includes(day.value)
+                    ? value.byDay.filter((d) => d !== day.value)
+                    : [...value.byDay, day.value];
+                  update({ byDay: newDays });
+                }}
+              >
+                {day.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* End condition */}
+      <div className="space-y-2">
+        <Label>Ends</Label>
+        <RadioGroup
+          value={value.endType}
+          onValueChange={(v) => update({ endType: v as any })}
+          className="space-y-2"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="never" id="never" />
+            <Label htmlFor="never" className="font-normal">Never</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="count" id="count" />
+            <Label htmlFor="count" className="font-normal">After</Label>
+            <Input
+              type="number"
+              min={1}
+              max={999}
+              value={value.count ?? 10}
+              onChange={(e) => update({ count: parseInt(e.target.value) || 10 })}
+              className="w-20"
+              disabled={value.endType !== "count"}
+            />
+            <span className="text-sm text-muted-foreground">occurrences</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="until" id="until" />
+            <Label htmlFor="until" className="font-normal">On date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={value.endType !== "until"}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {value.until ? format(value.until, "PP") : "Pick date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={value.until}
+                  onSelect={(d) => d && update({ until: d })}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </RadioGroup>
+      </div>
+    </div>
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **Timezone mismatch**: Sempre convertire tra UTC e timezone locale con date-fns-tz
+- **RRULE senza dtstart**: L'RRULE deve sempre avere un dtstart per generare occorrenze
+- **Infinite occurrences**: Limita sempre la generazione a un range definito
+- **Exception non gestite**: Le eccezioni (cancellazioni singole) devono usare EXDATE
+
+### Checklist di Verifica
+- [ ] Le occorrenze sono generate correttamente nel range richiesto
+- [ ] Le eccezioni (EXDATE) escludono le date corrette
+- [ ] Le modifiche singole (this occurrence) sono gestite
+- [ ] Il timezone e rispettato in tutte le conversioni
+- [ ] Il RecurrencePicker supporta daily, weekly, monthly, yearly
+- [ ] L'availability checker considera working hours e conflitti
+
+
+---
+
+## CALENDAR-TIMEZONE-MANAGEMENT
+
+### Panoramica
+Gestione avanzata dei fusi orari per eventi internazionali con conversione automatica, DST handling e display localizzato.
+
+### Implementazione Completa
+
+```typescript
+// lib/calendar/timezone-manager.ts
+import { formatInTimeZone, zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
+import { addHours, differenceInMinutes, isWithinInterval } from "date-fns";
+
+interface TimezoneInfo {
+  id: string;
+  label: string;
+  offset: string;
+  abbrev: string;
+  isDST: boolean;
+}
+
+interface ConvertedEvent {
+  originalStart: Date;
+  originalEnd: Date;
+  localStart: Date;
+  localEnd: Date;
+  timezone: string;
+  displayTime: string;
+  crossesDayBoundary: boolean;
+}
+
+export class TimezoneManager {
+  private userTimezone: string;
+  private cache = new Map<string, TimezoneInfo>();
+
+  constructor(userTimezone?: string) {
+    this.userTimezone = userTimezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
+  getUserTimezone(): string {
+    return this.userTimezone;
+  }
+
+  setUserTimezone(tz: string): void {
+    this.userTimezone = tz;
+    this.cache.clear();
+  }
+
+  getTimezoneInfo(timezone: string, date: Date = new Date()): TimezoneInfo {
+    const cacheKey = `${timezone}-${date.toISOString().split("T")[0]}`;
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey)!;
+    }
+
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "short",
+    });
+    const parts = formatter.formatToParts(date);
+    const tzPart = parts.find((p) => p.type === "timeZoneName");
+
+    const offsetFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "longOffset",
+    });
+    const offsetParts = offsetFormatter.formatToParts(date);
+    const offsetPart = offsetParts.find((p) => p.type === "timeZoneName");
+
+    const info: TimezoneInfo = {
+      id: timezone,
+      label: timezone.replace(/_/g, " ").replace(/\//g, " / "),
+      offset: offsetPart?.value ?? "UTC",
+      abbrev: tzPart?.value ?? timezone,
+      isDST: this.isDaylightSavingTime(timezone, date),
+    };
+
+    this.cache.set(cacheKey, info);
+    return info;
+  }
+
+  private isDaylightSavingTime(timezone: string, date: Date): boolean {
+    const jan = new Date(date.getFullYear(), 0, 1);
+    const jul = new Date(date.getFullYear(), 6, 1);
+    const janOffset = this.getOffsetMinutes(timezone, jan);
+    const julOffset = this.getOffsetMinutes(timezone, jul);
+    const currentOffset = this.getOffsetMinutes(timezone, date);
+    const standardOffset = Math.max(janOffset, julOffset);
+    return currentOffset < standardOffset;
+  }
+
+  private getOffsetMinutes(timezone: string, date: Date): number {
+    const utc = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
+    const local = new Date(date.toLocaleString("en-US", { timeZone: timezone }));
+    return differenceInMinutes(utc, local);
+  }
+
+  convertEvent(
+    start: Date,
+    end: Date,
+    fromTimezone: string,
+    toTimezone?: string
+  ): ConvertedEvent {
+    const targetTz = toTimezone ?? this.userTimezone;
+    const utcStart = zonedTimeToUtc(start, fromTimezone);
+    const utcEnd = zonedTimeToUtc(end, fromTimezone);
+    const localStart = utcToZonedTime(utcStart, targetTz);
+    const localEnd = utcToZonedTime(utcEnd, targetTz);
+
+    const startDay = formatInTimeZone(utcStart, targetTz, "yyyy-MM-dd");
+    const endDay = formatInTimeZone(utcEnd, targetTz, "yyyy-MM-dd");
+
+    return {
+      originalStart: start,
+      originalEnd: end,
+      localStart,
+      localEnd,
+      timezone: targetTz,
+      displayTime: this.formatEventTime(utcStart, utcEnd, targetTz),
+      crossesDayBoundary: startDay !== endDay,
+    };
+  }
+
+  private formatEventTime(start: Date, end: Date, timezone: string): string {
+    const startStr = formatInTimeZone(start, timezone, "h:mm a");
+    const endStr = formatInTimeZone(end, timezone, "h:mm a");
+    const startDate = formatInTimeZone(start, timezone, "MMM d");
+    const endDate = formatInTimeZone(end, timezone, "MMM d");
+
+    if (startDate === endDate) {
+      return `${startStr} - ${endStr}`;
+    }
+    return `${startDate}, ${startStr} - ${endDate}, ${endStr}`;
+  }
+
+  getPopularTimezones(): TimezoneInfo[] {
+    const popular = [
+      "America/New_York", "America/Chicago", "America/Denver",
+      "America/Los_Angeles", "Europe/London", "Europe/Paris",
+      "Europe/Berlin", "Asia/Tokyo", "Asia/Shanghai",
+      "Asia/Kolkata", "Australia/Sydney", "Pacific/Auckland",
+    ];
+    return popular.map((tz) => this.getTimezoneInfo(tz));
+  }
+
+  findOverlappingSlots(
+    slots: { start: Date; end: Date; timezone: string }[],
+    durationMinutes: number
+  ): { start: Date; end: Date }[] {
+    const utcSlots = slots.map((s) => ({
+      start: zonedTimeToUtc(s.start, s.timezone),
+      end: zonedTimeToUtc(s.end, s.timezone),
+    }));
+
+    const results: { start: Date; end: Date }[] = [];
+    if (utcSlots.length === 0) return results;
+
+    let current = new Date(Math.max(...utcSlots.map((s) => s.start.getTime())));
+    const maxEnd = new Date(Math.min(...utcSlots.map((s) => s.end.getTime())));
+
+    while (current < maxEnd) {
+      const slotEnd = addHours(current, durationMinutes / 60);
+      if (slotEnd > maxEnd) break;
+
+      const allAvailable = utcSlots.every((slot) =>
+        isWithinInterval(current, { start: slot.start, end: slot.end }) &&
+        isWithinInterval(slotEnd, { start: slot.start, end: slot.end })
+      );
+
+      if (allAvailable) {
+        results.push({ start: new Date(current), end: slotEnd });
+        current = slotEnd;
+      } else {
+        current = addHours(current, 0.5);
+      }
+    }
+
+    return results;
+  }
+}
+```
+
+### Errori Comuni da Evitare
+- **Storing local time instead of UTC**: Sempre salvare in UTC e convertire al display
+- **Ignoring DST transitions**: Gli eventi durante il cambio ora possono avere durata errata
+- **Not validating timezone IDs**: Validare sempre con `Intl.supportedValuesOf('timeZone')`

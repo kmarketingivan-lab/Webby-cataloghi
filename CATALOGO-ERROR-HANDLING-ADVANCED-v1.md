@@ -1725,3 +1725,582 @@ describe("Error Handling Module", () => {
 
 ---
 _Modello: gemini-2.5-flash (Google AI Studio) | Token: 22272_
+
+---
+
+## RETRY-AND-CIRCUIT-BREAKER
+
+### Panoramica
+Pattern avanzati di resilienza: retry con exponential backoff, circuit breaker pattern, bulkhead isolation e timeout management per chiamate esterne.
+
+### Implementazione Completa
+
+```typescript
+// lib/resilience/retry.ts
+
+// ============================================================
+// RETRY WITH EXPONENTIAL BACKOFF
+// ============================================================
+interface RetryConfig {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffFactor: number;
+  retryableErrors?: Array<new (...args: any[]) => Error>;
+  retryableStatusCodes?: number[];
+  onRetry?: (attempt: number, error: Error, delay: number) => void;
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxAttempts: 3,
+  baseDelay: 1000,
+  maxDelay: 30000,
+  backoffFactor: 2,
+  retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+};
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  config: Partial<RetryConfig> = {}
+): Promise<T> {
+  const cfg = { ...DEFAULT_RETRY_CONFIG, ...config };
+  let lastError: Error = new Error("Unknown error");
+
+  for (let attempt = 1; attempt <= cfg.maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt >= cfg.maxAttempts) break;
+
+      // Check if error is retryable
+      if (cfg.retryableErrors?.length) {
+        const isRetryable = cfg.retryableErrors.some(
+          (ErrorClass) => error instanceof ErrorClass
+        );
+        if (!isRetryable) throw lastError;
+      }
+
+      // Calculate delay with jitter
+      const exponentialDelay = cfg.baseDelay * Math.pow(cfg.backoffFactor, attempt - 1);
+      const jitter = Math.random() * 0.3 * exponentialDelay;
+      const delay = Math.min(exponentialDelay + jitter, cfg.maxDelay);
+
+      cfg.onRetry?.(attempt, lastError, delay);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
+// ============================================================
+// CIRCUIT BREAKER
+// ============================================================
+type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+
+interface CircuitBreakerConfig {
+  failureThreshold: number;
+  resetTimeout: number;
+  halfOpenMaxAttempts: number;
+  monitorInterval: number;
+}
+
+export class CircuitBreaker {
+  private state: CircuitState = "CLOSED";
+  private failureCount = 0;
+  private successCount = 0;
+  private lastFailureTime = 0;
+  private halfOpenAttempts = 0;
+
+  constructor(
+    private name: string,
+    private config: CircuitBreakerConfig = {
+      failureThreshold: 5,
+      resetTimeout: 30000,
+      halfOpenMaxAttempts: 3,
+      monitorInterval: 60000,
+    }
+  ) {}
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === "OPEN") {
+      if (Date.now() - this.lastFailureTime > this.config.resetTimeout) {
+        this.state = "HALF_OPEN";
+        this.halfOpenAttempts = 0;
+      } else {
+        throw new CircuitBreakerError(
+          `Circuit breaker '${this.name}' is OPEN. Try again later.`
+        );
+      }
+    }
+
+    try {
+      const result = await fn();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private onSuccess(): void {
+    this.failureCount = 0;
+    this.successCount++;
+
+    if (this.state === "HALF_OPEN") {
+      this.halfOpenAttempts++;
+      if (this.halfOpenAttempts >= this.config.halfOpenMaxAttempts) {
+        this.state = "CLOSED";
+        console.log(`[CircuitBreaker] '${this.name}' transitioned to CLOSED`);
+      }
+    }
+  }
+
+  private onFailure(): void {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+
+    if (this.state === "HALF_OPEN") {
+      this.state = "OPEN";
+      console.log(`[CircuitBreaker] '${this.name}' transitioned to OPEN (half-open failure)`);
+      return;
+    }
+
+    if (this.failureCount >= this.config.failureThreshold) {
+      this.state = "OPEN";
+      console.log(`[CircuitBreaker] '${this.name}' transitioned to OPEN (threshold: ${this.config.failureThreshold})`);
+    }
+  }
+
+  getState(): { state: CircuitState; failures: number; successes: number } {
+    return {
+      state: this.state,
+      failures: this.failureCount,
+      successes: this.successCount,
+    };
+  }
+
+  reset(): void {
+    this.state = "CLOSED";
+    this.failureCount = 0;
+    this.successCount = 0;
+  }
+}
+
+export class CircuitBreakerError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CircuitBreakerError";
+  }
+}
+
+// ============================================================
+// TIMEOUT WRAPPER
+// ============================================================
+export async function withTimeout<T>(
+  fn: () => Promise<T>,
+  timeoutMs: number,
+  timeoutMessage = "Operation timed out"
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const result = await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener("abort", () => {
+          reject(new TimeoutError(timeoutMessage));
+        });
+      }),
+    ]);
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export class TimeoutError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TimeoutError";
+  }
+}
+
+// ============================================================
+// BULKHEAD PATTERN — limit concurrent operations
+// ============================================================
+export class Bulkhead {
+  private active = 0;
+  private queue: Array<{ resolve: () => void }> = [];
+
+  constructor(
+    private name: string,
+    private maxConcurrent: number,
+    private maxQueue: number = 100
+  ) {}
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.active >= this.maxConcurrent) {
+      if (this.queue.length >= this.maxQueue) {
+        throw new Error(`Bulkhead '${this.name}' queue full (${this.maxQueue})`);
+      }
+
+      await new Promise<void>((resolve) => {
+        this.queue.push({ resolve });
+      });
+    }
+
+    this.active++;
+
+    try {
+      return await fn();
+    } finally {
+      this.active--;
+      const next = this.queue.shift();
+      if (next) next.resolve();
+    }
+  }
+
+  getStatus(): { active: number; queued: number; maxConcurrent: number } {
+    return {
+      active: this.active,
+      queued: this.queue.length,
+      maxConcurrent: this.maxConcurrent,
+    };
+  }
+}
+```
+
+### Varianti e Configurazioni
+
+```typescript
+// lib/resilience/resilient-http.ts
+import { withRetry } from "./retry";
+import { CircuitBreaker } from "./retry";
+import { withTimeout } from "./retry";
+
+// ============================================================
+// RESILIENT HTTP CLIENT — combines all patterns
+// ============================================================
+const circuitBreakers = new Map<string, CircuitBreaker>();
+
+function getCircuitBreaker(serviceName: string): CircuitBreaker {
+  if (!circuitBreakers.has(serviceName)) {
+    circuitBreakers.set(
+      serviceName,
+      new CircuitBreaker(serviceName, {
+        failureThreshold: 5,
+        resetTimeout: 30_000,
+        halfOpenMaxAttempts: 3,
+        monitorInterval: 60_000,
+      })
+    );
+  }
+  return circuitBreakers.get(serviceName)!;
+}
+
+interface ResilientFetchOptions extends RequestInit {
+  serviceName: string;
+  timeout?: number;
+  maxRetries?: number;
+  retryableStatusCodes?: number[];
+}
+
+export async function resilientFetch(
+  url: string,
+  options: ResilientFetchOptions
+): Promise<Response> {
+  const {
+    serviceName,
+    timeout = 10_000,
+    maxRetries = 3,
+    retryableStatusCodes = [408, 429, 500, 502, 503, 504],
+    ...fetchOptions
+  } = options;
+
+  const breaker = getCircuitBreaker(serviceName);
+
+  return breaker.execute(() =>
+    withRetry(
+      () =>
+        withTimeout(async () => {
+          const response = await fetch(url, fetchOptions);
+
+          if (!response.ok && retryableStatusCodes.includes(response.status)) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          return response;
+        }, timeout),
+      {
+        maxAttempts: maxRetries,
+        retryableStatusCodes,
+        onRetry: (attempt, error, delay) => {
+          console.warn(
+            `[resilientFetch] ${serviceName}: retry ${attempt}, delay ${delay}ms — ${error.message}`
+          );
+        },
+      }
+    )
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **Retry senza jitter**: Aggiungi jitter per evitare thundering herd
+- **Circuit breaker troppo aggressivo**: Usa threshold ragionevoli (5-10 fallimenti)
+- **Timeout troppo lungo**: 10s e un buon default per API esterne
+- **Bulkhead senza queue limit**: Limita la queue per evitare memory leak
+
+### Checklist di Verifica
+- [ ] Il retry ha exponential backoff con jitter
+- [ ] Il circuit breaker ha 3 stati: CLOSED, OPEN, HALF_OPEN
+- [ ] Il timeout wrapper previene hanging requests
+- [ ] Il bulkhead limita le operazioni concorrenti
+- [ ] Il resilient HTTP client combina tutti i pattern
+- [ ] I log indicano retry attempt, delay e service name
+
+
+---
+
+## DISTRIBUTED-TRACING-PATTERN
+
+### Panoramica
+Implementazione di distributed tracing per microservizi e API routes con correlation ID, span tracking e performance monitoring.
+
+### Implementazione Completa
+
+```typescript
+// lib/tracing/distributed-tracer.ts
+
+interface Span {
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string;
+  operationName: string;
+  serviceName: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  status: "ok" | "error" | "timeout";
+  tags: Record<string, string | number | boolean>;
+  logs: { timestamp: number; message: string; data?: Record<string, unknown> }[];
+}
+
+interface TraceContext {
+  traceId: string;
+  spanId: string;
+  sampled: boolean;
+}
+
+function generateId(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(8)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export class Tracer {
+  private spans: Map<string, Span> = new Map();
+  private serviceName: string;
+  private sampleRate: number;
+  private exporters: SpanExporter[];
+
+  constructor(serviceName: string, sampleRate = 1.0, exporters: SpanExporter[] = []) {
+    this.serviceName = serviceName;
+    this.sampleRate = sampleRate;
+    this.exporters = exporters;
+  }
+
+  startSpan(operationName: string, parentContext?: TraceContext): SpanBuilder {
+    const traceId = parentContext?.traceId ?? generateId() + generateId();
+    const spanId = generateId();
+    const sampled = parentContext?.sampled ?? Math.random() < this.sampleRate;
+
+    const span: Span = {
+      traceId,
+      spanId,
+      parentSpanId: parentContext?.spanId,
+      operationName,
+      serviceName: this.serviceName,
+      startTime: performance.now(),
+      status: "ok",
+      tags: {},
+      logs: [],
+    };
+
+    this.spans.set(spanId, span);
+
+    return new SpanBuilder(span, this, sampled);
+  }
+
+  async endSpan(span: Span): Promise<void> {
+    span.endTime = performance.now();
+    span.duration = span.endTime - span.startTime;
+
+    for (const exporter of this.exporters) {
+      try {
+        await exporter.export(span);
+      } catch (err) {
+        console.error(`Failed to export span to ${exporter.name}:`, err);
+      }
+    }
+
+    this.spans.delete(span.spanId);
+  }
+
+  getActiveSpans(): Span[] {
+    return Array.from(this.spans.values());
+  }
+}
+
+class SpanBuilder {
+  constructor(
+    private span: Span,
+    private tracer: Tracer,
+    private sampled: boolean
+  ) {}
+
+  setTag(key: string, value: string | number | boolean): SpanBuilder {
+    this.span.tags[key] = value;
+    return this;
+  }
+
+  log(message: string, data?: Record<string, unknown>): SpanBuilder {
+    this.span.logs.push({ timestamp: performance.now(), message, data });
+    return this;
+  }
+
+  setError(error: Error): SpanBuilder {
+    this.span.status = "error";
+    this.span.tags["error.type"] = error.name;
+    this.span.tags["error.message"] = error.message;
+    if (error.stack) {
+      this.span.tags["error.stack"] = error.stack;
+    }
+    return this;
+  }
+
+  getContext(): TraceContext {
+    return {
+      traceId: this.span.traceId,
+      spanId: this.span.spanId,
+      sampled: this.sampled,
+    };
+  }
+
+  async end(): Promise<void> {
+    if (this.sampled) {
+      await this.tracer.endSpan(this.span);
+    }
+  }
+
+  async wrap<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      const result = await fn();
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        this.setError(error);
+      }
+      throw error;
+    } finally {
+      await this.end();
+    }
+  }
+}
+
+interface SpanExporter {
+  name: string;
+  export(span: Span): Promise<void>;
+}
+
+// Console exporter for development
+class ConsoleSpanExporter implements SpanExporter {
+  name = "console";
+
+  async export(span: Span): Promise<void> {
+    const statusIcon = span.status === "ok" ? "✓" : "✗";
+    console.log(
+      `[${statusIcon}] ${span.serviceName}:${span.operationName} ` +
+      `(${span.duration?.toFixed(2)}ms) ` +
+      `trace=${span.traceId.slice(0, 8)} span=${span.spanId.slice(0, 8)}`
+    );
+  }
+}
+
+// HTTP header propagation
+export function injectTraceContext(
+  headers: Record<string, string>,
+  context: TraceContext
+): Record<string, string> {
+  return {
+    ...headers,
+    "x-trace-id": context.traceId,
+    "x-span-id": context.spanId,
+    "x-sampled": context.sampled ? "1" : "0",
+  };
+}
+
+export function extractTraceContext(
+  headers: Record<string, string | undefined>
+): TraceContext | undefined {
+  const traceId = headers["x-trace-id"];
+  const spanId = headers["x-span-id"];
+  const sampled = headers["x-sampled"];
+
+  if (!traceId || !spanId) return undefined;
+
+  return {
+    traceId,
+    spanId,
+    sampled: sampled !== "0",
+  };
+}
+
+// Next.js middleware integration
+export function tracingMiddleware(tracer: Tracer) {
+  return async function middleware(request: Request): Promise<{ span: SpanBuilder; headers: Record<string, string> }> {
+    const incomingHeaders: Record<string, string | undefined> = {};
+    request.headers.forEach((value, key) => {
+      incomingHeaders[key] = value;
+    });
+
+    const parentContext = extractTraceContext(incomingHeaders);
+    const span = tracer.startSpan("http.request", parentContext);
+
+    const url = new URL(request.url);
+    span.setTag("http.method", request.method);
+    span.setTag("http.url", url.pathname);
+    span.setTag("http.host", url.host);
+
+    const responseHeaders = injectTraceContext({}, span.getContext());
+
+    return { span, headers: responseHeaders };
+  };
+}
+
+// Factory
+export function createTracer(serviceName: string): Tracer {
+  const exporters: SpanExporter[] = [new ConsoleSpanExporter()];
+  const sampleRate = process.env.NODE_ENV === "production" ? 0.1 : 1.0;
+  return new Tracer(serviceName, sampleRate, exporters);
+}
+```
+
+### Errori Comuni da Evitare
+- **Missing context propagation**: Sempre propagare il trace context tra servizi via headers
+- **100% sampling in production**: Usare sample rate 0.1-0.01 in produzione per ridurre overhead
+- **Not ending spans**: Ogni span avviato deve essere chiuso, anche in caso di errore (usare `wrap()`)
+- **Too many tags**: Limitare i tag a informazioni utili per il debugging, evitare dati sensibili
+
+### Checklist di Verifica
+- [ ] Ogni request HTTP genera un trace con span root
+- [ ] Il trace context viene propagato via headers HTTP
+- [ ] Gli errori vengono catturati e associati allo span
+- [ ] Il sample rate e configurabile per environment
+- [ ] Gli span hanno durata calcolata automaticamente

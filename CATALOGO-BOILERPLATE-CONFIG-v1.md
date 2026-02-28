@@ -2266,3 +2266,1538 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     data: {
       userId: user.id,
       stripeInvoice
+
+---
+
+## ENVIRONMENT-VALIDATION-SCHEMA
+
+### Panoramica
+Validazione rigorosa delle variabili d'ambiente con Zod, type-safe env access, fallback values e error reporting dettagliato al boot.
+
+### Implementazione Completa
+
+```typescript
+// lib/env/validation.ts
+import { z } from "zod";
+
+// ============================================================
+// ENV SCHEMA DEFINITION
+// ============================================================
+const envSchema = z.object({
+  // App
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_APP_NAME: z.string().min(1).default("MyApp"),
+  PORT: z.coerce.number().int().positive().default(3000),
+
+  // Database
+  DATABASE_URL: z.string().url().startsWith("postgresql://"),
+  DATABASE_POOL_SIZE: z.coerce.number().int().min(1).max(50).default(10),
+  DATABASE_SSL: z.enum(["true", "false"]).transform((v) => v === "true").default("false"),
+
+  // Auth
+  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_URL: z.string().url(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
+
+  // Email
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().email().optional(),
+
+  // Storage
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().default("eu-west-1"),
+  S3_ACCESS_KEY: z.string().optional(),
+  S3_SECRET_KEY: z.string().optional(),
+  UPLOAD_MAX_SIZE_MB: z.coerce.number().int().min(1).max(100).default(10),
+
+  // Redis
+  REDIS_URL: z.string().url().optional(),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+
+  // Monitoring
+  SENTRY_DSN: z.string().url().optional(),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+});
+
+// ============================================================
+// VALIDATION & EXPORT
+// ============================================================
+type Env = z.infer<typeof envSchema>;
+
+function validateEnv(): Env {
+  const result = envSchema.safeParse(process.env);
+
+  if (!result.success) {
+    const errors = result.error.issues.map((issue) => {
+      const path = issue.path.join(".");
+      return `  - ${path}: ${issue.message}`;
+    });
+
+    console.error("\n❌ Environment validation failed:\n");
+    console.error(errors.join("\n"));
+    console.error("\n");
+
+    // In production, fail hard
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`Invalid environment variables:\n${errors.join("\n")}`);
+    }
+
+    // In development, warn but continue with defaults where possible
+    console.warn("⚠️  Continuing with partial env in development mode\n");
+    return envSchema.parse({
+      ...getDevDefaults(),
+      ...process.env,
+    });
+  }
+
+  return result.data;
+}
+
+function getDevDefaults(): Partial<Record<string, string>> {
+  return {
+    NODE_ENV: "development",
+    NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+    NEXTAUTH_URL: "http://localhost:3000",
+    NEXTAUTH_SECRET: "dev-secret-at-least-32-characters-long!!",
+    DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/myapp_dev",
+  };
+}
+
+// Singleton
+let _env: Env | null = null;
+
+export function env(): Env {
+  if (!_env) {
+    _env = validateEnv();
+  }
+  return _env;
+}
+
+// Re-export for convenience
+export const getEnv = env;
+
+// Type-safe public env (safe to expose to client)
+export function publicEnv() {
+  const e = env();
+  return {
+    appUrl: e.NEXT_PUBLIC_APP_URL,
+    appName: e.NEXT_PUBLIC_APP_NAME,
+  };
+}
+```
+
+---
+
+## DOCKER-COMPOSE-DEVELOPMENT
+
+### Panoramica
+Configurazione Docker Compose completa per ambiente di sviluppo con PostgreSQL, Redis, MinIO e servizi di supporto.
+
+### Implementazione Completa
+
+```yaml
+# docker-compose.yml
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: myapp_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO for S3-compatible object storage
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+```
+
+```typescript
+// scripts/setup-dev.ts
+import { execSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
+import { resolve } from "path";
+
+interface SetupStep {
+  name: string;
+  check: () => boolean;
+  run: () => void;
+  skip?: boolean;
+}
+
+const steps: SetupStep[] = [
+  {
+    name: "Check Docker is running",
+    check: () => {
+      try {
+        execSync("docker info", { stdio: "ignore" });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    run: () => {
+      throw new Error("Docker is not running. Please start Docker Desktop.");
+    },
+  },
+  {
+    name: "Start Docker Compose services",
+    check: () => {
+      try {
+        const output = execSync("docker compose ps --format json", { encoding: "utf-8" });
+        const services = output.trim().split("\n").filter(Boolean);
+        return services.length >= 4;
+      } catch {
+        return false;
+      }
+    },
+    run: () => {
+      console.log("Starting Docker Compose services...");
+      execSync("docker compose up -d", { stdio: "inherit" });
+      console.log("Waiting for services to be healthy...");
+      execSync("docker compose wait db redis", { stdio: "inherit", timeout: 60000 });
+    },
+  },
+  {
+    name: "Check .env file",
+    check: () => existsSync(resolve(process.cwd(), ".env")),
+    run: () => {
+      const envExample = resolve(process.cwd(), ".env.example");
+      const envFile = resolve(process.cwd(), ".env");
+      if (existsSync(envExample)) {
+        const content = readFileSync(envExample, "utf-8");
+        require("fs").writeFileSync(envFile, content);
+        console.log("Created .env from .env.example");
+      } else {
+        throw new Error("No .env.example found");
+      }
+    },
+  },
+  {
+    name: "Install dependencies",
+    check: () => existsSync(resolve(process.cwd(), "node_modules")),
+    run: () => {
+      console.log("Installing dependencies...");
+      execSync("npm install", { stdio: "inherit" });
+    },
+  },
+  {
+    name: "Run database migrations",
+    check: () => {
+      try {
+        execSync("npx prisma migrate status", { stdio: "ignore" });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    run: () => {
+      console.log("Running database migrations...");
+      execSync("npx prisma migrate dev", { stdio: "inherit" });
+    },
+  },
+  {
+    name: "Seed database",
+    check: () => false, // Always offer to seed
+    run: () => {
+      console.log("Seeding database...");
+      execSync("npx prisma db seed", { stdio: "inherit" });
+    },
+    skip: true,
+  },
+];
+
+async function setup() {
+  console.log("\n🚀 Development Environment Setup\n");
+
+  for (const step of steps) {
+    process.stdout.write(`  ${step.name}... `);
+
+    if (step.check()) {
+      console.log("✅ Already done");
+      continue;
+    }
+
+    if (step.skip) {
+      console.log("⏭️  Skipped (optional)");
+      continue;
+    }
+
+    try {
+      step.run();
+      console.log("✅ Done");
+    } catch (err) {
+      console.log(`❌ Failed: ${(err as Error).message}`);
+      process.exit(1);
+    }
+  }
+
+  console.log("\n✨ Development environment is ready!\n");
+  console.log("  Run: npm run dev\n");
+}
+
+setup();
+```
+
+### Checklist di Verifica
+- [ ] Ogni servizio Docker ha un healthcheck configurato
+- [ ] I volumi sono persistenti per evitare perdita dati tra restart
+- [ ] Le porte sono esposte solo su localhost per sicurezza
+- [ ] Lo script di setup verifica ogni dipendenza prima di procedere
+- [ ] Il file .env.example contiene tutte le variabili con valori di esempio
+
+
+---
+
+## CI-CD-PIPELINE-CONFIG
+
+### Panoramica
+Configurazione completa di CI/CD pipeline con GitHub Actions per build, test, lint, deploy preview e production deployment.
+
+### Implementazione Completa
+
+```yaml
+# .github/workflows/ci.yml
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "8"
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm type-check
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:ci
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps
+      - run: pnpm build
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
+```
+
+```typescript
+// scripts/health-check.ts
+interface HealthCheckResult {
+  service: string;
+  status: "healthy" | "unhealthy" | "degraded";
+  responseTime: number;
+  details?: Record<string, unknown>;
+}
+
+interface HealthReport {
+  overall: "healthy" | "unhealthy" | "degraded";
+  timestamp: string;
+  checks: HealthCheckResult[];
+  uptime: number;
+}
+
+async function checkDatabase(): Promise<HealthCheckResult> {
+  const start = Date.now();
+  try {
+    const { PrismaClient } = require("@prisma/client");
+    const prisma = new PrismaClient();
+    await prisma.$queryRaw\`SELECT 1\`;
+    await prisma.$disconnect();
+    return {
+      service: "database",
+      status: "healthy",
+      responseTime: Date.now() - start,
+      details: { provider: "postgresql" },
+    };
+  } catch (error) {
+    return {
+      service: "database",
+      status: "unhealthy",
+      responseTime: Date.now() - start,
+      details: { error: (error as Error).message },
+    };
+  }
+}
+
+async function checkRedis(): Promise<HealthCheckResult> {
+  const start = Date.now();
+  try {
+    const redis = require("ioredis");
+    const client = new redis(process.env.REDIS_URL);
+    await client.ping();
+    await client.disconnect();
+    return {
+      service: "redis",
+      status: "healthy",
+      responseTime: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      service: "redis",
+      status: process.env.REDIS_URL ? "unhealthy" : "degraded",
+      responseTime: Date.now() - start,
+      details: { error: (error as Error).message },
+    };
+  }
+}
+
+async function checkExternalAPI(name: string, url: string): Promise<HealthCheckResult> {
+  const start = Date.now();
+  try {
+    const response = await fetch(url, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(5000),
+    });
+    return {
+      service: name,
+      status: response.ok ? "healthy" : "degraded",
+      responseTime: Date.now() - start,
+      details: { statusCode: response.status },
+    };
+  } catch (error) {
+    return {
+      service: name,
+      status: "unhealthy",
+      responseTime: Date.now() - start,
+      details: { error: (error as Error).message },
+    };
+  }
+}
+
+export async function runHealthChecks(): Promise<HealthReport> {
+  const processStart = process.uptime();
+  const checks = await Promise.all([
+    checkDatabase(),
+    checkRedis(),
+    checkExternalAPI("stripe", "https://api.stripe.com"),
+  ]);
+
+  const hasUnhealthy = checks.some((c) => c.status === "unhealthy");
+  const hasDegraded = checks.some((c) => c.status === "degraded");
+
+  return {
+    overall: hasUnhealthy ? "unhealthy" : hasDegraded ? "degraded" : "healthy",
+    timestamp: new Date().toISOString(),
+    checks,
+    uptime: processStart,
+  };
+}
+```
+
+### Checklist di Verifica
+- [ ] La CI pipeline ha step separati per lint, test e deploy
+- [ ] Il concurrency group previene build paralleli sullo stesso branch
+- [ ] I deploy preview sono solo per pull request
+- [ ] Il deploy production e solo per push su main
+- [ ] Gli artifact di test sono salvati per debugging
+
+
+### BOILERPLATE CONFIG - Advanced Implementation Pattern #1
+
+```typescript
+// lib/boilerplate-config/pattern-1.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BOILERPLATECONFIGService1 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/boilerplate-config/Manager1.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager1({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BOILERPLATE CONFIG - Advanced Implementation Pattern #2
+
+```typescript
+// lib/boilerplate-config/pattern-2.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BOILERPLATECONFIGService2 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/boilerplate-config/Manager2.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager2({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### BOILERPLATE CONFIG - Advanced Implementation Pattern #3
+
+```typescript
+// lib/boilerplate-config/pattern-3.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class BOILERPLATECONFIGService3 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/boilerplate-config/Manager3.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager3({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```

@@ -1618,3 +1618,1341 @@ describe('apiRouter', () => {
 
 * Utilizzare strumenti di ottimizzazione per ottimizzare il server
 * Utilizzare tecniche di ottimizzazione per ottimizzare il server
+
+---
+
+## LANDING-PAGE-SECTIONS
+
+### Panoramica
+Componenti riutilizzabili per sezioni di landing page con hero, features, pricing, testimonials, CTA e FAQ.
+
+### Implementazione Completa
+
+```typescript
+// components/landing/hero-section.tsx
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Play, Star } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface HeroSectionProps {
+  badge?: string;
+  title: string;
+  titleHighlight?: string;
+  subtitle: string;
+  primaryCTA: { label: string; href: string };
+  secondaryCTA?: { label: string; href: string; icon?: "play" | "arrow" };
+  socialProof?: {
+    avatars: string[];
+    text: string;
+    rating?: number;
+  };
+  image?: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  };
+  className?: string;
+}
+
+export function HeroSection({
+  badge,
+  title,
+  titleHighlight,
+  subtitle,
+  primaryCTA,
+  secondaryCTA,
+  socialProof,
+  image,
+  className,
+}: HeroSectionProps) {
+  const titleParts = titleHighlight ? title.split(titleHighlight) : [title];
+
+  return (
+    <section className={cn("relative overflow-hidden py-20 md:py-32", className)}>
+      {/* Background gradient */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(45%_40%_at_50%_60%,var(--tw-gradient-from)_0%,transparent_100%)] from-primary/5" />
+
+      <div className="container mx-auto px-4">
+        <div className="mx-auto max-w-4xl text-center">
+          {badge && (
+            <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm">
+              {badge}
+            </Badge>
+          )}
+
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            {titleHighlight ? (
+              <>
+                {titleParts[0]}
+                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  {titleHighlight}
+                </span>
+                {titleParts[1]}
+              </>
+            ) : (
+              title
+            )}
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            {subtitle}
+          </p>
+
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" className="min-w-[200px] text-base">
+              <a href={primaryCTA.href}>
+                {primaryCTA.label}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
+            </Button>
+            {secondaryCTA && (
+              <Button asChild variant="outline" size="lg" className="min-w-[200px] text-base">
+                <a href={secondaryCTA.href}>
+                  {secondaryCTA.icon === "play" && <Play className="mr-2 h-5 w-5" />}
+                  {secondaryCTA.label}
+                  {secondaryCTA.icon === "arrow" && <ArrowRight className="ml-2 h-5 w-5" />}
+                </a>
+              </Button>
+            )}
+          </div>
+
+          {socialProof && (
+            <div className="mt-10 flex items-center justify-center gap-3">
+              <div className="flex -space-x-2">
+                {socialProof.avatars.slice(0, 5).map((avatar, i) => (
+                  <img
+                    key={i}
+                    src={avatar}
+                    alt=""
+                    className="h-8 w-8 rounded-full border-2 border-background"
+                  />
+                ))}
+              </div>
+              <div className="text-left">
+                {socialProof.rating && (
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          i < socialProof.rating! ? "fill-yellow-400 text-yellow-400" : "text-muted"
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground">{socialProof.text}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {image && (
+          <div className="mx-auto mt-16 max-w-5xl">
+            <div className="overflow-hidden rounded-xl border shadow-2xl">
+              <img
+                src={image.src}
+                alt={image.alt}
+                width={image.width}
+                height={image.height}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+```
+
+```typescript
+// components/landing/pricing-section.tsx
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Check, X, HelpCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+interface PricingFeature {
+  name: string;
+  included: boolean | string;
+  tooltip?: string;
+}
+
+interface PricingPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: { monthly: number; yearly: number };
+  features: PricingFeature[];
+  cta: { label: string; href: string };
+  popular?: boolean;
+  badge?: string;
+}
+
+interface PricingSectionProps {
+  title?: string;
+  subtitle?: string;
+  plans: PricingPlan[];
+  currency?: string;
+  className?: string;
+}
+
+export function PricingSection({
+  title = "Simple, transparent pricing",
+  subtitle = "Choose the plan that works for you. All plans include a 14-day free trial.",
+  plans,
+  currency = "$",
+  className,
+}: PricingSectionProps) {
+  const [annual, setAnnual] = useState(true);
+
+  return (
+    <section className={cn("py-20", className)}>
+      <div className="container mx-auto px-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+          <p className="mt-4 text-lg text-muted-foreground">{subtitle}</p>
+
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <span className={cn("text-sm", !annual && "font-semibold")}>Monthly</span>
+            <Switch checked={annual} onCheckedChange={setAnnual} />
+            <span className={cn("text-sm", annual && "font-semibold")}>
+              Yearly
+              <Badge variant="secondary" className="ml-2">Save 20%</Badge>
+            </span>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 grid max-w-5xl gap-8 md:grid-cols-3">
+          {plans.map((plan) => {
+            const price = annual ? plan.price.yearly : plan.price.monthly;
+            const period = annual ? "/yr" : "/mo";
+
+            return (
+              <div
+                key={plan.id}
+                className={cn(
+                  "relative flex flex-col rounded-xl border p-6",
+                  plan.popular && "border-primary shadow-lg shadow-primary/10 scale-105"
+                )}
+              >
+                {plan.badge && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    {plan.badge}
+                  </Badge>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold">{plan.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">
+                    {currency}{price}
+                  </span>
+                  <span className="text-muted-foreground">{period}</span>
+                </div>
+
+                <Button
+                  asChild
+                  variant={plan.popular ? "default" : "outline"}
+                  className="mb-6 w-full"
+                >
+                  <a href={plan.cta.href}>{plan.cta.label}</a>
+                </Button>
+
+                <ul className="flex-1 space-y-3">
+                  {plan.features.map((feature) => (
+                    <li key={feature.name} className="flex items-start gap-2 text-sm">
+                      {feature.included === true ? (
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                      ) : feature.included === false ? (
+                        <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
+                      ) : (
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                      )}
+                      <span className={cn(feature.included === false && "text-muted-foreground/60")}>
+                        {typeof feature.included === "string" ? feature.included : feature.name}
+                      </span>
+                      {feature.tooltip && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs text-xs">{feature.tooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+```typescript
+// components/landing/faq-section.tsx
+"use client";
+
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQSectionProps {
+  title?: string;
+  subtitle?: string;
+  items: FAQItem[];
+  className?: string;
+}
+
+export function FAQSection({
+  title = "Frequently asked questions",
+  subtitle,
+  items,
+  className,
+}: FAQSectionProps) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className={cn("py-20", className)}>
+      <div className="container mx-auto max-w-3xl px-4">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+          {subtitle && <p className="mt-4 text-lg text-muted-foreground">{subtitle}</p>}
+        </div>
+
+        <div className="divide-y">
+          {items.map((item, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div key={index} className="py-4">
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between text-left"
+                  aria-expanded={isOpen}
+                >
+                  <span className="text-base font-medium">{item.question}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200",
+                      isOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    "grid transition-all duration-200",
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <p className="pt-3 text-muted-foreground">{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+### Checklist di Verifica
+- [ ] L'hero ha un CTA primario e uno secondario chiari
+- [ ] Il pricing supporta toggle monthly/yearly con sconto visibile
+- [ ] Le FAQ usano accordion con animazione smooth
+- [ ] Il social proof ha avatar, rating e testo
+- [ ] Tutte le sezioni sono responsive e accessibili
+
+
+### WEBSITE TEMPLATE - Advanced Implementation Pattern #1
+
+```typescript
+// lib/website-template/pattern-1.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class WEBSITETEMPLATEService1 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/website-template/Manager1.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager1({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### WEBSITE TEMPLATE - Advanced Implementation Pattern #2
+
+```typescript
+// lib/website-template/pattern-2.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class WEBSITETEMPLATEService2 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/website-template/Manager2.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager2({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### WEBSITE TEMPLATE - Advanced Implementation Pattern #3
+
+```typescript
+// lib/website-template/pattern-3.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class WEBSITETEMPLATEService3 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/website-template/Manager3.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager3({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```

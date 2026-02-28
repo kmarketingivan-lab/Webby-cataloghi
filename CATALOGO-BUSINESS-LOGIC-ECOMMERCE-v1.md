@@ -1975,3 +1975,547 @@ console.log(`Filtered combinations: ${filtered.length}`);
 ---
 
 **NOTA:** Questo è solo il §2 (Product Catalog System) della documentazione completa. La risposta completa richiederebbe oltre 3.500 righe di codice e documentazione. Continuerei con le altre sezioni se vuoi vedere il resto del catalogo.
+
+---
+
+## ECOMMERCE-INVENTORY-MANAGEMENT
+
+### Panoramica
+Sistema completo di gestione inventario: stock tracking, reservation, low stock alerts, batch updates e inventory audit trail.
+
+### Implementazione Completa
+
+```typescript
+// lib/ecommerce/inventory-service.ts
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+// ============================================================
+// INVENTORY SERVICE
+// ============================================================
+interface StockAdjustment {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  reason: "sale" | "return" | "restock" | "adjustment" | "damage" | "transfer";
+  reference?: string;
+  userId: string;
+}
+
+interface StockReservation {
+  id: string;
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  orderId: string;
+  expiresAt: Date;
+  status: "active" | "confirmed" | "released";
+}
+
+export class InventoryService {
+  // ----------------------------------------------------------
+  // CHECK STOCK AVAILABILITY
+  // ----------------------------------------------------------
+  async checkAvailability(
+    productId: string,
+    variantId?: string,
+    quantity = 1
+  ): Promise<{
+    available: boolean;
+    currentStock: number;
+    reserved: number;
+    effectiveStock: number;
+  }> {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        stock: true,
+        trackInventory: true,
+        allowBackorder: true,
+      },
+    });
+
+    if (!product) throw new Error("Product not found");
+    if (!product.trackInventory) {
+      return { available: true, currentStock: 999, reserved: 0, effectiveStock: 999 };
+    }
+
+    const reserved = await prisma.stockReservation.aggregate({
+      where: {
+        productId,
+        ...(variantId && { variantId }),
+        status: "active",
+        expiresAt: { gt: new Date() },
+      },
+      _sum: { quantity: true },
+    });
+
+    const reservedQty = reserved._sum.quantity ?? 0;
+    const effectiveStock = product.stock - reservedQty;
+
+    return {
+      available: product.allowBackorder || effectiveStock >= quantity,
+      currentStock: product.stock,
+      reserved: reservedQty,
+      effectiveStock,
+    };
+  }
+
+  // ----------------------------------------------------------
+  // RESERVE STOCK (for checkout)
+  // ----------------------------------------------------------
+  async reserveStock(
+    items: Array<{ productId: string; variantId?: string; quantity: number }>,
+    orderId: string,
+    ttlMinutes = 15
+  ): Promise<StockReservation[]> {
+    return prisma.$transaction(async (tx) => {
+      const reservations: StockReservation[] = [];
+
+      for (const item of items) {
+        // Lock the product row
+        const product = await tx.$queryRaw<Array<{ stock: number; track_inventory: boolean }>>`
+          SELECT stock, track_inventory FROM products WHERE id = ${item.productId} FOR UPDATE
+        `;
+
+        if (!product[0]) throw new Error(`Product ${item.productId} not found`);
+
+        if (product[0].track_inventory && product[0].stock < item.quantity) {
+          throw new Error(`Insufficient stock for product ${item.productId}`);
+        }
+
+        const reservation = await tx.stockReservation.create({
+          data: {
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            orderId,
+            status: "active",
+            expiresAt: new Date(Date.now() + ttlMinutes * 60 * 1000),
+          },
+        });
+
+        reservations.push(reservation as StockReservation);
+      }
+
+      return reservations;
+    });
+  }
+
+  // ----------------------------------------------------------
+  // CONFIRM RESERVATION (after payment)
+  // ----------------------------------------------------------
+  async confirmReservation(orderId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const reservations = await tx.stockReservation.findMany({
+        where: { orderId, status: "active" },
+      });
+
+      for (const res of reservations) {
+        await tx.product.update({
+          where: { id: res.productId },
+          data: { stock: { decrement: res.quantity } },
+        });
+
+        await tx.stockReservation.update({
+          where: { id: res.id },
+          data: { status: "confirmed" },
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            productId: res.productId,
+            variantId: res.variantId,
+            quantity: -res.quantity,
+            reason: "sale",
+            reference: orderId,
+          },
+        });
+      }
+    });
+  }
+
+  // ----------------------------------------------------------
+  // RELEASE RESERVATION (expired/cancelled)
+  // ----------------------------------------------------------
+  async releaseReservation(orderId: string): Promise<void> {
+    await prisma.stockReservation.updateMany({
+      where: { orderId, status: "active" },
+      data: { status: "released" },
+    });
+  }
+
+  // ----------------------------------------------------------
+  // ADJUST STOCK
+  // ----------------------------------------------------------
+  async adjustStock(adjustment: StockAdjustment): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: adjustment.productId },
+        data: { stock: { increment: adjustment.quantity } },
+      });
+
+      await tx.stockMovement.create({
+        data: {
+          productId: adjustment.productId,
+          variantId: adjustment.variantId,
+          quantity: adjustment.quantity,
+          reason: adjustment.reason,
+          reference: adjustment.reference,
+          userId: adjustment.userId,
+        },
+      });
+
+      // Check low stock alert
+      const product = await tx.product.findUnique({
+        where: { id: adjustment.productId },
+        select: { stock: true, lowStockThreshold: true, name: true },
+      });
+
+      if (product && product.stock <= (product.lowStockThreshold ?? 5)) {
+        await tx.notification.create({
+          data: {
+            type: "LOW_STOCK" as any,
+            recipientId: adjustment.userId,
+            actorId: "system",
+            targetType: "product",
+            targetId: adjustment.productId,
+          },
+        });
+      }
+    });
+  }
+
+  // ----------------------------------------------------------
+  // BULK STOCK UPDATE
+  // ----------------------------------------------------------
+  async bulkUpdate(
+    updates: Array<{ productId: string; stock: number }>,
+    userId: string
+  ): Promise<{ updated: number; errors: string[] }> {
+    let updated = 0;
+    const errors: string[] = [];
+
+    for (const item of updates) {
+      try {
+        const current = await prisma.product.findUnique({
+          where: { id: item.productId },
+          select: { stock: true },
+        });
+
+        if (!current) {
+          errors.push(`Product ${item.productId} not found`);
+          continue;
+        }
+
+        const diff = item.stock - current.stock;
+
+        await this.adjustStock({
+          productId: item.productId,
+          quantity: diff,
+          reason: "adjustment",
+          reference: "bulk-update",
+          userId,
+        });
+
+        updated++;
+      } catch (error) {
+        errors.push(`Failed to update ${item.productId}: ${error}`);
+      }
+    }
+
+    return { updated, errors };
+  }
+
+  // ----------------------------------------------------------
+  // STOCK MOVEMENT HISTORY
+  // ----------------------------------------------------------
+  async getMovementHistory(
+    productId: string,
+    limit = 50
+  ): Promise<Array<{
+    id: string;
+    quantity: number;
+    reason: string;
+    reference: string | null;
+    createdAt: Date;
+  }>> {
+    return prisma.stockMovement.findMany({
+      where: { productId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+  }
+
+  // ----------------------------------------------------------
+  // LOW STOCK REPORT
+  // ----------------------------------------------------------
+  async getLowStockProducts(): Promise<Array<{
+    id: string;
+    name: string;
+    stock: number;
+    lowStockThreshold: number;
+  }>> {
+    return prisma.product.findMany({
+      where: {
+        trackInventory: true,
+        stock: { lte: prisma.product.fields.lowStockThreshold },
+      },
+      select: {
+        id: true,
+        name: true,
+        stock: true,
+        lowStockThreshold: true,
+      },
+      orderBy: { stock: "asc" },
+    });
+  }
+
+  // ----------------------------------------------------------
+  // CLEANUP EXPIRED RESERVATIONS
+  // ----------------------------------------------------------
+  async cleanupExpiredReservations(): Promise<number> {
+    const result = await prisma.stockReservation.updateMany({
+      where: {
+        status: "active",
+        expiresAt: { lt: new Date() },
+      },
+      data: { status: "released" },
+    });
+    return result.count;
+  }
+}
+
+export const inventoryService = new InventoryService();
+```
+
+### Errori Comuni da Evitare
+- **Race condition su stock**: Usa SELECT FOR UPDATE o transazione con lock pessimistico
+- **Reservation senza TTL**: Le reservation devono scadere (15 min) per evitare deadstock
+- **Stock negativo**: Permetti backorder solo se configurato esplicitamente
+- **Missing audit trail**: Logga ogni movimento di stock con reason e reference
+
+### Checklist di Verifica
+- [ ] Il check availability considera stock - reservazioni attive
+- [ ] Le reservation hanno TTL e vengono rilasciate automaticamente
+- [ ] Il confirm reservation decrementa lo stock in transazione
+- [ ] I low stock alerts sono generati automaticamente
+- [ ] Il bulk update logga ogni adjustment individualmente
+- [ ] Il cleanup delle reservation scadute gira periodicamente
+
+
+---
+
+## ORDER-STATUS-MACHINE
+
+### Panoramica
+State machine completa per la gestione degli ordini e-commerce con transizioni validate, hook per side effects e audit trail.
+
+### Implementazione Completa
+
+```typescript
+// lib/ecommerce/order-state-machine.ts
+
+type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refund_requested"
+  | "refunded"
+  | "partially_refunded"
+  | "failed";
+
+type OrderEvent =
+  | "CONFIRM"
+  | "START_PROCESSING"
+  | "SHIP"
+  | "DELIVER"
+  | "CANCEL"
+  | "REQUEST_REFUND"
+  | "APPROVE_REFUND"
+  | "PARTIAL_REFUND"
+  | "FAIL";
+
+interface Transition {
+  from: OrderStatus[];
+  to: OrderStatus;
+  guard?: (context: OrderContext) => boolean;
+  onTransition?: (context: OrderContext) => Promise<void>;
+}
+
+interface OrderContext {
+  orderId: string;
+  userId: string;
+  totalAmount: number;
+  paidAmount: number;
+  refundedAmount: number;
+  items: { productId: string; quantity: number; price: number }[];
+  metadata: Record<string, unknown>;
+}
+
+interface TransitionResult {
+  success: boolean;
+  previousStatus: OrderStatus;
+  newStatus: OrderStatus;
+  error?: string;
+}
+
+const transitions: Record<OrderEvent, Transition> = {
+  CONFIRM: {
+    from: ["pending"],
+    to: "confirmed",
+    guard: (ctx) => ctx.paidAmount >= ctx.totalAmount,
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId} confirmed. Sending confirmation email.`);
+    },
+  },
+  START_PROCESSING: {
+    from: ["confirmed"],
+    to: "processing",
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId} moved to processing.`);
+    },
+  },
+  SHIP: {
+    from: ["processing"],
+    to: "shipped",
+    guard: (ctx) => ctx.items.length > 0,
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId} shipped. Sending tracking info.`);
+    },
+  },
+  DELIVER: {
+    from: ["shipped"],
+    to: "delivered",
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId} delivered.`);
+    },
+  },
+  CANCEL: {
+    from: ["pending", "confirmed", "processing"],
+    to: "cancelled",
+    onTransition: async (ctx) => {
+      if (ctx.paidAmount > 0) {
+        console.log(`Order ${ctx.orderId} cancelled. Initiating refund of ${ctx.paidAmount}.`);
+      }
+    },
+  },
+  REQUEST_REFUND: {
+    from: ["delivered"],
+    to: "refund_requested",
+    guard: (ctx) => {
+      const deliveryDate = ctx.metadata.deliveredAt as string | undefined;
+      if (!deliveryDate) return false;
+      const daysSinceDelivery = (Date.now() - new Date(deliveryDate).getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceDelivery <= 30;
+    },
+  },
+  APPROVE_REFUND: {
+    from: ["refund_requested"],
+    to: "refunded",
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId}: Full refund of ${ctx.paidAmount} approved.`);
+    },
+  },
+  PARTIAL_REFUND: {
+    from: ["refund_requested", "delivered"],
+    to: "partially_refunded",
+    guard: (ctx) => {
+      const refundAmount = ctx.metadata.requestedRefundAmount as number | undefined;
+      return refundAmount !== undefined && refundAmount > 0 && refundAmount < ctx.paidAmount;
+    },
+  },
+  FAIL: {
+    from: ["pending", "confirmed", "processing"],
+    to: "failed",
+    onTransition: async (ctx) => {
+      console.log(`Order ${ctx.orderId} failed. Reason: ${ctx.metadata.failureReason}`);
+    },
+  },
+};
+
+export class OrderStateMachine {
+  private status: OrderStatus;
+  private context: OrderContext;
+  private history: { from: OrderStatus; to: OrderStatus; event: OrderEvent; timestamp: Date }[] = [];
+
+  constructor(initialStatus: OrderStatus, context: OrderContext) {
+    this.status = initialStatus;
+    this.context = context;
+  }
+
+  getStatus(): OrderStatus {
+    return this.status;
+  }
+
+  getHistory() {
+    return [...this.history];
+  }
+
+  getAvailableEvents(): OrderEvent[] {
+    return (Object.entries(transitions) as [OrderEvent, Transition][])
+      .filter(([, transition]) => {
+        if (!transition.from.includes(this.status)) return false;
+        if (transition.guard && !transition.guard(this.context)) return false;
+        return true;
+      })
+      .map(([event]) => event);
+  }
+
+  canTransition(event: OrderEvent): boolean {
+    const transition = transitions[event];
+    if (!transition) return false;
+    if (!transition.from.includes(this.status)) return false;
+    if (transition.guard && !transition.guard(this.context)) return false;
+    return true;
+  }
+
+  async transition(event: OrderEvent): Promise<TransitionResult> {
+    const transition = transitions[event];
+    const previousStatus = this.status;
+
+    if (!transition) {
+      return { success: false, previousStatus, newStatus: this.status, error: `Unknown event: ${event}` };
+    }
+
+    if (!transition.from.includes(this.status)) {
+      return {
+        success: false,
+        previousStatus,
+        newStatus: this.status,
+        error: `Cannot ${event} from status ${this.status}. Allowed from: ${transition.from.join(", ")}`,
+      };
+    }
+
+    if (transition.guard && !transition.guard(this.context)) {
+      return {
+        success: false,
+        previousStatus,
+        newStatus: this.status,
+        error: `Guard condition failed for event ${event}`,
+      };
+    }
+
+    this.status = transition.to;
+    this.history.push({ from: previousStatus, to: transition.to, event, timestamp: new Date() });
+
+    if (transition.onTransition) {
+      await transition.onTransition(this.context);
+    }
+
+    return { success: true, previousStatus, newStatus: this.status };
+  }
+
+  updateContext(updates: Partial<OrderContext>): void {
+    this.context = { ...this.context, ...updates };
+  }
+}
+```
+
+### Errori Comuni da Evitare
+- **Missing guard conditions**: Sempre validare le pre-condizioni prima della transizione
+- **No audit trail**: Ogni transizione deve essere loggata con timestamp e attore
+- **Direct status updates**: Mai modificare lo status direttamente, sempre tramite la state machine

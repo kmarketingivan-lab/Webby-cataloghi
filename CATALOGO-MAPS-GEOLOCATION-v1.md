@@ -2138,3 +2138,763 @@ Il codice include:
 - Pattern per SSR e lazy loading
 - Error handling completo
 - Type safety per tutte le API
+
+---
+
+## GEOCODING-SERVICE
+
+### Panoramica
+Servizio di geocoding completo con forward/reverse geocoding, autocomplete per indirizzi, caching e rate limiting.
+
+### Implementazione Completa
+
+```typescript
+// lib/maps/geocoding-service.ts
+
+interface GeocodingResult {
+  placeId: string;
+  formattedAddress: string;
+  coordinates: { lat: number; lng: number };
+  components: {
+    street?: string;
+    streetNumber?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
+  types: string[];
+  confidence: number;
+}
+
+interface AutocompleteResult {
+  placeId: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+  types: string[];
+}
+
+interface GeocodingOptions {
+  language?: string;
+  region?: string;
+  bounds?: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+}
+
+export class GeocodingService {
+  private apiKey: string;
+  private cache: Map<string, { result: GeocodingResult[]; timestamp: number }> = new Map();
+  private cacheTTL = 24 * 60 * 60 * 1000; // 24 hours
+  private requestQueue: Promise<unknown> = Promise.resolve();
+  private minRequestInterval = 100; // ms between requests
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  async forwardGeocode(address: string, options: GeocodingOptions = {}): Promise<GeocodingResult[]> {
+    const cacheKey = `fwd:${address}:${JSON.stringify(options)}`;
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
+
+    const params = new URLSearchParams({
+      address,
+      key: this.apiKey,
+      ...(options.language && { language: options.language }),
+      ...(options.region && { region: options.region }),
+    });
+
+    if (options.bounds) {
+      params.set(
+        "bounds",
+        `${options.bounds.south},${options.bounds.west}|${options.bounds.north},${options.bounds.east}`
+      );
+    }
+
+    const data = await this.throttledFetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+    );
+
+    const results: GeocodingResult[] = (data.results ?? []).map((r: any) => ({
+      placeId: r.place_id,
+      formattedAddress: r.formatted_address,
+      coordinates: {
+        lat: r.geometry.location.lat,
+        lng: r.geometry.location.lng,
+      },
+      components: this.parseAddressComponents(r.address_components),
+      types: r.types,
+      confidence: this.calculateConfidence(r.geometry.location_type),
+    }));
+
+    this.setCache(cacheKey, results);
+    return results;
+  }
+
+  async reverseGeocode(lat: number, lng: number, options: GeocodingOptions = {}): Promise<GeocodingResult[]> {
+    const cacheKey = `rev:${lat.toFixed(6)},${lng.toFixed(6)}:${JSON.stringify(options)}`;
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
+
+    const params = new URLSearchParams({
+      latlng: `${lat},${lng}`,
+      key: this.apiKey,
+      ...(options.language && { language: options.language }),
+    });
+
+    const data = await this.throttledFetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+    );
+
+    const results: GeocodingResult[] = (data.results ?? []).map((r: any) => ({
+      placeId: r.place_id,
+      formattedAddress: r.formatted_address,
+      coordinates: { lat, lng },
+      components: this.parseAddressComponents(r.address_components),
+      types: r.types,
+      confidence: this.calculateConfidence(r.geometry.location_type),
+    }));
+
+    this.setCache(cacheKey, results);
+    return results;
+  }
+
+  async autocomplete(input: string, options: GeocodingOptions & { sessionToken?: string } = {}): Promise<AutocompleteResult[]> {
+    if (input.length < 3) return [];
+
+    const params = new URLSearchParams({
+      input,
+      key: this.apiKey,
+      ...(options.language && { language: options.language }),
+      ...(options.sessionToken && { sessiontoken: options.sessionToken }),
+    });
+
+    if (options.bounds) {
+      const { north, south, east, west } = options.bounds;
+      params.set("location", `${(north + south) / 2},${(east + west) / 2}`);
+      params.set("radius", "50000");
+    }
+
+    const data = await this.throttledFetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params}`
+    );
+
+    return (data.predictions ?? []).map((p: any) => ({
+      placeId: p.place_id,
+      description: p.description,
+      mainText: p.structured_formatting?.main_text ?? p.description,
+      secondaryText: p.structured_formatting?.secondary_text ?? "",
+      types: p.types,
+    }));
+  }
+
+  private parseAddressComponents(components: any[]): GeocodingResult["components"] {
+    const result: GeocodingResult["components"] = {};
+    for (const component of components ?? []) {
+      const types: string[] = component.types;
+      if (types.includes("route")) result.street = component.long_name;
+      if (types.includes("street_number")) result.streetNumber = component.long_name;
+      if (types.includes("locality")) result.city = component.long_name;
+      if (types.includes("administrative_area_level_1")) result.state = component.short_name;
+      if (types.includes("country")) result.country = component.long_name;
+      if (types.includes("postal_code")) result.postalCode = component.long_name;
+    }
+    return result;
+  }
+
+  private calculateConfidence(locationType: string): number {
+    const confidenceMap: Record<string, number> = {
+      ROOFTOP: 1.0,
+      RANGE_INTERPOLATED: 0.8,
+      GEOMETRIC_CENTER: 0.6,
+      APPROXIMATE: 0.4,
+    };
+    return confidenceMap[locationType] ?? 0.3;
+  }
+
+  private getFromCache(key: string): GeocodingResult[] | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.cacheTTL) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.result;
+  }
+
+  private setCache(key: string, result: GeocodingResult[]): void {
+    this.cache.set(key, { result, timestamp: Date.now() });
+    // Limit cache size
+    if (this.cache.size > 1000) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest) this.cache.delete(oldest);
+    }
+  }
+
+  private async throttledFetch(url: string): Promise<any> {
+    this.requestQueue = this.requestQueue.then(
+      () => new Promise((resolve) => setTimeout(resolve, this.minRequestInterval))
+    );
+    await this.requestQueue;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Geocoding API error: ${response.status}`);
+    }
+    return response.json();
+  }
+}
+```
+
+```typescript
+// components/maps/address-autocomplete.tsx
+"use client";
+
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { MapPin, Loader2 } from "lucide-react";
+
+interface AddressAutocompleteProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (result: {
+    placeId: string;
+    address: string;
+    lat: number;
+    lng: number;
+  }) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+}
+
+interface Prediction {
+  placeId: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+}
+
+export function AddressAutocomplete({
+  value,
+  onChange,
+  onSelect,
+  placeholder = "Search address...",
+  className,
+  disabled,
+}: AddressAutocompleteProps) {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchPredictions = useCallback(async (input: string) => {
+    if (input.length < 3) {
+      setPredictions([]);
+      setIsOpen(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/maps/autocomplete?input=${encodeURIComponent(input)}`);
+      const data = await res.json();
+      setPredictions(data.predictions ?? []);
+      setIsOpen(true);
+    } catch {
+      setPredictions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleInputChange = useCallback(
+    (newValue: string) => {
+      onChange(newValue);
+      setSelectedIndex(-1);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchPredictions(newValue), 300);
+    },
+    [onChange, fetchPredictions]
+  );
+
+  const handleSelect = useCallback(
+    async (prediction: Prediction) => {
+      onChange(prediction.description);
+      setIsOpen(false);
+      setPredictions([]);
+
+      try {
+        const res = await fetch(`/api/maps/place-details?placeId=${prediction.placeId}`);
+        const data = await res.json();
+        onSelect({
+          placeId: prediction.placeId,
+          address: prediction.description,
+          lat: data.lat,
+          lng: data.lng,
+        });
+      } catch {
+        onSelect({
+          placeId: prediction.placeId,
+          address: prediction.description,
+          lat: 0,
+          lng: 0,
+        });
+      }
+    },
+    [onChange, onSelect]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isOpen) return;
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => Math.min(prev + 1, predictions.length - 1));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => Math.max(prev - 1, 0));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (selectedIndex >= 0 && predictions[selectedIndex]) {
+            handleSelect(predictions[selectedIndex]);
+          }
+          break;
+        case "Escape":
+          setIsOpen(false);
+          break;
+      }
+    },
+    [isOpen, selectedIndex, predictions, handleSelect]
+  );
+
+  return (
+    <div ref={wrapperRef} className={cn("relative", className)}>
+      <div className="relative">
+        <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={value}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => predictions.length > 0 && setIsOpen(true)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="pl-9"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-autocomplete="list"
+          aria-controls="address-listbox"
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        )}
+      </div>
+      {isOpen && predictions.length > 0 && (
+        <ul
+          id="address-listbox"
+          role="listbox"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
+        >
+          {predictions.map((prediction, index) => (
+            <li
+              key={prediction.placeId}
+              role="option"
+              aria-selected={index === selectedIndex}
+              className={cn(
+                "flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm",
+                index === selectedIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+              )}
+              onClick={() => handleSelect(prediction)}
+              onMouseEnter={() => setSelectedIndex(index)}
+            >
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <div className="overflow-hidden">
+                <p className="truncate font-medium">{prediction.mainText}</p>
+                <p className="truncate text-xs text-muted-foreground">{prediction.secondaryText}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **No debounce on autocomplete**: Sempre usare debounce (300ms) per evitare troppe richieste API
+- **Missing ARIA attributes**: Il combobox deve avere `role="combobox"`, `aria-expanded`, `aria-autocomplete`
+- **No caching**: Il geocoding e costoso, cachare i risultati per almeno 24 ore
+- **Missing rate limiting**: Le API di geocoding hanno limiti, implementare throttling
+
+### Checklist di Verifica
+- [ ] Il servizio ha cache con TTL configurabile
+- [ ] Le richieste API sono throttled per rispettare i rate limit
+- [ ] L'autocomplete ha debounce di 300ms
+- [ ] Il dropdown e completamente navigabile da tastiera
+- [ ] Il reverse geocoding arrotonda le coordinate per migliorare il cache hit
+
+
+---
+
+## MAP-CLUSTERING-MARKERS
+
+### Panoramica
+Sistema di clustering per marker sulla mappa con performance ottimizzata, zoom-based clustering e info window personalizzabili.
+
+### Implementazione Completa
+
+```typescript
+// lib/maps/marker-cluster.ts
+
+interface GeoPoint {
+  id: string;
+  lat: number;
+  lng: number;
+  data: Record<string, unknown>;
+}
+
+interface Cluster {
+  id: string;
+  center: { lat: number; lng: number };
+  points: GeoPoint[];
+  bounds: { north: number; south: number; east: number; west: number };
+}
+
+interface ClusterOptions {
+  radius: number;
+  minZoom: number;
+  maxZoom: number;
+  minPoints: number;
+}
+
+export class MarkerClusterer {
+  private points: GeoPoint[] = [];
+  private options: ClusterOptions;
+  private clusterCache: Map<number, Cluster[]> = new Map();
+
+  constructor(options: Partial<ClusterOptions> = {}) {
+    this.options = {
+      radius: 60,
+      minZoom: 0,
+      maxZoom: 16,
+      minPoints: 2,
+      ...options,
+    };
+  }
+
+  load(points: GeoPoint[]): void {
+    this.points = points;
+    this.clusterCache.clear();
+  }
+
+  getClusters(bounds: { north: number; south: number; east: number; west: number }, zoom: number): (Cluster | GeoPoint)[] {
+    const roundedZoom = Math.round(zoom);
+    const cacheKey = roundedZoom;
+
+    if (!this.clusterCache.has(cacheKey)) {
+      this.clusterCache.set(cacheKey, this.computeClusters(roundedZoom));
+    }
+
+    const clusters = this.clusterCache.get(cacheKey)!;
+    const result: (Cluster | GeoPoint)[] = [];
+
+    for (const cluster of clusters) {
+      if (this.isInBounds(cluster.center, bounds)) {
+        if (cluster.points.length < this.options.minPoints) {
+          result.push(...cluster.points);
+        } else {
+          result.push(cluster);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private computeClusters(zoom: number): Cluster[] {
+    if (zoom >= this.options.maxZoom) {
+      return this.points.map((p) => ({
+        id: 'cluster-' + p.id,
+        center: { lat: p.lat, lng: p.lng },
+        points: [p],
+        bounds: { north: p.lat, south: p.lat, east: p.lng, west: p.lng },
+      }));
+    }
+
+    const radius = this.options.radius / (256 * Math.pow(2, zoom));
+    const visited = new Set<string>();
+    const clusters: Cluster[] = [];
+
+    for (const point of this.points) {
+      if (visited.has(point.id)) continue;
+      visited.add(point.id);
+
+      const nearby: GeoPoint[] = [point];
+      for (const other of this.points) {
+        if (visited.has(other.id)) continue;
+        const dist = this.distance(point, other);
+        if (dist <= radius) {
+          nearby.push(other);
+          visited.add(other.id);
+        }
+      }
+
+      const center = this.getCenter(nearby);
+      const bounds = this.getBounds(nearby);
+      clusters.push({
+        id: 'cluster-' + point.id + '-' + nearby.length,
+        center,
+        points: nearby,
+        bounds,
+      });
+    }
+
+    return clusters;
+  }
+
+  private distance(a: GeoPoint, b: GeoPoint): number {
+    const dx = a.lng - b.lng;
+    const dy = a.lat - b.lat;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  private getCenter(points: GeoPoint[]): { lat: number; lng: number } {
+    let lat = 0;
+    let lng = 0;
+    for (const p of points) {
+      lat += p.lat;
+      lng += p.lng;
+    }
+    return { lat: lat / points.length, lng: lng / points.length };
+  }
+
+  private getBounds(points: GeoPoint[]) {
+    let north = -Infinity, south = Infinity, east = -Infinity, west = Infinity;
+    for (const p of points) {
+      if (p.lat > north) north = p.lat;
+      if (p.lat < south) south = p.lat;
+      if (p.lng > east) east = p.lng;
+      if (p.lng < west) west = p.lng;
+    }
+    return { north, south, east, west };
+  }
+
+  private isInBounds(point: { lat: number; lng: number }, bounds: { north: number; south: number; east: number; west: number }): boolean {
+    return (
+      point.lat <= bounds.north &&
+      point.lat >= bounds.south &&
+      point.lng <= bounds.east &&
+      point.lng >= bounds.west
+    );
+  }
+}
+```
+
+```typescript
+// components/maps/cluster-map.tsx
+"use client";
+
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { MarkerClusterer } from "@/lib/maps/marker-cluster";
+
+interface MapPoint {
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  description?: string;
+  category?: string;
+  icon?: string;
+}
+
+interface ClusterMapProps {
+  points: MapPoint[];
+  center?: { lat: number; lng: number };
+  zoom?: number;
+  onPointClick?: (point: MapPoint) => void;
+  onClusterClick?: (points: MapPoint[], center: { lat: number; lng: number }) => void;
+  className?: string;
+  height?: string;
+  clusterRadius?: number;
+}
+
+export function ClusterMap({
+  points,
+  center = { lat: 41.9028, lng: 12.4964 },
+  zoom = 6,
+  onPointClick,
+  onClusterClick,
+  className,
+  height = "400px",
+  clusterRadius = 60,
+}: ClusterMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map>();
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const [selectedPoint, setSelectedPoint] = useState<MapPoint | null>(null);
+  const [currentZoom, setCurrentZoom] = useState(zoom);
+  const [currentBounds, setCurrentBounds] = useState<google.maps.LatLngBounds | null>(null);
+
+  const clusterer = useMemo(() => {
+    const mc = new MarkerClusterer({ radius: clusterRadius });
+    mc.load(
+      points.map((p) => ({
+        id: p.id,
+        lat: p.lat,
+        lng: p.lng,
+        data: p as unknown as Record<string, unknown>,
+      }))
+    );
+    return mc;
+  }, [points, clusterRadius]);
+
+  const updateMarkers = useCallback(() => {
+    if (!googleMapRef.current || !currentBounds) return;
+
+    // Clear existing markers
+    for (const marker of markersRef.current) {
+      marker.setMap(null);
+    }
+    markersRef.current = [];
+
+    const bounds = {
+      north: currentBounds.getNorthEast().lat(),
+      south: currentBounds.getSouthWest().lat(),
+      east: currentBounds.getNorthEast().lng(),
+      west: currentBounds.getSouthWest().lng(),
+    };
+
+    const clusters = clusterer.getClusters(bounds, currentZoom);
+    const newMarkers: google.maps.Marker[] = [];
+
+    for (const item of clusters) {
+      if ("points" in item && item.points.length > 1) {
+        // Cluster marker
+        const marker = new google.maps.Marker({
+          position: item.center,
+          map: googleMapRef.current,
+          label: {
+            text: String(item.points.length),
+            color: "white",
+            fontWeight: "bold",
+          },
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 20 + Math.min(item.points.length, 50),
+            fillColor: "#4285F4",
+            fillOpacity: 0.8,
+            strokeColor: "#ffffff",
+            strokeWeight: 2,
+          },
+        });
+
+        marker.addListener("click", () => {
+          const mapPoints = item.points.map((p) => p.data as unknown as MapPoint);
+          if (onClusterClick) {
+            onClusterClick(mapPoints, item.center);
+          } else {
+            googleMapRef.current?.fitBounds(
+              new google.maps.LatLngBounds(
+                { lat: item.bounds.south, lng: item.bounds.west },
+                { lat: item.bounds.north, lng: item.bounds.east }
+              )
+            );
+          }
+        });
+
+        newMarkers.push(marker);
+      } else {
+        // Single point marker
+        const point = "points" in item ? item.points[0] : item;
+        const mapPoint = (point.data ?? point) as unknown as MapPoint;
+        const marker = new google.maps.Marker({
+          position: { lat: point.lat, lng: point.lng },
+          map: googleMapRef.current,
+          title: mapPoint.title,
+        });
+
+        marker.addListener("click", () => {
+          setSelectedPoint(mapPoint);
+          onPointClick?.(mapPoint);
+        });
+
+        newMarkers.push(marker);
+      }
+    }
+
+    markersRef.current = newMarkers;
+  }, [clusterer, currentZoom, currentBounds, onPointClick, onClusterClick]);
+
+  useEffect(() => {
+    updateMarkers();
+  }, [updateMarkers]);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || googleMapRef.current) return;
+
+    const map = new google.maps.Map(mapRef.current, {
+      center,
+      zoom,
+      mapTypeControl: false,
+      streetViewControl: false,
+    });
+
+    map.addListener("idle", () => {
+      setCurrentZoom(map.getZoom() ?? zoom);
+      setCurrentBounds(map.getBounds() ?? null);
+    });
+
+    googleMapRef.current = map;
+  }, [center, zoom]);
+
+  return (
+    <div className={cn("relative overflow-hidden rounded-lg border", className)}>
+      <div ref={mapRef} style={{ height, width: "100%" }} />
+      {selectedPoint && (
+        <div className="absolute bottom-4 left-4 right-4 rounded-lg border bg-background p-4 shadow-lg md:left-auto md:w-80">
+          <h3 className="font-semibold">{selectedPoint.title}</h3>
+          {selectedPoint.description && (
+            <p className="mt-1 text-sm text-muted-foreground">{selectedPoint.description}</p>
+          )}
+          <button
+            onClick={() => setSelectedPoint(null)}
+            className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **No cluster cache**: Il clustering e costoso, usare cache per zoom level
+- **Markers non rimossi**: Sempre rimuovere i marker precedenti prima di aggiungere i nuovi
+- **Cluster senza zoom-in on click**: Permettere sempre di zoomare nei cluster
+- **Too many DOM elements**: Con migliaia di punti, il clustering e obbligatorio

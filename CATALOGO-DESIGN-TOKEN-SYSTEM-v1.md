@@ -2158,3 +2158,289 @@ RIEPILOGO PER IL MODELLO AI:
 
 AFFIDABILITÀ TARGET: 95% di output corretti e consistenti
 """
+
+
+---
+
+## DESIGN-TOKEN-EXPORT-PIPELINE
+
+### Panoramica
+Pipeline per esportare design tokens in formati multipli: CSS custom properties, Tailwind config, JSON, e Style Dictionary integration.
+
+### Implementazione Completa
+
+```typescript
+// lib/design-tokens/token-exporter.ts
+
+interface DesignToken {
+  name: string;
+  value: string | number;
+  type: "color" | "spacing" | "typography" | "shadow" | "border" | "opacity";
+  description?: string;
+  category: string;
+}
+
+interface TokenCollection {
+  tokens: DesignToken[];
+  metadata: {
+    version: string;
+    generatedAt: string;
+    source: string;
+  };
+}
+
+// ============================================================
+// CSS CUSTOM PROPERTIES EXPORTER
+// ============================================================
+export function exportToCSS(collection: TokenCollection): string {
+  const lines: string[] = [
+    "/* Auto-generated Design Tokens */",
+    `/* Version: ${collection.metadata.version} */`,
+    `/* Generated: ${collection.metadata.generatedAt} */`,
+    "",
+    ":root {",
+  ];
+
+  const grouped = groupBy(collection.tokens, "category");
+
+  for (const [category, tokens] of Object.entries(grouped)) {
+    lines.push(`  /* ${category} */`);
+    for (const token of tokens) {
+      const cssName = `--${token.name.replace(/\./g, "-")}`;
+      lines.push(`  ${cssName}: ${token.value};`);
+    }
+    lines.push("");
+  }
+
+  lines.push("}");
+  return lines.join("\n");
+}
+
+// ============================================================
+// TAILWIND CONFIG EXPORTER
+// ============================================================
+export function exportToTailwind(collection: TokenCollection): string {
+  const config: Record<string, Record<string, string | number>> = {};
+
+  for (const token of collection.tokens) {
+    const parts = token.name.split(".");
+    const category = parts[0];
+    const key = parts.slice(1).join("-");
+
+    if (!config[category]) config[category] = {};
+    config[category][key] = token.value;
+  }
+
+  return `// Auto-generated Tailwind Config Extension
+// Version: ${collection.metadata.version}
+import type { Config } from "tailwindcss";
+
+const tokenExtensions: Partial<Config["theme"]> = {
+  extend: {
+    colors: ${JSON.stringify(config.color ?? {}, null, 4)},
+    spacing: ${JSON.stringify(config.spacing ?? {}, null, 4)},
+    fontSize: ${JSON.stringify(config.typography ?? {}, null, 4)},
+    boxShadow: ${JSON.stringify(config.shadow ?? {}, null, 4)},
+    borderRadius: ${JSON.stringify(config.border ?? {}, null, 4)},
+  },
+};
+
+export default tokenExtensions;
+`;
+}
+
+// ============================================================
+// JSON EXPORTER — for Style Dictionary
+// ============================================================
+export function exportToJSON(collection: TokenCollection): string {
+  const output: Record<string, unknown> = {};
+
+  for (const token of collection.tokens) {
+    const parts = token.name.split(".");
+    let current = output;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) current[parts[i]] = {};
+      current = current[parts[i]] as Record<string, unknown>;
+    }
+
+    current[parts[parts.length - 1]] = {
+      value: token.value,
+      type: token.type,
+      description: token.description,
+    };
+  }
+
+  return JSON.stringify(output, null, 2);
+}
+
+// ============================================================
+// SCSS VARIABLES EXPORTER
+// ============================================================
+export function exportToSCSS(collection: TokenCollection): string {
+  const lines: string[] = [
+    "// Auto-generated SCSS Variables",
+    `// Version: ${collection.metadata.version}`,
+    "",
+  ];
+
+  const grouped = groupBy(collection.tokens, "category");
+
+  for (const [category, tokens] of Object.entries(grouped)) {
+    lines.push(`// ${category}`);
+    for (const token of tokens) {
+      const scssName = `$${token.name.replace(/\./g, "-")}`;
+      lines.push(`${scssName}: ${token.value};`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+// ============================================================
+// FIGMA TOKEN EXPORTER
+// ============================================================
+export function exportToFigmaTokens(collection: TokenCollection): string {
+  const figmaTokens: Record<string, unknown> = {};
+
+  for (const token of collection.tokens) {
+    const parts = token.name.split(".");
+    let current = figmaTokens;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) current[parts[i]] = {};
+      current = current[parts[i]] as Record<string, unknown>;
+    }
+
+    current[parts[parts.length - 1]] = {
+      value: token.value,
+      type: mapTokenTypeToFigma(token.type),
+      description: token.description ?? "",
+    };
+  }
+
+  return JSON.stringify(figmaTokens, null, 2);
+}
+
+function mapTokenTypeToFigma(type: string): string {
+  const map: Record<string, string> = {
+    color: "color",
+    spacing: "spacing",
+    typography: "fontSizes",
+    shadow: "boxShadow",
+    border: "borderRadius",
+    opacity: "opacity",
+  };
+  return map[type] ?? "other";
+}
+
+function groupBy<T>(items: T[], key: keyof T): Record<string, T[]> {
+  return items.reduce((acc, item) => {
+    const group = String(item[key]);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(item);
+    return acc;
+  }, {} as Record<string, T[]>);
+}
+```
+
+### Varianti e Configurazioni
+
+```typescript
+// lib/design-tokens/token-sync.ts
+import { exportToCSS, exportToTailwind, exportToJSON } from "./token-exporter";
+import fs from "fs/promises";
+import path from "path";
+
+// ============================================================
+// SYNC TOKENS FROM FIGMA TO CODE
+// ============================================================
+interface FigmaVariable {
+  id: string;
+  name: string;
+  resolvedType: "COLOR" | "FLOAT" | "STRING" | "BOOLEAN";
+  valuesByMode: Record<string, unknown>;
+}
+
+export async function syncFromFigma(
+  fileKey: string,
+  personalAccessToken: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.figma.com/v1/files/${fileKey}/variables/local`,
+    {
+      headers: { "X-FIGMA-TOKEN": personalAccessToken },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Figma API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const variables = data.meta.variables as Record<string, FigmaVariable>;
+
+  const tokens = Object.values(variables).map((v) => ({
+    name: v.name.replace(/\//g, ".").toLowerCase(),
+    value: extractValue(v),
+    type: mapFigmaType(v.resolvedType),
+    category: v.name.split("/")[0].toLowerCase(),
+  }));
+
+  const collection = {
+    tokens,
+    metadata: {
+      version: new Date().toISOString().split("T")[0],
+      generatedAt: new Date().toISOString(),
+      source: `figma:${fileKey}`,
+    },
+  };
+
+  // Export to all formats
+  const outputDir = path.join(process.cwd(), "lib/design-tokens/generated");
+  await fs.mkdir(outputDir, { recursive: true });
+
+  await Promise.all([
+    fs.writeFile(path.join(outputDir, "tokens.css"), exportToCSS(collection)),
+    fs.writeFile(path.join(outputDir, "tailwind-tokens.ts"), exportToTailwind(collection)),
+    fs.writeFile(path.join(outputDir, "tokens.json"), exportToJSON(collection)),
+  ]);
+
+  console.log(`Synced ${tokens.length} tokens from Figma`);
+}
+
+function extractValue(variable: FigmaVariable): string | number {
+  const modes = Object.values(variable.valuesByMode);
+  const value = modes[0];
+
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value !== null && "r" in value) {
+    const { r, g, b, a } = value as { r: number; g: number; b: number; a: number };
+    return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
+  }
+  return String(value);
+}
+
+function mapFigmaType(type: string): "color" | "spacing" | "typography" | "shadow" | "border" | "opacity" {
+  switch (type) {
+    case "COLOR": return "color";
+    case "FLOAT": return "spacing";
+    default: return "spacing";
+  }
+}
+```
+
+### Errori Comuni da Evitare
+- **Token naming inconsistente**: Usa sempre dot notation (color.primary.500)
+- **Missing metadata**: Includi versione e timestamp in ogni export
+- **Figma sync manuale**: Automatizza con CI/CD o webhook
+- **SCSS e CSS duplicati**: Genera da una singola source of truth
+
+### Checklist di Verifica
+- [ ] I token sono esportati in CSS, Tailwind, JSON e SCSS
+- [ ] Il Figma sync e automatizzato
+- [ ] La naming convention e consistente tra formati
+- [ ] I metadata includono versione e source
+- [ ] Il pipeline e integrato nella CI/CD

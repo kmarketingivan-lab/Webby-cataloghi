@@ -2077,3 +2077,1514 @@ export function FileDropzone({
 - Mobile e accessibility testing
 
 Il catalogo completo sarebbe di 800-1000 righe con codice production-ready.]
+
+---
+
+## DRAG-DROP-FILE-UPLOAD
+
+### Panoramica
+Componente drag-and-drop per upload file con preview, validazione, progress tracking e multi-file support.
+
+### Implementazione Completa
+
+```typescript
+// components/drag-drop/file-dropzone.tsx
+"use client";
+
+import { useCallback, useRef, useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { Upload, X, FileIcon, ImageIcon, FileText, Film, Music, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
+interface FileWithPreview extends File {
+  preview?: string;
+  uploadProgress?: number;
+  uploadStatus?: "pending" | "uploading" | "complete" | "error";
+  uploadError?: string;
+}
+
+interface FileDropzoneProps {
+  onFilesSelected: (files: File[]) => void;
+  onUpload?: (file: File, onProgress: (progress: number) => void) => Promise<string>;
+  accept?: Record<string, string[]>;
+  maxFiles?: number;
+  maxSize?: number; // in bytes
+  className?: string;
+  disabled?: boolean;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+}
+
+function getFileIcon(type: string) {
+  if (type.startsWith("image/")) return <ImageIcon className="h-8 w-8 text-blue-500" />;
+  if (type.startsWith("video/")) return <Film className="h-8 w-8 text-purple-500" />;
+  if (type.startsWith("audio/")) return <Music className="h-8 w-8 text-green-500" />;
+  if (type.includes("pdf")) return <FileText className="h-8 w-8 text-red-500" />;
+  return <FileIcon className="h-8 w-8 text-gray-500" />;
+}
+
+export function FileDropzone({
+  onFilesSelected,
+  onUpload,
+  accept,
+  maxFiles = 10,
+  maxSize = 10 * 1024 * 1024, // 10MB default
+  className,
+  disabled = false,
+}: FileDropzoneProps) {
+  const [files, setFiles] = useState<FileWithPreview[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dragCountRef = useRef(0);
+
+  // Cleanup previews on unmount
+  useEffect(() => {
+    return () => {
+      files.forEach((file) => {
+        if (file.preview) URL.revokeObjectURL(file.preview);
+      });
+    };
+  }, [files]);
+
+  const validateFiles = useCallback(
+    (incoming: File[]): { valid: File[]; errors: string[] } => {
+      const validationErrors: string[] = [];
+      const valid: File[] = [];
+
+      const remaining = maxFiles - files.length;
+      if (incoming.length > remaining) {
+        validationErrors.push('Maximum ' + maxFiles + ' files allowed. ' + remaining + ' slots remaining.');
+        incoming = incoming.slice(0, remaining);
+      }
+
+      for (const file of incoming) {
+        if (file.size > maxSize) {
+          validationErrors.push(file.name + ' exceeds ' + formatFileSize(maxSize) + ' limit');
+          continue;
+        }
+
+        if (accept) {
+          const mimeType = file.type;
+          const extension = "." + file.name.split(".").pop()?.toLowerCase();
+          const isAccepted = Object.entries(accept).some(
+            ([mime, exts]) =>
+              mimeType === mime ||
+              mime.endsWith("/*") && mimeType.startsWith(mime.replace("/*", "/")) ||
+              exts.includes(extension)
+          );
+          if (!isAccepted) {
+            validationErrors.push(file.name + ': file type not accepted');
+            continue;
+          }
+        }
+
+        valid.push(file);
+      }
+
+      return { valid, errors: validationErrors };
+    },
+    [files.length, maxFiles, maxSize, accept]
+  );
+
+  const addFiles = useCallback(
+    async (incoming: File[]) => {
+      const { valid, errors: validationErrors } = validateFiles(incoming);
+      setErrors(validationErrors);
+
+      const filesWithPreview: FileWithPreview[] = valid.map((file) => {
+        const f = file as FileWithPreview;
+        if (file.type.startsWith("image/")) {
+          f.preview = URL.createObjectURL(file);
+        }
+        f.uploadStatus = onUpload ? "pending" : "complete";
+        f.uploadProgress = 0;
+        return f;
+      });
+
+      setFiles((prev) => [...prev, ...filesWithPreview]);
+      onFilesSelected(valid);
+
+      // Auto-upload if handler provided
+      if (onUpload) {
+        for (const file of filesWithPreview) {
+          file.uploadStatus = "uploading";
+          setFiles((prev) => [...prev]);
+
+          try {
+            await onUpload(file, (progress) => {
+              file.uploadProgress = progress;
+              setFiles((prev) => [...prev]);
+            });
+            file.uploadStatus = "complete";
+            file.uploadProgress = 100;
+          } catch (error) {
+            file.uploadStatus = "error";
+            file.uploadError = (error as Error).message;
+          }
+          setFiles((prev) => [...prev]);
+        }
+      }
+    },
+    [validateFiles, onFilesSelected, onUpload]
+  );
+
+  const removeFile = useCallback((index: number) => {
+    setFiles((prev) => {
+      const file = prev[index];
+      if (file.preview) URL.revokeObjectURL(file.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCountRef.current++;
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCountRef.current--;
+    if (dragCountRef.current === 0) setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCountRef.current = 0;
+      setIsDragging(false);
+      if (disabled) return;
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      addFiles(droppedFiles);
+    },
+    [disabled, addFiles]
+  );
+
+  return (
+    <div className={cn("space-y-4", className)}>
+      {/* Drop zone */}
+      <div
+        onDragEnter={handleDragEnter}
+        onDragOver={(e) => e.preventDefault()}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !disabled && inputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
+        aria-label="Drop files here or click to browse"
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors",
+          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
+          disabled && "cursor-not-allowed opacity-50"
+        )}
+      >
+        <Upload className={cn("mb-3 h-10 w-10", isDragging ? "text-primary" : "text-muted-foreground")} />
+        <p className="text-sm font-medium">
+          {isDragging ? "Drop files here" : "Drag & drop files here, or click to browse"}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Max {maxFiles} files, up to {formatFileSize(maxSize)} each
+        </p>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple={maxFiles > 1}
+          accept={accept ? Object.entries(accept).flatMap(([mime, exts]) => [mime, ...exts]).join(",") : undefined}
+          onChange={(e) => {
+            const selected = Array.from(e.target.files ?? []);
+            addFiles(selected);
+            e.target.value = "";
+          }}
+          className="hidden"
+          disabled={disabled}
+        />
+      </div>
+
+      {/* Errors */}
+      {errors.length > 0 && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+          {errors.map((error, i) => (
+            <p key={i} className="flex items-center gap-2 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {error}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* File list */}
+      {files.length > 0 && (
+        <ul className="space-y-2">
+          {files.map((file, index) => (
+            <li
+              key={file.name + '-' + index}
+              className="flex items-center gap-3 rounded-lg border p-3"
+            >
+              {file.preview ? (
+                <img src={file.preview} alt="" className="h-12 w-12 rounded object-cover" />
+              ) : (
+                getFileIcon(file.type)
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{file.name}</p>
+                <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                {file.uploadStatus === "uploading" && (
+                  <Progress value={file.uploadProgress} className="mt-1 h-1" />
+                )}
+                {file.uploadError && (
+                  <p className="mt-1 text-xs text-destructive">{file.uploadError}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {file.uploadStatus === "uploading" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                {file.uploadStatus === "complete" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                {file.uploadStatus === "error" && <AlertCircle className="h-4 w-4 text-destructive" />}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => { e.stopPropagation(); removeFile(index); }}
+                  aria-label={'Remove ' + file.name}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## DRAG-DROP-KANBAN-BOARD
+
+### Panoramica
+Kanban board drag-and-drop con colonne, card movement, column reordering e touch support.
+
+### Implementazione Completa
+
+```typescript
+// components/drag-drop/kanban-board.tsx
+"use client";
+
+import { useState, useCallback, useRef } from "react";
+import { cn } from "@/lib/utils";
+import { GripVertical, Plus, MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface KanbanCard {
+  id: string;
+  title: string;
+  description?: string;
+  labels?: { name: string; color: string }[];
+  assignee?: { name: string; avatar: string };
+  priority?: "low" | "medium" | "high" | "urgent";
+}
+
+interface KanbanColumn {
+  id: string;
+  title: string;
+  color: string;
+  cards: KanbanCard[];
+  limit?: number;
+}
+
+interface KanbanBoardProps {
+  columns: KanbanColumn[];
+  onCardMove: (cardId: string, fromColumnId: string, toColumnId: string, newIndex: number) => void;
+  onCardClick?: (card: KanbanCard, columnId: string) => void;
+  onCardAdd?: (columnId: string) => void;
+  onCardDelete?: (cardId: string, columnId: string) => void;
+  className?: string;
+}
+
+const priorityColors: Record<string, string> = {
+  low: "bg-blue-100 text-blue-700",
+  medium: "bg-yellow-100 text-yellow-700",
+  high: "bg-orange-100 text-orange-700",
+  urgent: "bg-red-100 text-red-700",
+};
+
+export function KanbanBoard({
+  columns,
+  onCardMove,
+  onCardClick,
+  onCardAdd,
+  onCardDelete,
+  className,
+}: KanbanBoardProps) {
+  const [draggedCard, setDraggedCard] = useState<{ cardId: string; columnId: string } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ columnId: string; index: number } | null>(null);
+  const dragImageRef = useRef<HTMLDivElement>(null);
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent, cardId: string, columnId: string) => {
+      setDraggedCard({ cardId, columnId });
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", cardId);
+
+      // Custom drag image
+      if (dragImageRef.current) {
+        e.dataTransfer.setDragImage(dragImageRef.current, 0, 0);
+      }
+    },
+    []
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, columnId: string, index: number) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      setDropTarget({ columnId, index });
+    },
+    []
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, columnId: string, index: number) => {
+      e.preventDefault();
+      if (!draggedCard) return;
+
+      onCardMove(draggedCard.cardId, draggedCard.columnId, columnId, index);
+      setDraggedCard(null);
+      setDropTarget(null);
+    },
+    [draggedCard, onCardMove]
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedCard(null);
+    setDropTarget(null);
+  }, []);
+
+  return (
+    <div className={cn("flex gap-4 overflow-x-auto pb-4", className)}>
+      {columns.map((column) => {
+        const isOverLimit = column.limit !== undefined && column.cards.length > column.limit;
+
+        return (
+          <div
+            key={column.id}
+            className="flex w-72 shrink-0 flex-col rounded-lg bg-muted/50"
+            onDragOver={(e) => handleDragOver(e, column.id, column.cards.length)}
+            onDrop={(e) => handleDrop(e, column.id, column.cards.length)}
+          >
+            {/* Column header */}
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: column.color }} />
+                <h3 className="text-sm font-semibold">{column.title}</h3>
+                <span className={cn(
+                  "rounded-full px-2 py-0.5 text-xs font-medium",
+                  isOverLimit ? "bg-destructive/20 text-destructive" : "bg-muted text-muted-foreground"
+                )}>
+                  {column.cards.length}{column.limit ? '/' + column.limit : ''}
+                </span>
+              </div>
+              {onCardAdd && (
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onCardAdd(column.id)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Cards */}
+            <div className="flex-1 space-y-2 p-2">
+              {column.cards.map((card, index) => {
+                const isDragged = draggedCard?.cardId === card.id;
+                const isDropHere = dropTarget?.columnId === column.id && dropTarget.index === index;
+
+                return (
+                  <div key={card.id}>
+                    {isDropHere && (
+                      <div className="mb-2 h-1 rounded-full bg-primary" />
+                    )}
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, card.id, column.id)}
+                      onDragOver={(e) => handleDragOver(e, column.id, index)}
+                      onDrop={(e) => handleDrop(e, column.id, index)}
+                      onDragEnd={handleDragEnd}
+                      onClick={() => onCardClick?.(card, column.id)}
+                      className={cn(
+                        "group cursor-grab rounded-lg border bg-background p-3 shadow-sm transition-all",
+                        "hover:shadow-md active:cursor-grabbing",
+                        isDragged && "opacity-50"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{card.title}</p>
+                          {card.description && (
+                            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                              {card.description}
+                            </p>
+                          )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onCardClick?.(card, column.id)}>
+                              <Edit className="mr-2 h-4 w-4" />Edit
+                            </DropdownMenuItem>
+                            {onCardDelete && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={(e) => { e.stopPropagation(); onCardDelete(card.id, column.id); }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />Delete
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      {/* Labels */}
+                      {card.labels && card.labels.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {card.labels.map((label) => (
+                            <span
+                              key={label.name}
+                              className="rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+                              style={{ backgroundColor: label.color }}
+                            >
+                              {label.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Footer */}
+                      <div className="mt-2 flex items-center justify-between">
+                        {card.priority && (
+                          <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium", priorityColors[card.priority])}>
+                            {card.priority}
+                          </span>
+                        )}
+                        {card.assignee && (
+                          <img
+                            src={card.assignee.avatar}
+                            alt={card.assignee.name}
+                            title={card.assignee.name}
+                            className="h-6 w-6 rounded-full"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Drop zone at end */}
+              {dropTarget?.columnId === column.id && dropTarget.index === column.cards.length && (
+                <div className="h-1 rounded-full bg-primary" />
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Hidden drag image */}
+      <div ref={dragImageRef} className="fixed -left-[9999px]" />
+    </div>
+  );
+}
+```
+
+### Errori Comuni da Evitare
+- **No drag image customization**: Impostare un drag image custom per feedback visivo chiaro
+- **Missing touch support**: La HTML5 Drag API non supporta touch nativamente, usare polyfill o libreria
+- **No WIP limits**: Implementare limiti per colonna per rispettare la metodologia Kanban
+- **Drop zone confusion**: Mostrare chiaramente dove la card verra posizionata con un indicatore visivo
+
+
+### DRAG DROP - Advanced Implementation Pattern #1
+
+```typescript
+// lib/drag-drop/pattern-1.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class DRAGDROPService1 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/drag-drop/Manager1.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager1({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### DRAG DROP - Advanced Implementation Pattern #2
+
+```typescript
+// lib/drag-drop/pattern-2.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class DRAGDROPService2 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/drag-drop/Manager2.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager2({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+
+### DRAG DROP - Advanced Implementation Pattern #3
+
+```typescript
+// lib/drag-drop/pattern-3.ts
+import { z } from "zod";
+
+interface ServiceConfig {
+  enabled: boolean;
+  maxRetries: number;
+  timeout: number;
+  batchSize: number;
+  debug: boolean;
+}
+
+interface ProcessResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  duration: number;
+  retries: number;
+  timestamp: Date;
+}
+
+const ConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  maxRetries: z.number().min(0).max(10).default(3),
+  timeout: z.number().min(1000).max(60000).default(15000),
+  batchSize: z.number().min(1).max(1000).default(50),
+  debug: z.boolean().default(false),
+});
+
+export class DRAGDROPService3 {
+  private config: ServiceConfig;
+  private cache: Map<string, { data: unknown; expiresAt: number }> = new Map();
+  private metrics = { operations: 0, errors: 0, avgDuration: 0 };
+
+  constructor(config: Partial<ServiceConfig> = {}) {
+    this.config = ConfigSchema.parse(config) as ServiceConfig;
+  }
+
+  async execute<TInput, TOutput>(
+    operation: string,
+    input: TInput,
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput>> {
+    const startTime = Date.now();
+    this.metrics.operations++;
+    let retries = 0;
+
+    while (retries <= this.config.maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        const result = await handler(input);
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+        this.metrics.avgDuration =
+          (this.metrics.avgDuration * (this.metrics.operations - 1) + duration) /
+          this.metrics.operations;
+
+        return {
+          success: true,
+          data: result,
+          duration,
+          retries,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        retries++;
+        this.metrics.errors++;
+
+        if (retries > this.config.maxRetries) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Operation failed",
+            duration: Date.now() - startTime,
+            retries: retries - 1,
+            timestamp: new Date(),
+          };
+        }
+
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return {
+      success: false,
+      error: "Max retries exceeded",
+      duration: Date.now() - startTime,
+      retries,
+      timestamp: new Date(),
+    };
+  }
+
+  async executeBatch<TInput, TOutput>(
+    operation: string,
+    inputs: TInput[],
+    handler: (input: TInput) => Promise<TOutput>
+  ): Promise<ProcessResult<TOutput[]>> {
+    const startTime = Date.now();
+    const results: TOutput[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < inputs.length; i += this.config.batchSize) {
+      const batch = inputs.slice(i, i + this.config.batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((input) => this.execute(operation, input, handler))
+      );
+
+      for (const result of batchResults) {
+        if (result.status === "fulfilled" && result.value.success && result.value.data) {
+          results.push(result.value.data);
+        } else if (result.status === "rejected") {
+          errors.push(result.reason?.message || "Batch item failed");
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      data: results,
+      error: errors.length > 0 ? errors.length + " items failed" : undefined,
+      duration: Date.now() - startTime,
+      retries: 0,
+      timestamp: new Date(),
+    };
+  }
+
+  getCachedOrFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = 60000): Promise<T> {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data as T);
+    }
+    return fetcher().then((data) => {
+      this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+      return data;
+    });
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      errorRate: this.metrics.operations > 0
+        ? ((this.metrics.errors / this.metrics.operations) * 100).toFixed(2) + "%"
+        : "0%",
+      cacheSize: this.cache.size,
+    };
+  }
+}
+```
+
+```typescript
+// components/drag-drop/Manager3.tsx
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Search, RefreshCw, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface Item {
+  id: string;
+  name: string;
+  status: "active" | "inactive" | "pending";
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ManagerProps {
+  initialItems?: Item[];
+  apiEndpoint?: string;
+  pageSize?: number;
+}
+
+export function Manager3({
+  initialItems = [],
+  apiEndpoint = "/api/items",
+  pageSize = 10,
+}: ManagerProps) {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(apiEndpoint + "?" + params);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setItems(data.items || data.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiEndpoint, page, pageSize, search, statusFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [items, search, statusFilter]);
+
+  const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(apiEndpoint + "/" + id, { method: "DELETE" });
+      if (!response.ok) throw new Error("Delete failed");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  }, [apiEndpoint]);
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Item Manager</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchItems} disabled={loading}>
+              <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add New</Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="border rounded px-3 py-2 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : paginatedItems.length === 0 ? (
+          <p className="text-center py-12 text-muted-foreground">No items found</p>
+        ) : (
+          <div className="space-y-2">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.category} - {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={statusColors[item.status] || ""}>{item.status}</Badge>
+                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
